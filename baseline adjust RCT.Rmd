@@ -1,0 +1,206 @@
+---
+title: "Playing around with baseline adjusted vs. unadjusted RCT analysis"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(magrittr)
+library(janitor)
+```
+
+
+```{r}
+gen_RCT_dat <-
+  function(total_N,
+           baseline_SD,
+           mean_diff,
+           baseline_outcome_slope,
+           outcome_resid) {
+    tibble(
+      treat    = rbinom(total_N, 1, 0.5),
+      baseline = rnorm(total_N, 0, baseline_SD),
+      outcome  = mean_diff * treat +
+                 baseline_outcome_slope * baseline +
+                 rnorm(total_N, 0, outcome_resid)
+    )
+  }
+```
+
+
+
+```{r}
+get_ps <- function(mod) {
+  (mod %>% summary())$coefficients[,"Pr(>|t|)"]
+}
+
+confint_includes <- function(interval, true_val) {
+  stopifnot(nrow(interval) == 1)
+  
+  interval[1] <= true_val && true_val <= interval[2]
+}
+```
+
+
+```{r}
+analyse_sim <- function(dat, true_mean_diff) {
+  mod0 <- lm(outcome ~ treat, data = dat)
+  mod1 <- lm(outcome ~ treat + baseline, data = dat)
+  
+  descriptives <- dat %>%
+    group_by(treat) %>%
+    summarise(
+      mean_pre = mean(baseline),
+      mean_post = mean(outcome),
+      SD_pre = sd(baseline),
+      SD_post = sd(outcome),
+      n = n()
+    ) %>%
+    pivot_wider(names_from = treat,
+                values_from = mean_pre:n)
+  
+  mod_coefs <- tibble(
+    mod0_coef = coef(mod0)["treat"],
+    mod1_coef = coef(mod1)["treat"],
+    mod0_p    = get_ps(mod0)["treat"],
+    mod1_p    = get_ps(mod1)["treat"]
+  )  
+  
+  bind_cols(descriptives, mod_coefs) %>%
+    mutate(
+      baseline_diff = mean_pre_1 - mean_pre_0,
+      treat_group_prop = n_1 / (n_0 + n_1),
+      mod0_abs_error = abs(mod0_coef - true_mean_diff),
+      mod1_abs_error = abs(mod1_coef - true_mean_diff),
+      mod_error_diff = mod0_abs_error - mod1_abs_error,
+      mod0_includes_true = confint_includes(confint(mod0)["treat",],
+                                            true_mean_diff),
+      mod1_includes_true = confint_includes(confint(mod1)["treat",],
+                                            true_mean_diff)
+    )  
+}
+```
+
+
+```{r}
+run_sim <- function(total_N,
+                    baseline_SD,
+                    mean_diff,
+                    baseline_outcome_slope,
+                    outcome_resid,
+                    sims = 1000) {
+  1:sims %>%
+    map_dfr(
+      ~ gen_RCT_dat(
+        total_N,
+        baseline_SD,
+        mean_diff,
+        baseline_outcome_slope,
+        outcome_resid
+      ) %>%
+        analyse_sim(mean_diff)
+    )
+}
+```
+
+
+
+```{r}
+sim_results <-
+  run_sim(
+    total_N = 200,
+    baseline_SD = 1,
+    mean_diff = 0.5,
+    baseline_outcome_slope = 0.5,
+    outcome_resid = 1
+  )
+```
+
+
+```{r}
+sim_results %>%
+  summarise(
+    unadjusted_true_cov = mean(mod0_includes_true),
+    adjusted_true_cov = mean(mod1_includes_true),
+    unadjusted_significant = mean(mod0_p < .05),
+    adjusted_significant = mean(mod1_p < .05)
+  )
+```
+
+```{r}
+sim_results %>%
+  tabyl(mod0_includes_true, mod1_includes_true)
+```
+
+
+
+```{r dpi=300}
+sim_results %>%
+  ggplot(aes(abs(baseline_diff), mod_error_diff)) +
+  geom_point(alpha = 0.5) +
+  labs(x = "Absolute baseline imbalance",
+       y = "Unadjusted minus adjusted absolute error")
+```
+
+
+
+
+
+
+
+```{r}
+do_one_sim <- function(baseline_slope, diff, total_n) {
+  run_sim(
+    total_N = total_n,
+    baseline_SD = 1,
+    mean_diff = diff,
+    baseline_outcome_slope = baseline_slope,
+    outcome_resid = 1
+  ) %>%
+    summarise(
+      unadjusted_true_cov = mean(mod0_includes_true),
+      adjusted_true_cov = mean(mod1_includes_true),
+      unadjusted_significant = mean(mod0_p < .05),
+      adjusted_significant = mean(mod1_p < .05)
+    )
+}
+```
+
+```{r}
+sim_setup <- expand.grid(
+  baseline_slope = seq(0, 2, 0.5),
+  diff = c(0, 0.25, 0.5),
+  total_n = c(50, 100, 200, 300)
+)
+```
+
+```{r}
+results <- pmap_dfr(sim_setup, do_one_sim)
+results_by_param <- bind_cols(sim_setup, results) %>%
+  arrange(diff, total_n, baseline_slope)
+```
+
+```{r}
+View(results_by_param)
+```
+
+
+```{r fig.height=6, fig.width=8, dpi=300, paged.print=TRUE}
+results_by_param %>%
+  pivot_longer(cols = ends_with("significant")) %>%
+  mutate(name = recode(name,
+    adjusted_significant = "Adjusted",
+    unadjusted_significant = "Unadjusted")) %>%
+  ggplot(aes(baseline_slope, value, colour = name)) +
+  geom_line() +
+  geom_point() +
+  facet_grid(cols = vars(diff), rows = vars(total_n)) +
+  labs(x = "True baseline slope",
+       y = "Proportion with p < .05",
+       colour = "Model") +
+  theme(panel.spacing = unit(1, "lines"))
+```
+
+
+
+
