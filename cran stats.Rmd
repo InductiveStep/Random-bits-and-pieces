@@ -46,15 +46,14 @@ match_packages <-
     "MatchIt",
     "twang",
     "PSweight",
-    "ipw",
-    "causalweight"
+    "cem"
   ))
 ```
 
 
 ```{r}
 match_packages %>%
-  filter(start <= as.Date("2021-02-01")) %>%
+  filter(start <= as.Date("2021-03-01")) %>%
   mutate(label = if_else(start == max(start),
                          as.character(package),
                          NA_character_)) %>%
