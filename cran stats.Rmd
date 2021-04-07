@@ -1,0 +1,76 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(dlstats)
+library(ggrepel)
+```
+
+
+```{r}
+pack_stats <-
+  cran_stats(c("lme4", "nlme", "sem", "lavaan", "blme"))
+```
+
+
+```{r dpi = 300}
+pack_stats %>%
+  filter(start < as.Date("2021-01-01")) %>%
+  mutate(label = if_else(start == max(start),
+                         as.character(package),
+                         NA_character_)
+         ) %>%
+  ggplot(aes(
+    x = start,
+    y = downloads,
+    colour = package,
+    label = label
+  )) +
+  geom_smooth(se = FALSE) +
+  geom_point() +
+  scale_y_continuous(labels = scales::comma) +
+  labs(x = "Date", y = "Downloads", colour = "Package") +
+  geom_label_repel(na.rm = TRUE, segment.colour = NA) +
+  theme(legend.position = "none")
+```
+
+
+
+```{r}
+match_packages <-
+  cran_stats(c(
+    "Matching",
+    "MatchIt",
+    "twang",
+    "PSweight",
+    "ipw",
+    "causalweight"
+  ))
+```
+
+
+```{r}
+match_packages %>%
+  filter(start <= as.Date("2021-02-01")) %>%
+  mutate(label = if_else(start == max(start),
+                         as.character(package),
+                         NA_character_)) %>%
+  ggplot(aes(
+    x = start,
+    y = downloads,
+    colour = package,
+    label = label
+  )) +
+  geom_smooth(se = FALSE) +
+  geom_point() +
+  scale_y_continuous(labels = scales::comma) +
+  labs(x = "Date", y = "Downloads", colour = "Package") +
+  geom_label_repel(na.rm = TRUE, segment.colour = NA) +
+  theme(legend.position = "none")
+```
+
+
+
