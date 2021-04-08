@@ -56,7 +56,7 @@ match_packages %>%
   filter(start <= as.Date("2021-03-01")) %>%
   mutate(label = if_else(start == max(start),
                          as.character(package),
-                         NA_character_)) %>%
+                         "")) %>%
   ggplot(aes(
     x = start,
     y = downloads,
@@ -67,8 +67,9 @@ match_packages %>%
   geom_point() +
   scale_y_continuous(labels = scales::comma) +
   labs(x = "Date", y = "Downloads", colour = "Package") +
-  geom_label_repel(na.rm = TRUE, segment.colour = NA) +
-  theme(legend.position = "none")
+  geom_label_repel(segment.colour = NA, point.size = NA, nudge_x = 200, direction = "y") +
+  theme(legend.position = "none") +
+  scale_x_date(expand = expansion(mult = 0.1))
 ```
 
 
