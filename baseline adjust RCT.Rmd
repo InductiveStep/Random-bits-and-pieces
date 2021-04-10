@@ -1,5 +1,6 @@
 ---
 title: "Playing around with baseline adjusted vs. unadjusted RCT analysis"
+author: Andi Fugard
 output: html_notebook
 ---
 
@@ -20,6 +21,7 @@ gen_RCT_dat <-
     tibble(
       treat    = rbinom(total_N, 1, 0.5),
       baseline = rnorm(total_N, 0, baseline_SD),
+      uncorcov = rnorm(total_N, 0, baseline_SD),
       outcome  = mean_diff * treat +
                  baseline_outcome_slope * baseline +
                  rnorm(total_N, 0, outcome_resid)
@@ -46,6 +48,8 @@ confint_includes <- function(interval, true_val) {
 analyse_sim <- function(dat, true_mean_diff) {
   mod0 <- lm(outcome ~ treat, data = dat)
   mod1 <- lm(outcome ~ treat + baseline, data = dat)
+  mod2 <- lm(outcome ~ treat + uncorcov, data = dat)
+  mod3 <- lm(outcome ~ treat + baseline + uncorcov, data = dat)
   
   descriptives <- dat %>%
     group_by(treat) %>%
@@ -62,8 +66,12 @@ analyse_sim <- function(dat, true_mean_diff) {
   mod_coefs <- tibble(
     mod0_coef = coef(mod0)["treat"],
     mod1_coef = coef(mod1)["treat"],
+    mod2_coef = coef(mod2)["treat"],
+    mod3_coef = coef(mod3)["treat"],
     mod0_p    = get_ps(mod0)["treat"],
-    mod1_p    = get_ps(mod1)["treat"]
+    mod1_p    = get_ps(mod1)["treat"],
+    mod2_p    = get_ps(mod2)["treat"],
+    mod3_p    = get_ps(mod3)["treat"],
   )  
   
   bind_cols(descriptives, mod_coefs) %>%
@@ -76,6 +84,10 @@ analyse_sim <- function(dat, true_mean_diff) {
       mod0_includes_true = confint_includes(confint(mod0)["treat",],
                                             true_mean_diff),
       mod1_includes_true = confint_includes(confint(mod1)["treat",],
+                                            true_mean_diff),
+      mod2_includes_true = confint_includes(confint(mod2)["treat",],
+                                            true_mean_diff),
+      mod3_includes_true = confint_includes(confint(mod3)["treat",],
                                             true_mean_diff)
     )  
 }
@@ -158,10 +170,16 @@ do_one_sim <- function(baseline_slope, diff, total_n) {
     outcome_resid = 1
   ) %>%
     summarise(
-      unadjusted_true_cov = mean(mod0_includes_true),
-      adjusted_true_cov = mean(mod1_includes_true),
-      unadjusted_significant = mean(mod0_p < .05),
-      adjusted_significant = mean(mod1_p < .05)
+      # 95% confidence interval coverage
+      unadjust_true_cov        = mean(mod0_includes_true),
+      adjust_base_true_cov     = mean(mod1_includes_true),
+      adjust_uncor_true_cov    = mean(mod2_includes_true),
+      adjust_both_true_cov     = mean(mod3_includes_true),
+      # % statistically significant
+      unadjust_significant     = mean(mod0_p < .05),
+      adjust_base_significant  = mean(mod1_p < .05),
+      adjust_uncor_significant = mean(mod2_p < .05),
+      adjust_both_significant  = mean(mod3_p < .05),
     )
 }
 ```
@@ -170,7 +188,7 @@ do_one_sim <- function(baseline_slope, diff, total_n) {
 sim_setup <- expand.grid(
   baseline_slope = seq(0, 2, 0.5),
   diff = c(0, 0.25, 0.5),
-  total_n = c(50, 100, 200, 300)
+  total_n = c(50, 100)
 )
 ```
 
@@ -180,27 +198,55 @@ results_by_param <- bind_cols(sim_setup, results) %>%
   arrange(diff, total_n, baseline_slope)
 ```
 
-```{r}
-View(results_by_param)
-```
 
-
-```{r fig.height=6, fig.width=8, dpi=300, paged.print=TRUE}
+```{r fig.height=5, fig.width=6, dpi=300}
 results_by_param %>%
   pivot_longer(cols = ends_with("significant")) %>%
   mutate(name = recode(name,
-    adjusted_significant = "Adjusted",
-    unadjusted_significant = "Unadjusted")) %>%
+    unadjust_significant     = "1. None",
+    adjust_base_significant  = "2. Baseline",
+    adjust_uncor_significant = "3. Uncorrelated covariate",
+    adjust_both_significant  = "4. Both",
+    )) %>%
   ggplot(aes(baseline_slope, value, colour = name)) +
   geom_line() +
   geom_point() +
   facet_grid(cols = vars(diff), rows = vars(total_n)) +
-  labs(x = "True baseline slope",
-       y = "Proportion with p < .05",
-       colour = "Model") +
-  theme(panel.spacing = unit(1, "lines"))
+  labs(x = "True baseline coefficient",
+       y = "Proportion",
+       title = "Effect of adjusting for covariates",
+       subtitle = "Proportion of simulated studies with p < .05",
+       colour = "Adjustment",
+       caption = "Note: True treatment effect in columns, sample size in rows") +
+  theme(panel.spacing = unit(1, "lines"),
+        legend.position = "bottom") +
+  ylim(0,1)
 ```
 
+
+```{r fig.height=5, fig.width=6, dpi=300}
+results_by_param %>%
+  pivot_longer(cols = ends_with("true_cov")) %>%
+  mutate(name = recode(name,
+    unadjust_true_cov     = "1. None",
+    adjust_base_true_cov  = "2. Baseline",
+    adjust_uncor_true_cov = "3. Uncorrelated covariate",
+    adjust_both_true_cov  = "4. Both",
+    )) %>%
+  ggplot(aes(baseline_slope, value, colour = name)) +
+  geom_line() +
+  geom_point() +
+  facet_grid(cols = vars(diff), rows = vars(total_n)) +
+  labs(x = "True baseline coefficient",
+       y = "Proportion",
+       title = "Effect of adjusting for covariates",
+       subtitle = "Proportion of 95% CIs including true value",
+       colour = "Adjustment",
+       caption = "Note: True treatment effect in columns, sample size in rows") +
+  theme(panel.spacing = unit(1, "lines"),
+        legend.position = "bottom") +
+  ylim(0,1)
+```
 
 
 
