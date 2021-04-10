@@ -148,10 +148,10 @@ sim_results %>%
 
 ```{r dpi=300}
 sim_results %>%
-  ggplot(aes(abs(baseline_diff), mod_error_diff)) +
+  ggplot(aes(baseline_diff, mod_error_diff)) +
   geom_point(alpha = 0.5) +
-  labs(x = "Absolute baseline imbalance",
-       y = "Unadjusted minus adjusted absolute error")
+  labs(x = "Baseline imbalance",
+       y = "Unadjusted minus adjusted error")
 ```
 
 
