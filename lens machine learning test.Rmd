@@ -1,0 +1,95 @@
+---
+title: "WORK IN PROGRESS Using R to infer formal inclusion/exclusion criteria"
+author: "Andi Fugard"
+date: 18/4/2021
+output: html_notebook
+---
+
+
+```{r}
+library(tidytext)
+library(tidyverse)
+library(rpart)
+library(rattle)
+library(SnowballC)
+```
+
+
+
+```{r}
+dat <- read.csv("lens test.csv") %>%
+  mutate(
+    TitleAbstract = paste(Title,Abstract),
+    my_id = 1:n()
+  )
+```
+
+
+```{r}
+names(dat)
+```
+
+
+```{r}
+dat_words <- dat %>%
+  select(my_id, Class, TitleAbstract) %>%
+  unnest_tokens(output = word,
+                input = TitleAbstract) %>%
+  filter(!str_detect(word, "^[0-9]")) %>%
+  anti_join(stop_words) %>%
+  mutate(word = wordStem(word)) %>%
+  group_by(my_id, word) %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  mutate(present = "yes")
+```
+
+```{r}
+dat_dtm <- dat_words %>%
+  select(my_id, word, present) %>%
+  pivot_wider(names_from = word,
+              values_from = present,
+              values_fill = "no",
+              names_prefix = "w_")
+```
+
+
+
+
+```{r}
+dat_for_mod <- full_join(
+  dat %>%
+    select(my_id, Class),
+  dat_dtm
+)
+```
+
+```{r}
+View(dat_for_mod)
+```
+
+
+
+## Fit a model
+
+This is ridiculously overfitted.
+
+```{r}
+mod <-
+  rpart(Class ~ . - my_id,
+        data = dat_for_mod,
+        control = rpart.control(minsplit=1, minbucket = 2) )
+```
+
+
+```{r}
+mod
+```
+
+
+
+```{r}
+fancyRpartPlot(mod, type = 5, caption = "")
+```
+
+
