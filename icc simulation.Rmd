@@ -1,0 +1,150 @@
+---
+title: "ICC experiment"
+author: Andi Fugard
+date: 25/4/2021
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(multilevelTools)
+library(lme4)
+```
+
+
+```{r}
+calc_random_SD <- function(resid_SD, ICC) {
+  sqrt((resid_SD ^ 2 * ICC) / (1 - ICC))
+}
+```
+
+
+```{r}
+calc_ICC <- function(resid_SD, raneff_SD) {
+  raneff_SD^2 / (resid_SD^2 + raneff_SD^2)
+}
+```
+
+
+Checking that the arithmetic works okay. (For different sensible values of `the_resid_SD` and `the_ICC`, the same ICC should be retrieved by `calc_ICC`.)
+
+```{r}
+the_resid_SD <- 4
+the_ICC <- 0.2
+the_ranef_SD <- calc_random_SD(the_resid_SD, the_ICC)
+calc_ICC(the_resid_SD, the_ranef_SD)
+```
+
+
+Generates multilevel data with the given residual SD, etc.
+
+```{r}
+gen_dat <- function(resid_SD,
+                    ICC,
+                    num_clusters,
+                    cluster_size) {
+  
+  ranef_SD <- calc_random_SD(resid_SD, ICC)
+  
+  cluster_dat <- data.frame(
+    cluster = 1:num_clusters,
+    cluster_effect = rnorm(num_clusters,
+                           mean = 0,
+                           sd = ranef_SD)
+  )
+  
+  ind_dat <- expand.grid(
+    within_id = 1:cluster_size,
+    cluster = 1:num_clusters
+  ) %>%
+  mutate(
+    id = paste0(cluster, ":", within_id),
+    within_id = NULL
+  ) %>%
+  left_join(cluster_dat) %>%
+  mutate(
+    y = cluster_effect +
+           rnorm(num_clusters * cluster_size,
+                 0,
+                 resid_SD)
+  )
+  
+  ind_dat
+}
+```
+
+
+## Testing 
+
+```{r}
+test_dat <- gen_dat(
+  resid_SD = 1,
+  ICC = 0.2,
+  num_clusters = 50,
+  cluster_size = 10
+)
+```
+
+
+```{r}
+mod0_reml <- lmer(y ~ 1 + (1 | cluster), data = test_dat, REML = T)
+mod0_ml   <- lmer(y ~ 1 + (1 | cluster), data = test_dat, REML = F)
+```
+
+
+
+```{r}
+summary(mod0_reml)
+```
+
+```{r}
+get_icc <- function(mod, group) {
+  the_vars <- VarCorr(mod) %>%
+    as.data.frame()
+  
+  total_var <- the_vars %>%
+    pull(vcov) %>%
+    sum()
+  group_var <- the_vars %>%
+    filter(grp == group) %>%
+    pull(vcov)
+  
+  group_var / total_var
+}
+```
+
+
+I can't remember if ML or REML gives the best estimate of the random effects variances (I think REML is best), but here's both... (We could check 95% CI coverage.)
+
+```{r}
+get_icc(mod0_ml, "cluster")
+```
+```{r}
+get_icc(mod0_reml, "cluster")
+```
+
+```{r}
+boo_reml <-
+  bootMer(mod0_reml,
+    function(x) get_icc(x, "cluster"),
+    nsim = 1000,
+    type = "parametric")
+```
+
+
+```{r}
+boo_ml <-
+  bootMer(mod0_ml,
+    function(x) get_icc(x, "cluster"),
+    nsim = 1000,
+    type = "parametric")
+```
+
+
+```{r}
+confint(boo_reml, type = "perc")
+```
+
+```{r}
+confint(boo_ml, type = "perc")
+```
