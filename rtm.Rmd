@@ -1,0 +1,74 @@
+---
+title: "Regression to the mean (Mee and Chua)"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+dat <- tibble(
+  before = c(45, 52, 63, 68, 57, 55, 60, 59),
+  after  = c(49, 50, 70, 71, 53, 61, 62, 67),
+  diff   = after - before
+)
+
+mu <- 75
+```
+
+
+
+```{r}
+mod <- lm(I(mu - after) ~ I(mu - before), data = dat)
+summary(mod)
+```
+
+```{r}
+0.32052 / 2
+```
+
+
+
+
+
+
+```{r}
+true_mean   <- 50
+true_change <- 0
+
+sim_dat <- tibble(
+  true_score = rnorm(10000, mean = true_mean, sd = 20),
+  y0 = true_score + rnorm(length(true_score), mean = 0, sd = 15),
+  y1 = true_score + true_change 
+          + rnorm(length(true_score), mean = 0, sd = 15)
+)
+
+sim_select = sim_dat %>%
+  filter(y0 > true_mean + 25)
+```
+
+```{r}
+sim_select %>%
+  pivot_longer(cols = everything()) %>%
+  group_by(name) %>%
+  summarise(mean = mean(value),
+            sd   = sd(value),
+            min  = min(value),
+            max  = max(value))
+```
+
+
+```{r}
+t.test(sim_select$y1 - sim_select$y0)
+```
+
+
+```{r}
+sim_mod <- lm(I(y1 - true_mean) ~ I(y0 - true_mean), 
+              data = sim_select)
+summary(sim_mod)
+```
+
+
