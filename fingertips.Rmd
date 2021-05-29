@@ -1,0 +1,43 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(shinycssloaders)
+#install.packages("fingertipsR", repos = "https://dev.ropensci.org")
+library(fingertipsR)
+```
+
+
+```{r}
+area_types() %>%
+  View()
+```
+
+
+```{r}
+profs <- profiles()
+```
+
+```{r}
+view(profs)
+```
+
+
+
+```{r}
+indicators()
+```
+
+
+```{r}
+doms <- c(1000049,1938132983)
+fingdata <- fingertips_data(DomainID = doms, AreaTypeID = 202)
+
+```
+
+```{r}
+view(fingdata)
+```
+
