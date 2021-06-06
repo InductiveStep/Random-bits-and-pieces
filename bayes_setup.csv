@@ -1,0 +1,5 @@
+"Variable_name","Description","Hyp","Alt"
+"SerMan","Positive testimony about service from service manager",0.9,0.8
+"PubHealth","Positive testimony about service from public health",0.9,0.3
+"SerSU","Positive testimony about service from service selected service user",0.9,0.8
+"RandomSU","Positive testimony about service from random service user",0.9,0.4

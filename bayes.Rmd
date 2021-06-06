@@ -1,0 +1,99 @@
+---
+title:  Bayesian network test
+author: Andi Fugard
+date:   6 June 2021
+output: html_notebook
+---
+
+```{r}
+library(datapasta)
+library(tibble)
+library(bnlearn)
+library(tidyverse)
+library(editData)
+```
+
+
+```{r}
+model_spec <- read.csv("bayes_setup.csv")
+model_spec
+```
+
+
+
+
+```{r}
+dag <- empty.graph(c("Hypothesis",
+                     model_spec$Variable_name))
+the_amat <- amat(dag)
+the_amat[1,2:ncol(the_amat)] = 1
+amat(dag) <- the_amat
+```
+
+
+```{r fig.height=6, fig.width=6, dpi=300}
+plot(dag)
+```
+
+
+```{r}
+new_uncond_node <- function(hyp_names) {
+  hyp_n <- length(hyp_names)
+  mat   <- matrix(rep(1/hyp_n, hyp_n),
+                  ncol = hyp_n)
+  colnames(mat) <- hyp_names
+  mat
+}
+```
+
+
+```{r}
+new_cond_node <- function(labelled_row) {
+  neg_row <- 1 - labelled_row
+  mat <- as.matrix(rbind(labelled_row, neg_row))
+  rownames(mat) <- c("True", "False")
+  mat
+}
+```
+
+
+```{r}
+distro <- list(
+  Hypothesis = new_uncond_node(c("Hyp","Alt"))
+)
+
+for (r in seq_len(nrow(model_spec))) {
+  this_row   <- model_spec[r,]
+  this_var   <- this_row$Variable_name
+  this_probs <- model_spec[r, c("Hyp","Alt")]
+  
+  distro[[this_var]] <- new_cond_node(this_probs)
+}
+```
+
+
+```{r}
+fitted_dag = custom.fit(dag, dist = distro)
+fitted_dag
+```
+
+
+```{r}
+fitted_dag %>%
+  cpquery(
+    event    = (Hypothesis == "Hyp"),
+    evidence =
+      (SerSU == "True") &
+      (SerMan == "True") &
+      (RandomSU == "False") &
+      (PubHealth == "True")
+  )
+```
+
+
+
+
+
+
+
+
