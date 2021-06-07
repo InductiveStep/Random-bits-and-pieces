@@ -6,6 +6,18 @@ output: html_notebook
 ---
 
 ```{r}
+#BiocManager::install("graph")
+#BiocManager::install("Rgraphviz")
+#BiocManager::install("RBGL")
+
+library(gRain)
+library(Rgraphviz)
+library(gRain)
+library(RBGL)
+```
+
+
+```{r}
 library(datapasta)
 library(tibble)
 library(bnlearn)
@@ -78,21 +90,46 @@ fitted_dag
 ```
 
 
+{bnlearn} just does approximate inference.
+
 ```{r}
 fitted_dag %>%
   cpquery(
     event    = (Hypothesis == "Hyp"),
     evidence =
-      (SerSU == "True") &
-      (SerMan == "True") &
+      (SerSU == "False") &
+      (SerMan == "False") &
       (RandomSU == "False") &
-      (PubHealth == "True")
+      (PubHealth == "True"),
+    n = 1e6
   )
 ```
 
+As discovered by writing the network out and trying it in GeNIe...
+
+```{r}
+write.net("test.net", fitted_dag)
+```
+
+{gRain} to the rescue.
+
+```{r}
+fitted_dag_grain <- as.grain(fitted_dag)
+```
 
 
-
+```{r}
+fitted_dag_grain %>%
+  querygrain(
+    nodes = "Hypothesis",
+    evidence = list(
+      SerSU      = "False",
+      SerMan     = "False",
+      RandomSU   = "False",
+      PubHealth  = "True"
+    )
+  )
+```
 
 
 
