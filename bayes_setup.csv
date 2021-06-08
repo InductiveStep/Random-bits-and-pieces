@@ -1,5 +1,11 @@
-"Variable_name","Description","Hyp","Alt"
-"SerMan","Positive testimony about service from service manager",0.9,0.8
-"PubHealth","Positive testimony about service from public health",0.9,0.3
-"SerSU","Positive testimony about service from service selected service user",0.9,0.8
-"RandomSU","Positive testimony about service from random service user",0.9,0.4
+Variable_name,Description,Hyp,Alt
+SerMan,Positive testimony about service from service manager,0.9,0.8
+PubHealth,Positive testimony about service from public health,0.9,0.3
+SerSU1,Positive testimony about service from service selected service user,0.9,0.8
+RandomSU1,Positive testimony about service from random service user,0.9,0.4
+SerSU2,Positive testimony about service from service selected service user,0.9,0.8
+RandomSU2,Positive testimony about service from random service user,0.9,0.4
+SerSU3,Positive testimony about service from service selected service user,0.9,0.8
+RandomSU3,Positive testimony about service from random service user,0.9,0.4
+SerSU4,Positive testimony about service from service selected service user,0.9,0.8
+RandomSU4,Positive testimony about service from random service user,0.9,0.4

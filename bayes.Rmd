@@ -12,7 +12,6 @@ output: html_notebook
 
 library(gRain)
 library(Rgraphviz)
-library(gRain)
 library(RBGL)
 ```
 
@@ -90,28 +89,7 @@ fitted_dag
 ```
 
 
-{bnlearn} just does approximate inference.
-
-```{r}
-fitted_dag %>%
-  cpquery(
-    event    = (Hypothesis == "Hyp"),
-    evidence =
-      (SerSU == "False") &
-      (SerMan == "False") &
-      (RandomSU == "False") &
-      (PubHealth == "True"),
-    n = 1e6
-  )
-```
-
-As discovered by writing the network out and trying it in GeNIe...
-
-```{r}
-write.net("test.net", fitted_dag)
-```
-
-{gRain} to the rescue.
+{bnlearn} just does approximate inference -- {gRain} to the rescue.
 
 ```{r}
 fitted_dag_grain <- as.grain(fitted_dag)
@@ -119,18 +97,28 @@ fitted_dag_grain <- as.grain(fitted_dag)
 
 
 ```{r}
+plot(fitted_dag_grain)
+```
+
+
+
+```{r}
 fitted_dag_grain %>%
   querygrain(
     nodes = "Hypothesis",
     evidence = list(
-      SerSU      = "False",
-      SerMan     = "False",
-      RandomSU   = "False",
-      PubHealth  = "True"
+      RandomSU1   = "True",
+      RandomSU2   = "False",
+      RandomSU3   = "False",
+      PubHealth   = "True"
     )
   )
 ```
 
+
+```{r}
+tabListMult(fitted_dag_grain)
+```
 
 
 
