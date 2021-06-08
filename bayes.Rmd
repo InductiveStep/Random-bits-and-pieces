@@ -1,8 +1,10 @@
 ---
-title:  Bayesian network test
-author: Andi Fugard
-date:   6 June 2021
-output: html_notebook
+title: "Bayesian network test"
+author: "Andi Fugard"
+date: "6 June 2021"
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r}
@@ -96,7 +98,7 @@ fitted_dag_grain <- as.grain(fitted_dag)
 ```
 
 
-```{r}
+```{r dpi = 300}
 plot(fitted_dag_grain)
 ```
 
@@ -113,11 +115,6 @@ fitted_dag_grain %>%
       PubHealth   = "True"
     )
   )
-```
-
-
-```{r}
-tabListMult(fitted_dag_grain)
 ```
 
 
