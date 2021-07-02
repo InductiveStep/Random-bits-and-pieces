@@ -1,0 +1,41 @@
+---
+title: "Make non-binary a legally recognised gender identity in the UK"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(jsonlite)
+```
+
+
+The petition is [over here](https://petition.parliament.uk/petitions/580220).
+
+Scroll down and there's a link to the data here:
+
+```{r}
+loc <- "https://petition.parliament.uk/petitions/580220.json"
+```
+
+Read it in:
+
+```{r}
+dat <- fromJSON(loc, flatten=TRUE)
+str(dat)
+```
+
+```{r}
+sigs_constit <- dat$data$attributes$signatures_by_constituency
+head(sigs_constit)
+```
+
+
+```{r}
+sigs_constit %>%
+  arrange(desc(signature_count)) %>%
+  select(name, signature_count)
+```
+
+
+

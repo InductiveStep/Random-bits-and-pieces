@@ -10,6 +10,7 @@ library(tidyverse)
 library(viridis)
 library(quantmod)
 library(patchwork)
+library(smooth)
 ```
 
 
@@ -19,18 +20,14 @@ covid_dat <- read.csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=over
 ```
 
 
-
 ```{r}
 vax_dat <- read.csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=cumVaccinationCompleteCoverageByPublishDatePercentage&metric=cumVaccinationFirstDoseUptakeByPublishDatePercentage&format=csv")
 ```
 
 
-
-
 ```{r}
 dat <- left_join(covid_dat, vax_dat)
 ```
-
 
 
 ```{r}
@@ -54,81 +51,156 @@ dat <- dat %>%
 
 
 ```{r fig.height=3, fig.width=7, dpi=300}
-p0a <- dat %>%
+scatter_cases_admissions_1st_dose <- dat %>%
   ggplot(
     aes(newCasesBySpecimenDate, newAdmissions,
         colour = vax_1st)) +
-  geom_point(size=2) +
+  geom_point() +
   labs(colour = "% first dose",
        x = "Daily cases",
        y = "Daily hospital admissions") +
   scale_colour_steps()
 
-p0a
+scatter_cases_admissions_1st_dose
 ```
 
 
 ```{r fig.height=3, fig.width=7, dpi=300}
-p0b <- dat %>%
+scatter_cases_admissions_2nd_dose <- dat %>%
   ggplot(
     aes(newCasesBySpecimenDate, newAdmissions,
         colour = vax_2nd)) +
-  geom_point(size=2) +
+  geom_point() +
   labs(colour = "% second dose",
        x = "Daily cases",
        y = "Daily hospital admissions") +
   scale_colour_steps()
 
-p0b
+scatter_cases_admissions_2nd_dose
 ```
 
 
 ```{r}
-peaky <- dat %>%
-  select(date, newAdmissions, newCasesBySpecimenDate) %>%
+sma_order = 14
+```
+
+
+```{r}
+peaks_valleys_dat <- dat %>%
+  select(
+    date,
+    newAdmissions,
+    newCasesBySpecimenDate,
+    newVirusTests,
+    newDailyNsoDeathsByDeathDate
+  ) %>%
   arrange(as.Date(date)) %>%
-  na.omit() %>%
-  mutate(
-    i = 1:n(),
-    newAdmissions_smooth = stats::filter(newAdmissions, rep(1,40))
-  )
+  mutate(i = 1:n())
 
-plot(peaky$newAdmissions)
-```
+peaks_valleys_dat_temp <- peaks_valleys_dat %>%
+  select(i, newAdmissions) %>%
+  na.omit()
 
-
-```{r}
-plot(peaky$newAdmissions_smooth)
-```
-
-
-```{r}
-the_peaks <- findValleys(peaky$newAdmissions_smooth, thresh = 20)
-the_peaks
+peaks_valleys_dat_temp$newAdmissions_smooth =
+  sma(peaks_valleys_dat_temp$newAdmissions,
+      order = sma_order)$fitted
 ```
 
 
 
+```{r}
+the_peaks <- peaks_valleys_dat_temp$i[
+  findPeaks(peaks_valleys_dat_temp$newAdmissions_smooth,thresh = 2)]
+the_valleys <- peaks_valleys_dat_temp$i[
+  findValleys(peaks_valleys_dat_temp$newAdmissions_smooth, thresh = 2)]
+
+switches <- c(1, the_peaks - sma_order,
+                 the_valleys - sma_order,
+              max(peaks_valleys_dat$i)) %>%
+  sort()
+
+switch_threshold <- 7
+select_em <- c(TRUE, switches[-1] -
+                 switches[-length(switches)] > switch_threshold)
+switches <- switches[select_em]
+plot(peaks_valleys_dat$newAdmissions)
+abline(v = switches)
+```
+
+
+
 
 ```{r}
-peaky <- peaky %>% 
-  mutate(peak_cuts = cut(i, c(0,the_peaks,max(i))))
+peaks_valleys_dat <- peaks_valleys_dat %>% 
+  mutate(peak_cuts = cut(i, switches, include.lowest = T))
+```
 
-p1 <- peaky %>%
+```{r}
+date_range <- c(min(as.Date(peaks_valleys_dat$date)), as.Date("2021-08-01"))
+```
+
+```{r}
+scatter_deaths_date_rainbow <- peaks_valleys_dat %>%
+  ggplot(aes(as.Date(date), newDailyNsoDeathsByDeathDate, colour = peak_cuts)) +
+      geom_point() +
+      labs(x = "Date",
+           y = "Daily deaths") +
+  theme(legend.position = "none") +
+  scale_x_date(
+    date_labels = "%b %Y",
+    limits = date_range)
+
+scatter_deaths_date_rainbow
+```
+
+```{r}
+scatter_admissions_date_rainbow <- peaks_valleys_dat %>%
   ggplot(aes(as.Date(date), newAdmissions, colour = peak_cuts)) +
       geom_point() +
       labs(x = "Date",
            y = "Daily hospital admissions") +
   theme(legend.position = "none") +
-  scale_x_date(date_labels = "%b %Y")
+  scale_x_date(
+    date_labels = "%b %Y",
+    limits = date_range)
 
-p1
+scatter_admissions_date_rainbow
 ```
 
 
+```{r}
+scatter_tests_date_rainbow <- peaks_valleys_dat %>%
+  ggplot(aes(as.Date(date), newVirusTests/1000, colour = peak_cuts)) +
+      geom_point() +
+      labs(x = "Date",
+           y = "Daily tests (1000s)") +
+  theme(legend.position = "none") +
+  scale_x_date(
+    date_labels = "%b %Y",
+    limits = date_range)
+
+scatter_tests_date_rainbow
+```
 
 ```{r}
-p2 <- peaky %>%
+scatter_cases_date_rainbow <- peaks_valleys_dat %>%
+  ggplot(aes(as.Date(date),
+             newCasesBySpecimenDate,
+             colour = peak_cuts)) +
+      geom_point() +
+      labs(x = "Date",
+           y = "Daily cases") +
+  theme(legend.position = "none") +
+  scale_x_date(
+    date_labels = "%b %Y",
+    limits = date_range)
+
+scatter_cases_date_rainbow
+```
+
+
+```{r}
+scatter_admissions_cases_rainbow <- peaks_valleys_dat %>%
   ggplot(
     aes(newCasesBySpecimenDate, newAdmissions,
         colour = peak_cuts)) +
@@ -137,53 +209,41 @@ p2 <- peaky %>%
        y = "Daily hospital admissions") +
   theme(legend.position = "none")
 
-p2
+scatter_admissions_cases_rainbow
 ```
 
+```{r}
+scatter_deaths_cases_rainbow <- peaks_valleys_dat %>%
+  ggplot(
+    aes(newCasesBySpecimenDate, newDailyNsoDeathsByDeathDate,
+        colour = peak_cuts)) +
+  geom_point() +
+  labs(x = "Daily cases",
+       y = "Daily deaths") +
+  theme(legend.position = "none")
+
+scatter_deaths_cases_rainbow
+```
 
 
 ```{r fig.height=5, fig.width=9, dpi=300}
-(p1/p0a) | (p2/p0b)
+(scatter_admissions_date_rainbow/
+   scatter_admissions_cases_rainbow) |
+  (scatter_cases_admissions_1st_dose/
+     scatter_cases_admissions_2nd_dose)
 ```
 
 
 
-# Something silly
-
-```{r}
-library(flexmix)
-```
-
-
-
-```{r}
-flex_dat <- peaky %>%
-  select(date, newAdmissions, newCasesBySpecimenDate) %>%
-  na.omit()
-```
-
-
-```{r fig.height=3, fig.width=7, dpi = 300}
-flex_mod <- flexmix(newAdmissions ~ newCasesBySpecimenDate,
-              data = flex_dat, k = 4)
-
-flex_dat <- flex_dat %>%
-  mutate(cluster = factor(clusters(flex_mod)))
-
-g1 <- flex_dat %>%
-  ggplot(aes(x = newCasesBySpecimenDate,
-             y = newAdmissions,
-             colour = cluster)) +
-  geom_point() +
-  theme(legend.position = "none")
-
-g2 <- flex_dat %>%
-  ggplot(aes(x = as.Date(date),
-             y = newAdmissions,
-             colour = cluster)) +
-  geom_point()
-
-g1 | g2
+```{r fig.height=6, fig.width=8, dpi=300}
+(scatter_cases_date_rainbow /
+   scatter_tests_date_rainbow /
+  scatter_admissions_date_rainbow) | 
+((scatter_admissions_cases_rainbow +
+          geom_smooth(se = FALSE)) /
+   (scatter_deaths_cases_rainbow +
+          geom_smooth(se = FALSE))/
+   scatter_deaths_date_rainbow)
 ```
 
 

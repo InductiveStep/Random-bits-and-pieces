@@ -7,6 +7,7 @@ output: html_notebook
 library(shinycssloaders)
 #install.packages("fingertipsR", repos = "https://dev.ropensci.org")
 library(fingertipsR)
+library(tidyverse)
 ```
 
 
@@ -17,7 +18,8 @@ area_types() %>%
 
 
 ```{r}
-profs <- profiles()
+profiles() %>%
+  View()
 ```
 
 ```{r}
@@ -30,14 +32,20 @@ view(profs)
 indicators()
 ```
 
+Testing
 
 ```{r}
-doms <- c(1000049,1938132983)
-fingdata <- fingertips_data(DomainID = doms, AreaTypeID = 202)
-
+df <- fingertips_data(IndicatorID = 93488,
+                      AreaTypeID = 8) %>%
+  filter(AreaType == "Ward")
+View(df)
 ```
+
+
 
 ```{r}
-view(fingdata)
+profiles(ProfileName = "Local Health")
 ```
+
+
 
