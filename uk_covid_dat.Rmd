@@ -5,7 +5,7 @@ output:
     df_print: paged
 ---
 
-```{r}
+```{r message=FALSE}
 library(tidyverse)
 library(viridis)
 library(quantmod)
