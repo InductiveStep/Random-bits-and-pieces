@@ -12,40 +12,39 @@ library(tidyverse)
 
 
 ```{r}
-area_types() %>%
-  View()
-```
-
-
-```{r}
-profiles() %>%
-  View()
-```
-
-```{r}
-view(profs)
+local_health_profiles <- profiles(ProfileName = "Local Health")
+local_health_profiles$DomainID
 ```
 
 
 
 ```{r}
-indicators()
+all_local_dat <- fingertips_data(
+  DomainID = local_health_profiles$DomainID,
+  AreaTypeID = "All"
+)
 ```
 
-Testing
 
 ```{r}
-df <- fingertips_data(IndicatorID = 93488,
-                      AreaTypeID = 8) %>%
+str(all_local_dat)
+```
+
+```{r}
+all_ward_dat <- all_local_dat %>%
   filter(AreaType == "Ward")
-View(df)
+nrow(all_ward_dat)
 ```
 
 
 
 ```{r}
-profiles(ProfileName = "Local Health")
+write.csv(all_ward_dat,
+          "fingertips_all_ward_2021_07_03.csv",
+          row.names = FALSE)
 ```
+
+
 
 
 
