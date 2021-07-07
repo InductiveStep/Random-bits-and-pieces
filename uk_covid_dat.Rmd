@@ -16,7 +16,7 @@ library(smooth)
 
 
 ```{r}
-covid_dat <- read.csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newAdmissions&metric=newCasesBySpecimenDate&metric=newDailyNsoDeathsByDeathDate&metric=newVirusTests&format=csv")
+covid_dat <- read.csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newAdmissions&metric=newCasesBySpecimenDate&metric=newDeaths28DaysByDeathDate&metric=newVirusTests&format=csv")
 ```
 
 
@@ -92,7 +92,7 @@ peaks_valleys_dat <- dat %>%
     newAdmissions,
     newCasesBySpecimenDate,
     newVirusTests,
-    newDailyNsoDeathsByDeathDate
+    newDeaths28DaysByDeathDate
   ) %>%
   arrange(as.Date(date)) %>%
   mutate(i = 1:n())
@@ -132,8 +132,23 @@ abline(v = switches)
 
 ```{r}
 peaks_valleys_dat <- peaks_valleys_dat %>% 
-  mutate(peak_cuts = cut(i, switches, include.lowest = T))
+  mutate(date_segment = cut(i, switches, include.lowest = T))
 ```
+
+```{r}
+cut_dates <- peaks_valleys_dat %>%
+  group_by(date_segment) %>%
+  summarise(start_date = date %>% as.Date %>% min())
+
+cut_dates$start_date
+```
+
+
+```{r}
+levels(peaks_valleys_dat$date_segment) <- cut_dates$start_date
+```
+
+
 
 ```{r}
 date_range <- c(min(as.Date(peaks_valleys_dat$date)), as.Date("2021-08-01"))
@@ -141,7 +156,7 @@ date_range <- c(min(as.Date(peaks_valleys_dat$date)), as.Date("2021-08-01"))
 
 ```{r}
 scatter_deaths_date_rainbow <- peaks_valleys_dat %>%
-  ggplot(aes(as.Date(date), newDailyNsoDeathsByDeathDate, colour = peak_cuts)) +
+  ggplot(aes(as.Date(date), newDeaths28DaysByDeathDate, colour = date_segment)) +
       geom_point() +
       labs(x = "Date",
            y = "Daily deaths") +
@@ -155,7 +170,7 @@ scatter_deaths_date_rainbow
 
 ```{r}
 scatter_admissions_date_rainbow <- peaks_valleys_dat %>%
-  ggplot(aes(as.Date(date), newAdmissions, colour = peak_cuts)) +
+  ggplot(aes(as.Date(date), newAdmissions, colour = date_segment)) +
       geom_point() +
       labs(x = "Date",
            y = "Daily hospital admissions") +
@@ -170,7 +185,7 @@ scatter_admissions_date_rainbow
 
 ```{r}
 scatter_tests_date_rainbow <- peaks_valleys_dat %>%
-  ggplot(aes(as.Date(date), newVirusTests/1000, colour = peak_cuts)) +
+  ggplot(aes(as.Date(date), newVirusTests/1000, colour = date_segment)) +
       geom_point() +
       labs(x = "Date",
            y = "Daily tests (1000s)") +
@@ -186,7 +201,7 @@ scatter_tests_date_rainbow
 scatter_cases_date_rainbow <- peaks_valleys_dat %>%
   ggplot(aes(as.Date(date),
              newCasesBySpecimenDate,
-             colour = peak_cuts)) +
+             colour = date_segment)) +
       geom_point() +
       labs(x = "Date",
            y = "Daily cases") +
@@ -203,7 +218,7 @@ scatter_cases_date_rainbow
 scatter_admissions_cases_rainbow <- peaks_valleys_dat %>%
   ggplot(
     aes(newCasesBySpecimenDate, newAdmissions,
-        colour = peak_cuts)) +
+        colour = date_segment)) +
   geom_point() +
   labs(x = "Daily cases",
        y = "Daily hospital admissions") +
@@ -215,8 +230,8 @@ scatter_admissions_cases_rainbow
 ```{r}
 scatter_deaths_cases_rainbow <- peaks_valleys_dat %>%
   ggplot(
-    aes(newCasesBySpecimenDate, newDailyNsoDeathsByDeathDate,
-        colour = peak_cuts)) +
+    aes(newCasesBySpecimenDate, newDeaths28DaysByDeathDate,
+        colour = date_segment)) +
   geom_point() +
   labs(x = "Daily cases",
        y = "Daily deaths") +
@@ -248,3 +263,66 @@ scatter_deaths_cases_rainbow
 
 
 
+```{r}
+mod_deaths <- lm(
+  newDeaths28DaysByDeathDate ~
+    newCasesBySpecimenDate:date_segment + date_segment - 1,
+  data = peaks_valleys_dat
+)
+coef(mod_deaths) %>% round(6)
+```
+
+```{r}
+mod_hosp <- lm(
+  newAdmissions ~ newCasesBySpecimenDate:date_segment + date_segment -1,
+  data = peaks_valleys_dat)
+coef(mod_hosp) %>% round(5)
+```
+
+```{r}
+0.01695296 * 100e3
+```
+
+```{r}
+0.0008632759 * 100e3
+```
+
+
+```{r}
+last_seg <- peaks_valleys_dat %>%
+  filter(date_segment == "2021-04-25")
+last_seg
+```
+
+
+```{r}
+last_seg_deaths <- lm(
+  newDeaths28DaysByDeathDate ~ newCasesBySpecimenDate,
+  data = last_seg
+)
+summary(last_seg_deaths)
+coef(last_seg_deaths)
+```
+
+
+
+
+```{r}
+last_seg_admissions <- lm(
+  newAdmissions ~ newCasesBySpecimenDate,
+  data = last_seg
+)
+summary(last_seg_admissions)
+coef(last_seg_admissions)
+```
+
+```{r}
+predict(last_seg_admissions,
+        newdat = data.frame(newCasesBySpecimenDate = 100e3))
+```
+
+
+```{r}
+predict(last_seg_deaths,
+        newdat = data.frame(newCasesBySpecimenDate = 100e3))
+```
