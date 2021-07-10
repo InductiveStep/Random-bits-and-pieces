@@ -7,6 +7,7 @@ output:
 
 ```{r message=FALSE}
 library(tidyverse)
+library(GGally)
 library(viridis)
 library(quantmod)
 library(patchwork)
@@ -279,13 +280,6 @@ mod_hosp <- lm(
 coef(mod_hosp) %>% round(5)
 ```
 
-```{r}
-0.01695296 * 100e3
-```
-
-```{r}
-0.0008632759 * 100e3
-```
 
 
 ```{r}
@@ -316,6 +310,19 @@ summary(last_seg_admissions)
 coef(last_seg_admissions)
 ```
 
+Admissions / cases (%)
+
+```{r}
+(coef(last_seg_admissions)[2] * 100) %>% round(2)
+```
+
+Deaths / cases (%)
+
+```{r}
+(coef(last_seg_deaths)[2] * 100) %>% round(2)
+```
+
+
 ```{r}
 predict(last_seg_admissions,
         newdat = data.frame(newCasesBySpecimenDate = 100e3))
@@ -326,3 +333,199 @@ predict(last_seg_admissions,
 predict(last_seg_deaths,
         newdat = data.frame(newCasesBySpecimenDate = 100e3))
 ```
+
+
+```{r}
+last_seg %>%
+  ggplot(aes(newCasesBySpecimenDate, newAdmissions)) +
+  geom_point()
+```
+
+```{r}
+last_seg %>%
+  ggplot(aes(newCasesBySpecimenDate, newDeaths28DaysByDeathDate )) +
+  geom_point()
+```
+
+```{r}
+last_seg %>%
+  ggplot(aes(newAdmissions, newDeaths28DaysByDeathDate)) +
+  geom_point()
+```
+
+
+```{r}
+gpairs_lower <- function(g){
+  g$plots <- g$plots[-(1:g$nrow)]
+  g$yAxisLabels <- g$yAxisLabels[-1]
+  g$nrow <- g$nrow -1
+
+  g$plots <- g$plots[-(seq(g$ncol, length(g$plots), by = g$ncol))]
+  g$xAxisLabels <- g$xAxisLabels[-g$ncol]
+  g$ncol <- g$ncol - 1
+
+  g
+}
+```
+
+
+```{r fig.height=6, fig.width=8}
+to_plot <- peaks_valleys_dat %>%
+  select(
+    date,
+    newCasesBySpecimenDate,
+    newAdmissions,
+    newDeaths28DaysByDeathDate,
+    date_segment
+  ) %>%
+  mutate(date = as.Date(date),
+         newCasesBySpecimenDate = newCasesBySpecimenDate / 1000)
+
+to_plot %>%
+  ggpairs(columns = 1:(ncol(to_plot) - 1),
+          mapping = aes(colour = date_segment),
+          lower  = list(continuous = "points"),
+          upper  = list(continuous = "blank"),
+          diag  = list(continuous = "blankDiag"),
+          columnLabels = c("Date",
+                           "Cases (1000s)",
+                           "Hospitalisations",
+                           "Deaths")) %>%
+  gpairs_lower()
+```
+
+
+
+
+```{r}
+last_seg %>%
+  select(
+    newCasesBySpecimenDate,
+    newAdmissions,
+    newDeaths28DaysByDeathDate,
+  ) %>%
+  ggpairs(lower  = list(continuous = "points"),
+          upper  = list(continuous = "blank"),
+          diag  = list(continuous = "blankDiag")) %>%
+  gpairs_lower()
+```
+
+```{r}
+last_seg <- last_seg %>%
+  mutate(start_date = min(as.Date(date)),
+         day = as.numeric(as.Date(date) - start_date))
+
+last_seg %>%
+  ggplot(aes(day, newCasesBySpecimenDate)) +
+  geom_point() +
+  #coord_trans(y="log2") +
+  geom_smooth()
+```
+
+```{r}
+grouped <- peaks_valleys_dat %>%
+  group_by(date_segment) %>%
+  mutate(start_date = min(as.Date(date)),
+         day = as.numeric(as.Date(date) - start_date)) %>%
+  ungroup()
+```
+
+
+
+
+```{r}
+focal_segments <- c("2021-04-25","2020-07-21")
+```
+
+
+```{r}
+segs_admissions <- grouped %>%
+  filter(date_segment %in% focal_segments) %>%
+  ggplot(aes(day, newAdmissions, colour = date_segment)) +
+  geom_smooth() +
+  geom_point() +
+  labs(x = "Days since start of period",
+       y = "Hospital admissions",
+       colour = "Start of period")
+```
+
+
+```{r}
+segs_cases <- grouped %>%
+  filter(date_segment %in% focal_segments) %>%
+  ggplot(aes(day, newCasesBySpecimenDate, colour = date_segment)) +
+  geom_smooth(se = FALSE) +
+  geom_point() +
+  labs(x = "Days since start of period", y = "Cases", colour = NULL)
+```
+
+
+```{r}
+segs_deaths <- grouped %>%
+  filter(date_segment %in% focal_segments) %>%
+  ggplot(aes(day, newDeaths28DaysByDeathDate,
+             colour = date_segment)) +
+  geom_smooth(se = FALSE) +
+  geom_point() +
+  labs(x = "Days since start of period", y = "Deaths", colour = NULL)
+```
+
+
+```{r fig.height=6, fig.width=6, dpi=300}
+segs_admissions / segs_deaths / segs_cases
+```
+
+
+
+
+
+
+```{r}
+scatter_cases_date_rainbow <- peaks_valleys_dat %>%
+  filter() %>%
+  ggplot(aes(as.Date(date),
+             newCasesBySpecimenDate,
+             colour = date_segment)) +
+      geom_point() +
+      labs(x = "Date",
+           y = "Daily cases") +
+  theme(legend.position = "none") +
+  scale_x_date(
+    date_labels = "%b %Y",
+    limits = date_range)
+```
+
+
+
+```{r fig.height=6, fig.width=8}
+to_plot <- peaks_valleys_dat %>%
+  filter(date_segment %in% focal_segments) %>%
+  select(
+    date,
+    newCasesBySpecimenDate,
+    newAdmissions,
+    newDeaths28DaysByDeathDate,
+    date_segment
+  ) %>%
+  mutate(date = as.Date(date),
+         newCasesBySpecimenDate = newCasesBySpecimenDate / 1000)
+
+to_plot %>%
+  ggpairs(columns = 1:(ncol(to_plot) - 1),
+          mapping = aes(colour = date_segment),
+          lower  = list(continuous = "points"),
+          upper  = list(continuous = "blank"),
+          diag  = list(continuous = "blankDiag"),
+          columnLabels = c("Date",
+                           "Cases (1000s)",
+                           "Hospitalisations",
+                           "Deaths")) %>%
+  gpairs_lower()
+```
+
+
+
+```{r}
+segs_admissions
+```
+
