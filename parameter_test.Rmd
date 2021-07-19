@@ -1,0 +1,19 @@
+---
+title: "Parameter test"
+author: "Andi Fugard (almost@gmail.com)"
+date: "11/07/2021"
+output: html_document
+params:
+  name: Spirk
+  number: 42
+  filename: blah.csv
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Hello `r params$name`. Here is a number: `r params$number`.
+
+

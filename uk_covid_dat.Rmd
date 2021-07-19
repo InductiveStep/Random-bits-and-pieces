@@ -17,6 +17,16 @@ library(smooth)
 
 
 ```{r}
+covid_hosp <- read.csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=covidOccupiedMVBeds&metric=hospitalCases&metric=newAdmissions&format=csv")
+```
+
+```{r}
+View(covid_hosp)
+```
+
+
+
+```{r}
 covid_dat <- read.csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newAdmissions&metric=newCasesBySpecimenDate&metric=newDeaths28DaysByDeathDate&metric=newVirusTests&format=csv")
 ```
 
@@ -228,6 +238,13 @@ scatter_admissions_cases_rainbow <- peaks_valleys_dat %>%
 scatter_admissions_cases_rainbow
 ```
 
+
+```{r}
+View(peaks_valleys_dat)
+```
+
+
+
 ```{r}
 scatter_deaths_cases_rainbow <- peaks_valleys_dat %>%
   ggplot(
@@ -242,6 +259,22 @@ scatter_deaths_cases_rainbow
 ```
 
 
+```{r}
+scatter_admissions_deaths <- peaks_valleys_dat %>%
+  ggplot(
+    aes(newAdmissions, newDeaths28DaysByDeathDate,
+        colour = date_segment)) +
+  geom_point() +
+  labs(x = "Daily admissions",
+       y = "Daily deaths") +
+  theme(legend.position = "none")
+
+scatter_admissions_deaths
+```
+
+
+
+
 ```{r fig.height=5, fig.width=9, dpi=300}
 (scatter_admissions_date_rainbow/
    scatter_admissions_cases_rainbow) |
@@ -249,6 +282,17 @@ scatter_deaths_cases_rainbow
      scatter_cases_admissions_2nd_dose)
 ```
 
+
+
+
+```{r fig.height=5, fig.width=8, dpi=300}
+(scatter_cases_date_rainbow /
+   (scatter_admissions_deaths + geom_smooth(se = FALSE)) | 
+(scatter_admissions_cases_rainbow +
+          geom_smooth(se = FALSE)) /
+   (scatter_deaths_cases_rainbow +
+          geom_smooth(se = FALSE)))
+```
 
 
 ```{r fig.height=6, fig.width=8, dpi=300}
@@ -418,7 +462,6 @@ last_seg <- last_seg %>%
 last_seg %>%
   ggplot(aes(day, newCasesBySpecimenDate)) +
   geom_point() +
-  #coord_trans(y="log2") +
   geom_smooth()
 ```
 
@@ -451,6 +494,24 @@ segs_admissions <- grouped %>%
 
 
 ```{r}
+days_in <- grouped %>%
+  mutate(date = as.Date(date),
+         max_date = max(date)) %>%
+  filter(date == max_date) %>%
+  pull(day)
+days_in
+```
+
+```{r}
+grouped %>%
+  filter(date_segment %in% focal_segments) %>%
+  group_by(date_segment) %>%
+  filter(day == days_in) %>%
+  pull(date) %>% as.Date() %>% format("%d %b %Y")
+```
+
+
+```{r}
 segs_cases <- grouped %>%
   filter(date_segment %in% focal_segments) %>%
   ggplot(aes(day, newCasesBySpecimenDate, colour = date_segment)) +
@@ -470,6 +531,10 @@ segs_deaths <- grouped %>%
   labs(x = "Days since start of period", y = "Deaths", colour = NULL)
 ```
 
+
+```{r fig.height=6, fig.width=6, dpi=300}
+segs_admissions / segs_cases
+```
 
 ```{r fig.height=6, fig.width=6, dpi=300}
 segs_admissions / segs_deaths / segs_cases
@@ -525,7 +590,99 @@ to_plot %>%
 
 
 
-```{r}
+```{r dpi = 300, width = 6, height = 3}
 segs_admissions
 ```
+
+
+
+```{r}
+covid_hosp %>%
+  ggplot(aes(as.Date(date), covidOccupiedMVBeds)) +
+  geom_point(size = .5)
+```
+
+
+```{r}
+covid_hosp %>%
+  ggplot(aes(as.Date(date), hospitalCases)) +
+  geom_point(size = 0.5)
+```
+
+
+
+```{r}
+recent_dat <- covid_hosp %>%
+  filter(as.Date(date) >= as.Date("2021-01-01"))
+
+min(recent_dat$hospitalCases)
+```
+
+```{r}
+min_date <- recent_dat %>%
+  filter(hospitalCases == min(recent_dat$hospitalCases)) %>%
+  pull(date)
+min_date
+```
+
+```{r}
+current_wave <- covid_hosp %>%
+  filter(as.Date(date) >= as.Date(min_date)) %>%
+  mutate(days_in = as.Date(date) - as.Date(min_date),
+         days_in = as.integer(days_in))
+```
+
+
+
+```{r}
+current_wave$days_in
+```
+
+
+```{r}
+current_wave %>%
+  ggplot(aes(days_in, log(hospitalCases,2))) +
+  geom_point()
+```
+
+
+
+```{r}
+lm1 <- lm(log2(hospitalCases) ~ days_in + I(days_in^2),
+          data = current_wave)
+summary(lm1)
+```
+
+
+```{r}
+predicted_hospital_cases <- data.frame(
+  days_in = 0:365
+) %>%
+  mutate(date = as.Date(min_date) + days_in)
+
+predicted_hospital_cases$predicted_cases <- 2^predict(
+  object = lm1,
+  newdat = predicted_hospital_cases)
+```
+
+```{r}
+predicted_hospital_cases %>%
+  filter(predicted_cases <= 41000)
+```
+
+
+
+
+```{r}
+current_wave %>%
+  ggplot(aes(days_in, hospitalCases)) +
+  geom_point() +
+  geom_function(fun = \(x) 2^(coef(lm1)[1] +
+                                coef(lm1)[2]*x +
+                                coef(lm1)[3]*x^2)) +
+  xlim(0, 82)
+```
+
+
+
 

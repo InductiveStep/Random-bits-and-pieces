@@ -20,6 +20,10 @@ local_health_profiles <- profiles(ProfileName = "Local Health")
 local_health_profiles$DomainID
 ```
 
+```{r}
+?fingertips_data
+```
+
 
 
 ```{r}
@@ -41,13 +45,56 @@ nrow(all_ward_dat)
 ```
 
 
-```{r eval=FALSE}
-write.csv(all_ward_dat,
-          "fingertips_all_ward_2021_07_03.csv",
-          row.names = FALSE)
+
+```{r}
+all_profiles <- profiles()
+```
+
+```{r}
+View(all_profiles)
+```
+
+```{r}
+all_profiles$DomainID
+```
+
+
+```{r}
+area_types <- area_types()
+```
+
+
+```{r}
+View(area_types)
+```
+
+
+
+```{r}
+all_ward_dat <- fingertips_data(
+  DomainID = all_profiles$DomainID,
+  AreaTypeID = "8"
+) %>%
+  filter(AreaType == "Ward")
 ```
 
 
 
 
+```{r}
+all_ward_dat %>%
+  group_by(IndicatorName, Timeperiod) %>%
+  summarise(n = n(), valid = 100 * sum(!is.na(Value)) / n) %>%
+  View()
+```
+
+
+
+```{r}
+all_ward_dat <- fingertips_data(
+  DomainID = all_profiles$DomainID,
+  AreaTypeID = "8"
+) %>%
+  filter(AreaType == "Ward")
+```
 
