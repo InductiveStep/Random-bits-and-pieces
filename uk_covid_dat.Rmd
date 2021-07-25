@@ -92,11 +92,8 @@ scatter_cases_admissions_2nd_dose
 
 
 ```{r}
-sma_order = 14
-```
+sma_order = 12
 
-
-```{r}
 peaks_valleys_dat <- dat %>%
   select(
     date,
@@ -115,11 +112,7 @@ peaks_valleys_dat_temp <- peaks_valleys_dat %>%
 peaks_valleys_dat_temp$newAdmissions_smooth =
   sma(peaks_valleys_dat_temp$newAdmissions,
       order = sma_order)$fitted
-```
 
-
-
-```{r}
 the_peaks <- peaks_valleys_dat_temp$i[
   findPeaks(peaks_valleys_dat_temp$newAdmissions_smooth,thresh = 2)]
 the_valleys <- peaks_valleys_dat_temp$i[
@@ -130,7 +123,7 @@ switches <- c(1, the_peaks - sma_order,
               max(peaks_valleys_dat$i)) %>%
   sort()
 
-switch_threshold <- 7
+switch_threshold <- 19
 select_em <- c(TRUE, switches[-1] -
                  switches[-length(switches)] > switch_threshold)
 switches <- switches[select_em]
@@ -265,7 +258,7 @@ scatter_admissions_deaths <- peaks_valleys_dat %>%
     aes(newAdmissions, newDeaths28DaysByDeathDate,
         colour = date_segment)) +
   geom_point() +
-  labs(x = "Daily admissions",
+  labs(x = "Daily hospital admissions",
        y = "Daily deaths") +
   theme(legend.position = "none")
 
@@ -325,10 +318,17 @@ coef(mod_hosp) %>% round(5)
 ```
 
 
+```{r}
+last_date <- peaks_valleys_dat$date_segment %>%
+  levels() %>% 
+  sort() %>%
+  last()
+```
+
 
 ```{r}
 last_seg <- peaks_valleys_dat %>%
-  filter(date_segment == "2021-04-25")
+  filter(date_segment == last_date)
 last_seg
 ```
 
@@ -441,247 +441,9 @@ to_plot %>%
 
 
 
-```{r}
-last_seg %>%
-  select(
-    newCasesBySpecimenDate,
-    newAdmissions,
-    newDeaths28DaysByDeathDate,
-  ) %>%
-  ggpairs(lower  = list(continuous = "points"),
-          upper  = list(continuous = "blank"),
-          diag  = list(continuous = "blankDiag")) %>%
-  gpairs_lower()
-```
-
-```{r}
-last_seg <- last_seg %>%
-  mutate(start_date = min(as.Date(date)),
-         day = as.numeric(as.Date(date) - start_date))
-
-last_seg %>%
-  ggplot(aes(day, newCasesBySpecimenDate)) +
-  geom_point() +
-  geom_smooth()
-```
-
-```{r}
-grouped <- peaks_valleys_dat %>%
-  group_by(date_segment) %>%
-  mutate(start_date = min(as.Date(date)),
-         day = as.numeric(as.Date(date) - start_date)) %>%
-  ungroup()
-```
 
 
 
-
-```{r}
-focal_segments <- c("2021-04-25","2020-07-21")
-```
-
-
-```{r}
-segs_admissions <- grouped %>%
-  filter(date_segment %in% focal_segments) %>%
-  ggplot(aes(day, newAdmissions, colour = date_segment)) +
-  geom_smooth() +
-  geom_point() +
-  labs(x = "Days since start of period",
-       y = "Hospital admissions",
-       colour = "Start of period")
-```
-
-
-```{r}
-days_in <- grouped %>%
-  mutate(date = as.Date(date),
-         max_date = max(date)) %>%
-  filter(date == max_date) %>%
-  pull(day)
-days_in
-```
-
-```{r}
-grouped %>%
-  filter(date_segment %in% focal_segments) %>%
-  group_by(date_segment) %>%
-  filter(day == days_in) %>%
-  pull(date) %>% as.Date() %>% format("%d %b %Y")
-```
-
-
-```{r}
-segs_cases <- grouped %>%
-  filter(date_segment %in% focal_segments) %>%
-  ggplot(aes(day, newCasesBySpecimenDate, colour = date_segment)) +
-  geom_smooth(se = FALSE) +
-  geom_point() +
-  labs(x = "Days since start of period", y = "Cases", colour = NULL)
-```
-
-
-```{r}
-segs_deaths <- grouped %>%
-  filter(date_segment %in% focal_segments) %>%
-  ggplot(aes(day, newDeaths28DaysByDeathDate,
-             colour = date_segment)) +
-  geom_smooth(se = FALSE) +
-  geom_point() +
-  labs(x = "Days since start of period", y = "Deaths", colour = NULL)
-```
-
-
-```{r fig.height=6, fig.width=6, dpi=300}
-segs_admissions / segs_cases
-```
-
-```{r fig.height=6, fig.width=6, dpi=300}
-segs_admissions / segs_deaths / segs_cases
-```
-
-
-
-
-
-
-```{r}
-scatter_cases_date_rainbow <- peaks_valleys_dat %>%
-  filter() %>%
-  ggplot(aes(as.Date(date),
-             newCasesBySpecimenDate,
-             colour = date_segment)) +
-      geom_point() +
-      labs(x = "Date",
-           y = "Daily cases") +
-  theme(legend.position = "none") +
-  scale_x_date(
-    date_labels = "%b %Y",
-    limits = date_range)
-```
-
-
-
-```{r fig.height=6, fig.width=8}
-to_plot <- peaks_valleys_dat %>%
-  filter(date_segment %in% focal_segments) %>%
-  select(
-    date,
-    newCasesBySpecimenDate,
-    newAdmissions,
-    newDeaths28DaysByDeathDate,
-    date_segment
-  ) %>%
-  mutate(date = as.Date(date),
-         newCasesBySpecimenDate = newCasesBySpecimenDate / 1000)
-
-to_plot %>%
-  ggpairs(columns = 1:(ncol(to_plot) - 1),
-          mapping = aes(colour = date_segment),
-          lower  = list(continuous = "points"),
-          upper  = list(continuous = "blank"),
-          diag  = list(continuous = "blankDiag"),
-          columnLabels = c("Date",
-                           "Cases (1000s)",
-                           "Hospitalisations",
-                           "Deaths")) %>%
-  gpairs_lower()
-```
-
-
-
-```{r dpi = 300, width = 6, height = 3}
-segs_admissions
-```
-
-
-
-```{r}
-covid_hosp %>%
-  ggplot(aes(as.Date(date), covidOccupiedMVBeds)) +
-  geom_point(size = .5)
-```
-
-
-```{r}
-covid_hosp %>%
-  ggplot(aes(as.Date(date), hospitalCases)) +
-  geom_point(size = 0.5)
-```
-
-
-
-```{r}
-recent_dat <- covid_hosp %>%
-  filter(as.Date(date) >= as.Date("2021-01-01"))
-
-min(recent_dat$hospitalCases)
-```
-
-```{r}
-min_date <- recent_dat %>%
-  filter(hospitalCases == min(recent_dat$hospitalCases)) %>%
-  pull(date)
-min_date
-```
-
-```{r}
-current_wave <- covid_hosp %>%
-  filter(as.Date(date) >= as.Date(min_date)) %>%
-  mutate(days_in = as.Date(date) - as.Date(min_date),
-         days_in = as.integer(days_in))
-```
-
-
-
-```{r}
-current_wave$days_in
-```
-
-
-```{r}
-current_wave %>%
-  ggplot(aes(days_in, log(hospitalCases,2))) +
-  geom_point()
-```
-
-
-
-```{r}
-lm1 <- lm(log2(hospitalCases) ~ days_in + I(days_in^2),
-          data = current_wave)
-summary(lm1)
-```
-
-
-```{r}
-predicted_hospital_cases <- data.frame(
-  days_in = 0:365
-) %>%
-  mutate(date = as.Date(min_date) + days_in)
-
-predicted_hospital_cases$predicted_cases <- 2^predict(
-  object = lm1,
-  newdat = predicted_hospital_cases)
-```
-
-```{r}
-predicted_hospital_cases %>%
-  filter(predicted_cases <= 41000)
-```
-
-
-
-
-```{r}
-current_wave %>%
-  ggplot(aes(days_in, hospitalCases)) +
-  geom_point() +
-  geom_function(fun = \(x) 2^(coef(lm1)[1] +
-                                coef(lm1)[2]*x +
-                                coef(lm1)[3]*x^2)) +
-  xlim(0, 82)
-```
 
 
 

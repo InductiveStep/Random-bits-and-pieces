@@ -1,0 +1,273 @@
+---
+title: "IPTW (chap 10, Lumley, 2010)"
+output: 
+  html_notebook: 
+    theme: cerulean
+---
+
+Exploring the data and models introduced in the causal chapter of Lumley's (2010) book on surveys -- and a few other models to see how they compare.
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(survey)
+library(srvyr)
+library(modelsummary)
+
+# LMMs
+library(lme4)
+
+# CEM
+library(MatchIt)
+library(lmtest)   #coeftest
+library(sandwich) #vcovCL
+```
+
+The data are [over here](https://www.cengage.com/cgi-wadsworth/course_products_wp.pl?fid=M20b&product_isbn_issn=9781305268920), in a collection from another book mentioned by Lumley.
+
+```{r}
+dat <- read.csv("kidsmoking.txt", sep = "\t")
+head(dat)
+```
+
+It has the right number of rows -- first good sign that it's the same dataset.
+
+```{r}
+nrow(dat)
+```
+
+Fix the factors:
+
+```{r}
+dat <- dat %>%
+  mutate(smoke = factor(smoke),
+         smoke = recode(smoke, `0` = "No", `1` = "Yes"),
+         sex   = factor(sex),
+         sex   = recode(sex, `0` = "Female", `1` = "Male"))
+```
+
+Lumley mentions a family ID, but it's not there. My guess is that it's embedded in the overall ID with the last two digits providing the child ID and the rest the family. Let's give that a go.
+
+```{r}
+dat <- dat %>%
+  mutate(family_id = floor(id/100))
+```
+
+Should be 290 families:
+
+```{r}
+unique(dat$family_id) %>% length()
+```
+YES.
+
+Now we need a variable to encode whether each child has a sibling who smokes. For each family we can count the total number of (child) smokers. Then for a given child we work out if a sib smokes by rule:
+
+Does child of focus smoke? If yes, then sib smokes if are there 2 or more smokers in the family. If no, then sib smokes if are there 1 or more smokers in the family.
+
+Let's give that a go. First, count the child smokers in each family.
+
+```{r}
+fam_smokers <- dat %>%
+  group_by(family_id) %>%
+  summarise(fam_smokers = sum(smoke == "Yes"))
+```
+
+Merge the count back into the dataframe and work out whether each child has a sib who smokes:
+
+```{r}
+dat <- dat %>%
+  left_join(fam_smokers) %>%
+  mutate(
+    sib_smokes = ifelse(smoke == "Yes",
+                             fam_smokers >= 2,
+                        #else
+                             fam_smokers >= 1)
+  )
+```
+
+Done.
+
+Finally, make the IDs factors.
+
+```{r eval = FALSE}
+dat <- dat %>%
+  mutate(id = factor(id),
+         family_id = factor(family_id))
+```
+
+
+
+Now some pictures:
+
+```{r width = 6, height = 3}
+dat %>%
+  ggplot(aes(smoke, fev1)) +
+  geom_jitter(width = 0.1, alpha = 0.5, size = 0.5) +
+  geom_boxplot(alpha = 0.2, colour = "magenta") +
+  labs(x = "Smoking",
+       y = expression(FEV[1]~(l/s))) +
+  coord_flip()
+```
+
+
+```{r}
+set.seed(1337)
+dat %>%
+  ggplot(aes(age, fev1, colour = smoke)) +
+  geom_jitter(alpha = 0.4, width = 0.1, height = 0) +
+  labs(x = "Age",
+       y = expression(FEV[1]~(l/s)),
+       colour = "Smoking") +
+  scale_colour_manual(values = c("darkgrey", "magenta")) +
+  theme_bw()
+```
+
+
+what's the earliest age someone smokes?
+
+```{r}
+dat %>%
+  mutate(age = ordered(age)) %>%
+  tabyl(age, smoke)
+```
+
+It's 9, but, as Lumley points out, it's only one person.
+
+```{r}
+dat10plus <- dat %>%
+  filter(age >= 10)
+```
+
+Just going to copy the analyses to start with, to check it's really the same dataset:
+
+```{r}
+m1  <- glm(I(smoke == "Yes") ~ age * sex, data = dat10plus,
+           family = binomial)
+m2  <- glm(I(smoke == "Yes") ~ height * sex, data = dat10plus,
+           family = binomial)
+m1a <- glm(I(smoke == "Yes") ~ (age + sib_smokes) * sex, data = dat10plus,
+           family = binomial)
+m2a <- glm(I(smoke == "Yes") ~ (height + sib_smokes) * sex, data = dat10plus,
+           family = binomial)
+```
+
+
+
+```{r}
+dat10plus <- dat10plus %>%
+  mutate(
+    pi1 = ifelse(smoke == "Yes",
+                 fitted(m1),
+                 1 - fitted(m1)),
+    pi2 = ifelse(smoke == "Yes",
+                 fitted(m2),
+                 1 - fitted(m2)),
+    pi1a = ifelse(smoke == "Yes",
+                  fitted(m1a),
+                  1 - fitted(m1a)),
+    pi2a = ifelse(smoke == "Yes",
+                  fitted(m2a),
+                  1 - fitted(m2a)),
+    w1 = 1 / pi1,
+    w2 = 1 / pi2,
+    w1a = 1 / pi1a,
+    w2a = 1 / pi2a
+  )
+```
+
+
+Note below I had apparently confused `as_survey` by including a formula in the weights option: the reciprocal of the propensity score. Easily fixed and a reminder to check the design object is setup correctly before using it in analyses.
+
+```{r}
+the_designs <- list()
+
+the_designs[["m1"]] <- dat10plus %>%
+  as_survey(ids = family_id,
+            weights = w1)
+
+the_designs[["m2"]] <- dat10plus %>%
+  as_survey(ids = family_id,
+            weights = w2)
+
+the_designs[["m1a"]] <- dat10plus %>%
+  as_survey(ids = family_id,
+            weights = w1a)
+
+the_designs[["m2a"]] <- dat10plus %>%
+  as_survey(ids = family_id,
+            weights = w2a)
+
+the_designs[["unweighted"]] <- dat10plus %>%
+  as_survey(ids = family_id,
+            weights = NULL)
+```
+
+```{r}
+the_designs
+```
+
+
+```{r}
+the_mods <- lapply(the_designs, \(d) svyglm(fev1 ~ smoke, design = d))
+the_mods[["LMM"]] <- lmer(fev1 ~ smoke + (1|family_id),
+                                 data = dat10plus)
+```
+
+
+```{r}
+modelsummary(the_mods,
+             fmt = 2,
+             gof_omit = ".*",
+             coef_map = c("smokeYes" = "Smoking"))
+```
+
+The coefficients are still pointing the wrong way: smoking implies better lung capacity. Lumley tries the analysis again by subseting to children aged 12 or above and with a doubly-robust approach, also known as augmented IPW (AIPW). I'm curious to see what happens with coarsened exact matching.
+
+
+
+```{r}
+mat <- matchit(smoke ~ age + height + sex + sib_smokes,
+               data = dat10plus,
+               method = "cem")
+mat
+```
+
+
+```{r}
+summary(mat)
+```
+
+
+```{r}
+summary(mat) %>% plot(xlim = c(0, 1))
+```
+
+
+Here's what the help recommends:
+
+```{r}
+mat_dat <- match.data(mat)
+cem_fit <- lm(fev1 ~ smoke, data = mat_dat, weights = weights)
+coeftest(cem_fit, vcov. = vcovCL, cluster = ~subclass)
+```
+
+
+Try also using {survey}:
+
+```{r}
+cem_design <- mat_dat %>%
+  as_survey(
+    ids = subclass,
+    weights = weights
+  )
+cem_design
+```
+
+
+```{r}
+svyglm(fev1 ~ smoke, design = cem_design) %>%
+  summary()
+```
+
+Also try a multilevel model with the weights. {WeMix} seems to do it.
+
