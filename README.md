@@ -9,3 +9,5 @@ These are incomplete code fragments:
 [UK Covid data](https://inductivestep.github.io/Random-bits-and-pieces/uk_covid_dat.html)
 
 [PHE Fingertips](https://inductivestep.github.io/Random-bits-and-pieces/fingertips.nb.html)
+
+[IPW and CEM](https://inductivestep.github.io/Random-bits-and-pieces/kidsmoking.nb.html)
