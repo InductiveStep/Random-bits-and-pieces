@@ -228,7 +228,8 @@ The coefficients are still pointing the wrong way: smoking implies better lung c
 ```{r}
 mat <- matchit(smoke ~ age + height + sex + sib_smokes,
                data = dat10plus,
-               method = "cem")
+               method = "cem",
+               estimate = "ATE")
 mat
 ```
 

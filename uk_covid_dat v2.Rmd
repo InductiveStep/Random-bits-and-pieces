@@ -92,7 +92,7 @@ scatter_cases_admissions_2nd_dose
 
 
 ```{r}
-sma_order = 12
+sma_order = 10
 
 peaks_valleys_dat <- dat %>%
   select(
@@ -106,28 +106,27 @@ peaks_valleys_dat <- dat %>%
   mutate(i = 1:n())
 
 peaks_valleys_dat_temp <- peaks_valleys_dat %>%
-  select(i, newAdmissions) %>%
+  select(i, newCasesBySpecimenDate) %>%
   na.omit()
 
-peaks_valleys_dat_temp$newAdmissions_smooth =
-  sma(peaks_valleys_dat_temp$newAdmissions,
+peaks_valleys_dat_temp$newCasesBySpecimenDate_smooth =
+  sma(peaks_valleys_dat_temp$newCasesBySpecimenDate,
       order = sma_order)$fitted
 
 the_peaks <- peaks_valleys_dat_temp$i[
-  findPeaks(peaks_valleys_dat_temp$newAdmissions_smooth,thresh = 2)]
+  findPeaks(peaks_valleys_dat_temp$newCasesBySpecimenDate_smooth,thresh = 2)]
 the_valleys <- peaks_valleys_dat_temp$i[
-  findValleys(peaks_valleys_dat_temp$newAdmissions_smooth, thresh = 2)]
+  findValleys(peaks_valleys_dat_temp$newCasesBySpecimenDate_smooth, thresh = 2)]
 
-switches <- c(1, the_peaks - sma_order,
-                 the_valleys - sma_order,
-              max(peaks_valleys_dat$i)) %>%
+switches <- c(the_peaks,
+              the_valleys) %>%
   sort()
 
-switch_threshold <- 19
+switch_threshold <- 10
 select_em <- c(TRUE, switches[-1] -
                  switches[-length(switches)] > switch_threshold)
-switches <- switches[select_em]
-plot(peaks_valleys_dat$newAdmissions)
+switches <- c(1, switches[select_em],max(peaks_valleys_dat$i))
+plot(peaks_valleys_dat$newCasesBySpecimenDate)
 abline(v = switches)
 ```
 
@@ -426,7 +425,7 @@ to_plot <- peaks_valleys_dat %>%
          newCasesBySpecimenDate = newCasesBySpecimenDate / 1000)
 
 to_plot %>%
-  filter(date >= as.Date("2021-07-01")) %>%
+  filter(date >= as.Date("2021-01-01")) %>%
   ggpairs(columns = 1:(ncol(to_plot) - 1),
           mapping = aes(colour = date_segment),
           lower  = list(continuous = "points"),

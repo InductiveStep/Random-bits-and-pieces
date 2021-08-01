@@ -1,0 +1,47 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(truncnorm)
+```
+
+
+
+```{r}
+curve(dtruncnorm(x, a=0, b=Inf, mean = 20, sd = 42), -100, 100)
+```
+
+
+
+```{r}
+etruncnorm(a=0, b=Inf, mean = 40, sd = 22)
+```
+
+```{r}
+sqrt(vtruncnorm(a=0, b=Inf, mean = 3, sd = 42))
+```
+
+```{r}
+curve(etruncnorm(a=0, b=Inf, mean = x, sd = 22), 0,45)
+```
+
+
+
+
+```{r}
+untruncate <- function(obs_mean, obs_sd) {
+  optim(par(c(obs_mean)),
+        function(x) 
+          (etruncnorm(a=0, b=Inf, mean=x, sd=obs_sd) - obs_mean)^2)
+}
+
+untruncate(42,15)
+```
+
+
+
+
+
