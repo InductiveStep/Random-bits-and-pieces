@@ -1,0 +1,11 @@
+---
+title: "sen2r"
+output: html_notebook
+---
+
+
+```{r}
+library(sen2r)
+sen2r()
+```
+
