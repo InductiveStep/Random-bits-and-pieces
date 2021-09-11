@@ -1,0 +1,49 @@
+---
+title: "parTreat"
+output: html_document
+---
+
+```{r}
+#devtools::install_github("michaelpollmann/parTreat")
+```
+
+```{r}
+library(parTreat)
+```
+
+```{r}
+library(tidyverse)
+```
+
+
+
+```{r}
+y_control <- rexp(n=1000, rate=2)
+y_treat   <- 0.5 + rexp(n=200, rate=2)
+```
+
+```{r}
+dat <- tibble(
+  Outcome = c(y_control, y_treat),
+  Group = c(rep("Control", length(y_control)),
+            rep("Treat", length(y_treat)))
+)
+```
+
+
+
+```{r dpi = 300}
+dat %>%
+  ggplot(aes(x = Outcome, fill = Group)) +
+  geom_density(alpha=0.25) + 
+  labs(y = "Density")
+```
+
+
+```{r}
+eif_additive(y_control, y_treat)
+```
+
+
+
+
