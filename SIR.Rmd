@@ -1,0 +1,59 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r message=FALSE}
+library(tidyverse)
+```
+
+R version of Jeremy Howard's Python [code here](https://twitter.com/jeremyphoward/status/1437043055631081477) for the  SIR (susceptible; infected; recovered) model.
+
+```{r}
+beta  <- 0.2    # Contact rate (in 1/days)
+gamma <- 1./10  # recovery rates (in 1/days)
+
+N <- 1000   # Population
+I <- 1      # initial infected
+R <- 0      # initial recovered
+
+S <- N - I - R  # susceptible
+```
+
+
+```{r}
+the_range <- 160
+
+Susceptible <- rep(NA, the_range)
+Infected    <- rep(NA, the_range)
+Recovered   <- rep(NA, the_range)
+
+for (i in seq_len(the_range)) {
+    diff_I <- beta * S * I / N
+    S <- S - diff_I
+    diff_R <- gamma * I
+    R <- R + diff_R
+    I <- I + diff_I - diff_R
+    Susceptible[i] <- S
+    Infected[i]    <- I
+    Recovered[i]   <- R
+}
+
+dat <- tibble(
+  i = 1:the_range,
+  Susceptible,
+  Infected,
+  Recovered
+)
+```
+
+
+```{r DPI = 300}
+dat %>% pivot_longer(cols = Susceptible:Recovered,
+                     names_to = "label") %>%
+  ggplot(aes(i, value/N, colour = label)) +
+  geom_line(size = 1) +
+  labs(y = NULL, x = "Time", colour = NULL)
+```
