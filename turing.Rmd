@@ -1,0 +1,71 @@
+---
+title: "Timeout Turing"
+output: html_notebook
+---
+
+```{r}
+library(stringr)
+library(R.utils)
+```
+
+
+```{r}
+function_length <- function(func) {
+  body(func) |> 
+    as.character() |> 
+    str_length() |> 
+    sum()
+}
+```
+
+
+```{r}
+function_length(function_length)
+```
+
+
+
+```{r}
+terminates <- function(expr, timeout_secs = 1) {
+  terminates <- FALSE
+  res <- NULL
+  try({
+    res <- withTimeout(expr, timeout = timeout_secs)
+    terminates <- TRUE
+  }, silent = TRUE)
+  
+  terminates
+}
+```
+
+
+```{r}
+loop_forever <- function() {
+  while (TRUE) {}
+}
+```
+
+
+```{r}
+terminates(identity(identity))
+```
+
+```{r}
+terminates(loop_forever())
+```
+
+
+
+```{r}
+taking_the_p <- function() {
+  if (terminates(taking_the_p())) 
+    while (TRUE) {}
+}
+```
+
+
+```{r}
+terminates(terminates(taking_the_p()))
+```
+
+

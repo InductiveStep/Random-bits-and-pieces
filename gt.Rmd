@@ -1,0 +1,100 @@
+---
+title: "R Notebook"
+output:
+  html_notebook: default
+  word_document: default
+---
+
+
+
+
+```{r}
+library(gt)
+library(tidyverse)
+```
+
+```{r}
+sleep_sum <- sleep %>%
+  group_by(group) %>%
+  summarise(Mean = mean(extra),
+            SD   = sd(extra),
+            n    = n())
+```
+
+
+```{r}
+sleep_sum %>%
+  select(Group = group, everything()) %>%
+  gt() %>%
+  fmt_number(columns = c(Mean, SD),
+             decimals = 2)
+```
+
+
+```{r}
+dat <- expand.grid(Month = c(0, 3, 6, 12),
+                   ID    = 1:100) %>%
+  tibble()
+
+dat <- tibble(ID    = unique(dat$ID),
+              Treat = rbinom(length(ID), 1, 0.5)) %>%
+       left_join(dat)
+
+dat <- dat %>%
+  mutate(Baseline = rnorm(nrow(dat), 0, 1),
+         Y        = Baseline + (1/6) * Month +
+                               (3/6) * Month * Treat,
+         Group    = factor(Treat, labels = c("Control", "Treat")))
+
+dat
+```
+
+
+```{r}
+dat %>%
+  ggplot(aes(x = Month, y = Y,group = ID, colour = Group)) +
+  geom_point() +
+  geom_line()
+```
+
+
+```{r}
+dat_sum <- dat %>%
+  group_by(Group, Month) %>%
+  summarise(Mean = mean(Y),
+            SD   = sd(Y),
+            n    = n())
+dat_sum
+```
+
+```{r}
+dat_sum_wide <- dat_sum %>%
+  pivot_wider(names_from = Group,
+              values_from = c(Mean, SD, n))
+dat_sum_wide
+```
+
+```{r}
+dat_sum_wide %>%
+  gt() %>%
+  tab_spanner(
+    label = md("**Treatment**"),
+    columns = c(Mean_Treat, SD_Treat, n_Treat)
+  ) %>%
+  tab_spanner(
+    label = md("**Control**"),
+    columns = c(Mean_Control, SD_Control, n_Control)
+  ) %>%
+  cols_label(
+    Mean_Control = md("**M**"),
+    Mean_Treat = md("**M**"),
+    SD_Treat = md("**SD**"),
+    SD_Control = md("**SD**"),
+    n_Treat = md("**n**"),
+    n_Control = md("**n**"),
+    Month = md("**Month**")
+  ) %>%
+  fmt_number(columns = starts_with(c("Mean", "SD")),
+             decimals = 2)
+```
+
