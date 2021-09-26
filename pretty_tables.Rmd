@@ -41,7 +41,7 @@ dat <- tibble(ID    = unique(dat$ID),
        left_join(dat)
 
 dat <- dat %>%
-  mutate(Baseline = rnorm(nrow(dat), 0, 1),
+  mutate(Baseline = rnorm(nrow(dat), 10, 1),
          Y        = Baseline + (1/6) * Month +
                                (3/6) * Month * Treat,
          Group    = factor(Treat, labels = c("Control", "Treat")))
@@ -75,7 +75,7 @@ dat_sum_wide
 ```
 
 ```{r}
-dat_sum_wide %>%
+my_tab <- dat_sum_wide %>%
   gt() %>%
   tab_spanner(
     label = md("**Treatment**"),
@@ -97,4 +97,18 @@ dat_sum_wide %>%
   fmt_number(columns = starts_with(c("Mean", "SD")),
              decimals = 2)
 ```
+
+```{r}
+my_tab
+```
+
+This saves the table out:
+
+```{r}
+gtsave(my_tab, "gt.rtf")
+```
+
+It's not very pretty, tbh.
+
+
 
