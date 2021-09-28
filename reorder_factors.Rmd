@@ -36,12 +36,6 @@ other_reorder <- function(factor, other_name, order_by, func, ...) {
 
 
 
-
-```{r}
-my_reorder(df$color, "Other", df$a, min)
-```
-
-
 ```{r}
 df %>%
   ggplot(aes(color, a)) +

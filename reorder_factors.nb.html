@@ -263,17 +263,6 @@ pre code {
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubXlfcmVvcmRlcihkZiRjb2xvciwgXCJPdGhlclwiLCBkZiRhLCBtaW4pXG5gYGAifQ== -->
-<pre class="r"><code>my_reorder(df$color, &quot;Other&quot;, df$a, min)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gbXlfcmVvcmRlcihkZiRjb2xvciwgXCJPdGhlclwiLCBkZiRhLCBtaW4pIDogXG4gIGNvdWxkIG5vdCBmaW5kIGZ1bmN0aW9uIFwibXlfcmVvcmRlclwiXG4ifQ== -->
-<pre><code>Error in my_reorder(df$color, &quot;Other&quot;, df$a, min) : 
-  could not find function &quot;my_reorder&quot;</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGYgJT4lXG4gIGdncGxvdChhZXMoY29sb3IsIGEpKSArXG4gIGdlb21fY29sKClcbmBgYCJ9 -->
 <pre class="r"><code>df %&gt;%
   ggplot(aes(color, a)) +
@@ -299,7 +288,7 @@ pre code {
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlJlb3JkZXIgZmFjdG9yIg0Kb3V0cHV0OiBodG1sX25vdGVib29rDQotLS0NCg0KDQoNCmBgYHtyfQ0KbGlicmFyeSh0aWR5dmVyc2UpDQpgYGANCg0KDQpgYGB7cn0NCmRmIDwtIHRpYmJsZTo6dHJpYmJsZSgNCiAgfmNvbG9yLCAgfmEsIH5iLA0KICAiYmx1ZSIsICAgMSwgMiwNCiAgImdyZWVuIiwgIDYsIDIsDQogICJwdXJwbGUiLCAzLCAzLA0KICAicmVkIiwgICAgMiwgMywNCiAgInllbGxvdyIsIDUsIDEsDQogICJPdGhlciIsICAyLCAxDQopDQpgYGANCg0KYGBge3J9DQpkZg0KYGBgDQoNCg0KYGBge3J9DQpvdGhlcl9yZW9yZGVyIDwtIGZ1bmN0aW9uKGZhY3Rvciwgb3RoZXJfbmFtZSwgb3JkZXJfYnksIGZ1bmMsIC4uLikgew0KICBmY3RfcmVvcmRlcihmYWN0b3IsIG9yZGVyX2J5LCBmdW5jLCAuLi4pICU+JQ0KICAgIGZjdF9yZWxldmVsKG90aGVyX25hbWUsIGFmdGVyID0gSW5mKQ0KfQ0KYGBgDQoNCg0KDQoNCmBgYHtyfQ0KbXlfcmVvcmRlcihkZiRjb2xvciwgIk90aGVyIiwgZGYkYSwgbWluKQ0KYGBgDQoNCg0KYGBge3J9DQpkZiAlPiUNCiAgZ2dwbG90KGFlcyhjb2xvciwgYSkpICsNCiAgZ2VvbV9jb2woKQ0KYGBgDQoNCmBgYHtyfQ0KZGYgJT4lDQogIG11dGF0ZShjb2xvciA9IG90aGVyX3Jlb3JkZXIoY29sb3IsICJPdGhlciIsIGEsIGlkZW50aXR5LCAuZGVzYyA9IEYpKSAlPiUNCiAgZ2dwbG90KGFlcyhjb2xvciwgYSkpICsNCiAgZ2VvbV9jb2woKQ0KYGBgDQoNCg==</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlJlb3JkZXIgZmFjdG9yIg0Kb3V0cHV0OiBodG1sX25vdGVib29rDQotLS0NCg0KDQoNCmBgYHtyfQ0KbGlicmFyeSh0aWR5dmVyc2UpDQpgYGANCg0KDQpgYGB7cn0NCmRmIDwtIHRpYmJsZTo6dHJpYmJsZSgNCiAgfmNvbG9yLCAgfmEsIH5iLA0KICAiYmx1ZSIsICAgMSwgMiwNCiAgImdyZWVuIiwgIDYsIDIsDQogICJwdXJwbGUiLCAzLCAzLA0KICAicmVkIiwgICAgMiwgMywNCiAgInllbGxvdyIsIDUsIDEsDQogICJPdGhlciIsICAyLCAxDQopDQpgYGANCg0KYGBge3J9DQpkZg0KYGBgDQoNCg0KYGBge3J9DQpvdGhlcl9yZW9yZGVyIDwtIGZ1bmN0aW9uKGZhY3Rvciwgb3RoZXJfbmFtZSwgb3JkZXJfYnksIGZ1bmMsIC4uLikgew0KICBmY3RfcmVvcmRlcihmYWN0b3IsIG9yZGVyX2J5LCBmdW5jLCAuLi4pICU+JQ0KICAgIGZjdF9yZWxldmVsKG90aGVyX25hbWUsIGFmdGVyID0gSW5mKQ0KfQ0KYGBgDQoNCg0KDQpgYGB7cn0NCmRmICU+JQ0KICBnZ3Bsb3QoYWVzKGNvbG9yLCBhKSkgKw0KICBnZW9tX2NvbCgpDQpgYGANCg0KYGBge3J9DQpkZiAlPiUNCiAgbXV0YXRlKGNvbG9yID0gb3RoZXJfcmVvcmRlcihjb2xvciwgIk90aGVyIiwgYSwgaWRlbnRpdHksIC5kZXNjID0gRikpICU+JQ0KICBnZ3Bsb3QoYWVzKGNvbG9yLCBhKSkgKw0KICBnZW9tX2NvbCgpDQpgYGANCg0K</div>
 
 
 
