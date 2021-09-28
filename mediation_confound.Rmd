@@ -4,37 +4,106 @@ output: html_notebook
 ---
 
 
+```{r}
+library(tidyverse)
+```
+
+
+Example with a mediator-outcome confounder.
 
 ```{r}
 n <- 1000
-treat   <- rbinom(n, 1, .5)
-med_out_confound <- rnorm(n, 0, 2)
-med     <- treat + med_out_confound + rnorm(n, 0, 1)
-out     <- treat + med_out_confound + rnorm(n, 0, 1)
+
+dat <- tibble(
+  treat             = rbinom(n, 1, .5),
+  med_out_confound  = rnorm(n, 0, 2),
+  med               = treat + med_out_confound + rnorm(n, 0, 1),
+  out               = treat + med_out_confound + rnorm(n, 0, 1)
+)
 ```
 
 
 ```{r}
-boxplot(out ~ treat)
+med_fit <- lm(med ~ treat, data = dat)
+out_fit <- lm(out ~ med + treat, data = dat)
 ```
 
 
 ```{r}
-plot(out ~ med)
+library(mediation)
+```
+
+
+```{r}
+mediate1 <-
+  mediate(
+    med_fit,
+    out_fit,
+    treat = "treat",
+    mediator = "med",
+    robustSE = TRUE,
+    sims = 100
+  )
+```
+
+```{r}
+summary(mediate1)
+```
+
+
+```{r}
+med_fit2 <- lm(med ~ treat + med_out_confound, data = dat)
+out_fit2 <- lm(out ~ med + med_out_confound + treat, data = dat)
+```
+
+
+```{r}
+mediate2 <-
+  mediate(
+    med_fit2,
+    out_fit2,
+    treat = "treat",
+    mediator = "med",
+    robustSE = TRUE,
+    sims = 100
+  )
+summary(mediate2)
 ```
 
 
 
+Try again, this time without confounding.
+
 
 ```{r}
-boxplot(med ~ treat)
+n <- 1000
+
+dat2 <- tibble(
+  treat = rbinom(n, 1, .5),
+  med   = 2*treat + rnorm(n, 0, 1),
+  out   = 3*med + rnorm(n, 0, 1)
+)
 ```
 
 
 
 ```{r}
-out <- med
-med <- treat
+med_fit3 <- lm(med ~ treat, data = dat2)
+out_fit3 <- lm(out ~ med + treat, data = dat2)
+```
+
+
+```{r}
+mediate3 <-
+  mediate(
+    med_fit3,
+    out_fit3,
+    treat = "treat",
+    mediator = "med",
+    robustSE = TRUE,
+    sims = 100
+  )
+summary(mediate3)
 ```
 
 
