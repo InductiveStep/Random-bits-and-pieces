@@ -1,0 +1,57 @@
+---
+title: "Reorder factor"
+output: html_notebook
+---
+
+
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+df <- tibble::tribble(
+  ~color,  ~a, ~b,
+  "blue",   1, 2,
+  "green",  6, 2,
+  "purple", 3, 3,
+  "red",    2, 3,
+  "yellow", 5, 1,
+  "Other",  2, 1
+)
+```
+
+```{r}
+df
+```
+
+
+```{r}
+other_reorder <- function(factor, other_name, order_by, func, ...) {
+  fct_reorder(factor, order_by, func, ...) %>%
+    fct_relevel(other_name, after = Inf)
+}
+```
+
+
+
+
+```{r}
+my_reorder(df$color, "Other", df$a, min)
+```
+
+
+```{r}
+df %>%
+  ggplot(aes(color, a)) +
+  geom_col()
+```
+
+```{r}
+df %>%
+  mutate(color = other_reorder(color, "Other", a, identity, .desc = F)) %>%
+  ggplot(aes(color, a)) +
+  geom_col()
+```
+

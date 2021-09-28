@@ -1,0 +1,41 @@
+---
+title: "Mediation confound"
+output: html_notebook
+---
+
+
+
+```{r}
+n <- 1000
+treat   <- rbinom(n, 1, .5)
+med_out_confound <- rnorm(n, 0, 2)
+med     <- treat + med_out_confound + rnorm(n, 0, 1)
+out     <- treat + med_out_confound + rnorm(n, 0, 1)
+```
+
+
+```{r}
+boxplot(out ~ treat)
+```
+
+
+```{r}
+plot(out ~ med)
+```
+
+
+
+
+```{r}
+boxplot(med ~ treat)
+```
+
+
+
+```{r}
+out <- med
+med <- treat
+```
+
+
+

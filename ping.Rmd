@@ -1,0 +1,56 @@
+---
+title: "Ping"
+output: html_notebook
+---
+
+```{r}
+library(pingr)
+library(tidyverse)
+library(scales)
+library(lubridate)
+```
+
+```{r}
+ping_addy <- "virginmedia.com"
+echo_it <- F
+the_timeout <- 10
+ping_every_sec <- 1
+```
+
+
+```{r}
+res <- tibble(time = c(), ms = c())
+
+while (TRUE) {
+  res_time <- Sys.time()
+  res_ms   <- ping(ping_addy, count = 1, timeout = the_timeout)
+  one_res  <- tibble(time = res_time, ms = res_ms)
+  res <- rbind(res, one_res)
+  if (echo_it)
+    cat(paste0(res_time, "\t", res_ms,"\n"))
+  Sys.sleep(ping_every_sec)
+}
+```
+
+
+```{r}
+res %>%
+  filter(is.na(ms))
+```
+
+
+
+```{r fig.height=3, fig.width=6, dpi=300}
+res %>%
+  ggplot(aes(x = time, y = ms)) +
+  geom_point(size = 1, alpha = 0.5) +
+  geom_smooth(se = F) +
+  labs(x = "Time",
+       y = "Response time (ms)",
+       title = paste0("Pinging ", ping_addy)) +
+  scale_y_continuous(trans = "log2") +
+  theme_classic()
+```
+
+
+

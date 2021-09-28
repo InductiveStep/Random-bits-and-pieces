@@ -1,12 +1,12 @@
 ---
-title: "R Notebook"
+title: "Packages for making pretty tables in R"
 output:
   html_notebook: default
   word_document: default
 ---
 
 
-
+# gt
 
 ```{r}
 library(gt)
@@ -111,4 +111,11 @@ gtsave(my_tab, "gt.rtf")
 It's not very pretty, tbh.
 
 
+
+
+# flextable
+
+```{r}
+library(flextable)
+```
 
