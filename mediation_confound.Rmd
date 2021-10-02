@@ -52,6 +52,32 @@ summary(mediate1)
 
 
 ```{r}
+mediate1_sens <-
+  medsens(mediate1,
+          rho.by = 0.1,
+          effect.type = "both",
+          sims = 100)
+
+```
+
+```{r}
+summary(mediate1_sens)
+```
+
+
+```{r}
+old <- par(mfrow = c(1,2))
+  plot(mediate1_sens)
+par(old)
+```
+
+```{r}
+cor.test(~ med_out_confound + out, data = dat)
+```
+
+
+
+```{r}
 med_fit2 <- lm(med ~ treat + med_out_confound, data = dat)
 out_fit2 <- lm(out ~ med + med_out_confound + treat, data = dat)
 ```
@@ -68,6 +94,28 @@ mediate2 <-
     sims = 100
   )
 summary(mediate2)
+```
+
+
+
+```{r}
+mediate2_sens <-
+  medsens(mediate2,
+          rho.by = 0.1,
+          effect.type = "both",
+          sims = 100)
+
+```
+
+
+```{r}
+summary(mediate2_sens)
+```
+
+```{r}
+old <- par(mfrow = c(1,2))
+  plot(mediate2_sens)
+par(old)
 ```
 
 
@@ -106,5 +154,22 @@ mediate3 <-
 summary(mediate3)
 ```
 
+```{r}
+mediate3_sens <-
+  medsens(mediate3,
+          rho.by = 0.1,
+          effect.type = "both",
+          sims = 100)
+
+```
+
+```{r}
+summary(mediate3_sens)
+```
 
 
+```{r}
+old <- par(mfrow = c(1,2))
+  plot(mediate3_sens)
+par(old)
+```
