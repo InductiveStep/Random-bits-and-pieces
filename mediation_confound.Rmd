@@ -140,6 +140,17 @@ med_fit3 <- lm(med ~ treat, data = dat2)
 out_fit3 <- lm(out ~ med + treat, data = dat2)
 ```
 
+```{r}
+summary(med_fit3)
+```
+
+```{r}
+summary(out_fit3)
+```
+
+
+
+
 
 ```{r}
 mediate3 <-
@@ -149,7 +160,7 @@ mediate3 <-
     treat = "treat",
     mediator = "med",
     robustSE = TRUE,
-    sims = 100
+    sims = 1000
   )
 summary(mediate3)
 ```
@@ -173,3 +184,106 @@ old <- par(mfrow = c(1,2))
   plot(mediate3_sens)
 par(old)
 ```
+
+
+# Try a naive approach to estimating ACME
+
+First, work out what values the mediator takes under treat and control:
+
+```{r}
+med_preds <- tibble(treat = 0:1)
+
+med_preds$med <- predict(med_fit3, med_preds)
+med_preds
+```
+
+Now some combos:
+
+```{r}
+out_preds <- expand.grid(treat = med_preds$treat,
+                         med   = med_preds$med)
+out_preds
+```
+
+Plug into the outcome model:
+
+```{r}
+out_preds$out <- predict(out_fit3, out_preds)
+out_preds
+```
+
+Now let's try ACME(0) and ACME(1)
+
+```{r}
+treat_0 <- out_preds %>%
+  filter(treat == 0) %>%
+  pull(out)
+
+treat_0
+```
+
+```{r}
+treat_1 <- out_preds %>%
+  filter(treat == 1) %>%
+  pull(out)
+
+treat_1
+```
+```{r}
+treat_0[2] - treat_0[1]
+```
+```{r}
+treat_1[2] - treat_1[1]
+```
+
+And DE(0), DE(1)
+
+
+```{r}
+med_0 <- out_preds %>%
+  filter(med == min(med)) %>%
+  pull(out)
+
+med_0
+```
+
+
+```{r}
+med_1 <- out_preds %>%
+  filter(med == max(med)) %>%
+  pull(out)
+
+med_1
+```
+
+```{r}
+med_0[2] - med_0[1]
+```
+```{r}
+med_1[2] - med_1[1]
+```
+
+Compare and contrast...
+
+```{r}
+summary(mediate3)
+```
+
+There was an easier way.
+
+We can get the direct effect from over here:
+
+```{r}
+(out_fit3 %>% coef())["treat"]
+```
+
+
+And ACME from here:
+
+```{r}
+(med_fit3 %>% coef())["treat"] * (out_fit3 %>% coef())["med"]
+```
+
+
+
+
