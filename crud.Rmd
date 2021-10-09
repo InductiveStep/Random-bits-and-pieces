@@ -1,0 +1,67 @@
+---
+title: "General crud"
+author: "Andi Fugard"
+date: "07/10/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(metacor)
+```
+
+
+```{r}
+one_sim <- function(sample_size) {
+  sim_dat <- tibble(x = rnorm(sample_size),
+                    y = rnorm(sample_size))
+  
+  cor_res <- cor.test(sim_dat$x, sim_dat$y)
+  
+  c(r = cor_res$estimate %>% as.numeric() %>% abs(),
+    p = cor_res$p.value)
+}
+```
+
+
+```{r}
+crud <- function(sample_size, sims_n) {
+  replicate(sims_n, one_sim(sample_size)) %>%
+    t() %>%
+    as_tibble() %>%
+    filter(p < .05)
+}
+```
+
+
+```{r}
+sample_size = 1000
+sims_n = 10000
+```
+
+
+```{r}
+the_crud  <- crud(sample_size = sample_size, sims_n = sims_n)
+mean_crud <- mean(the_crud$r)
+mean_crud
+```
+
+
+```{r dpi=300, width = 6, height = 2}
+the_crud %>%
+  ggplot(aes(r)) +
+  geom_histogram(bins = 73) +
+  xlim(0,1) +
+  labs(title = "General crud",
+       subtitle = paste0("Mean r = ", round(mean_crud, 2),
+                         ", each n = ", sample_size,
+                         ", and ", sims_n, " simulations"),
+       y = "Count")
+```
+
+

@@ -1,0 +1,74 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(psych)
+library(tidyverse)
+```
+
+
+```{r}
+the_n     <- 1000
+the_items <- 16
+dat       <- expand.grid(id   = 1:the_n,
+                         item = 1:the_items)
+```
+
+
+```{r}
+latent <- tibble(id   = 1:the_n,
+                 easy = rbinom(the_n, 1, 0.5))
+```
+
+
+```{r}
+cor_items <- 8
+```
+
+
+```{r}
+dat <- dat %>%
+  full_join(latent) %>%
+  mutate(
+    resp = I(item <= cor_items) * easy * rbinom(nrow(dat), 1, 0.99) +
+           I(item > cor_items)  * rbinom(nrow(dat), 1, 0.5)
+  )
+```
+
+
+```{r}
+dat %>%
+  group_by(item) %>%
+  summarise(correct = mean(resp))
+```
+
+
+```{r}
+wide_dat <- dat %>% pivot_wider(
+  id_cols = "id",
+  values_from = "resp",
+  names_from = "item",
+  names_prefix = "i_"
+)
+```
+
+
+```{r}
+wide_dat %>%
+  select(starts_with("i_")) %>%
+  cor() %>%
+  (\(x) x*100) %>%
+  round(0)
+```
+
+
+```{r}
+res <- wide_dat %>%
+  select(starts_with("i_")) %>%
+  psych::alpha()
+
+res$total
+```
+
