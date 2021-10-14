@@ -10,7 +10,7 @@ library(tidyverse)
 
 
 ```{r}
-the_n     <- 1000
+the_n     <- 10000
 the_items <- 16
 dat       <- expand.grid(id   = 1:the_n,
                          item = 1:the_items)
@@ -32,8 +32,8 @@ cor_items <- 8
 dat <- dat %>%
   full_join(latent) %>%
   mutate(
-    resp = I(item <= cor_items) * easy * rbinom(nrow(dat), 1, 0.99) +
-           I(item > cor_items)  * rbinom(nrow(dat), 1, 0.5)
+    resp = I(item <= cor_items) * easy * rbinom(nrow(dat), 1, 0.90) +
+           I(item > cor_items)  * rbinom(nrow(dat), 1, 0.5*.9)
   )
 ```
 
@@ -60,14 +60,15 @@ wide_dat %>%
   select(starts_with("i_")) %>%
   cor() %>%
   (\(x) x*100) %>%
-  round(0)
+  round(0) %>%
+  as.data.frame()
 ```
 
 
 ```{r}
 res <- wide_dat %>%
   select(starts_with("i_")) %>%
-  psych::alpha()
+  psych::alpha(check.keys = TRUE)
 
 res$total
 ```
