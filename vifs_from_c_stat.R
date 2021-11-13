@@ -14,9 +14,9 @@ library(rms)
 vif <- function(auc, prev.treat){
   # auc: c-statistic of PS model.
   # prev.treat: Prevalence of treatment.
-  set.seed(1)
+  #set.seed(1)
   
-  N <- 1000000
+  N <- 1e7
   # Population size.
   
   ################################################################################
@@ -42,7 +42,7 @@ vif <- function(auc, prev.treat){
   lower.int <- -20
   upper.int <- 20
   
-  while (bias > 0.001){
+  while (bias > 0.0001){
     
     beta0.treat <- (lower.int + upper.int)/2
     
@@ -116,4 +116,5 @@ vif <- function(auc, prev.treat){
          )
 }
 
-vif(0.9, .5)
+vif(0.8, .7)
+
