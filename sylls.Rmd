@@ -1,0 +1,134 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+`%=>%` <- function(A, B) !A | B
+DC     <- function(A) ifelse(A, NA, A)
+`%|%`  <- function(B, A) DC(!A) | (A&B)
+```
+
+
+
+
+```{r}
+expand.grid(A = c(TRUE,FALSE),
+            B = c(TRUE,FALSE)) %>%
+  arrange(desc(A),desc(B)) %>%
+  mutate(
+    `B|A`     = B %|% A,
+    `A|B`     = A %|% B,
+    `A -|- B` = (B %|% A) & (A %|% B),
+    `A => B`  = A %=>% B
+  )
+```
+
+
+
+
+```{r}
+enum_models <- function(num_individuals, predicates) {
+  preds <- rep(NA, num_individuals * length(predicates))
+  
+  j <- 1
+  for (i in 1:num_individuals)
+    for (p in predicates) {
+      preds[j] <- paste0(p, "_", i)
+      j <- j + 1
+    }
+
+  res <- expand.grid(map(preds, \(x) c(T,F)))
+  names(res) <- preds
+  
+  res <- res %>%
+    mutate(.model = 1:nrow(res)) %>%
+    pivot_longer(cols = starts_with(predicates),
+                 names_pattern = "(.)_(.)",
+                 names_to = c("var", "ind"))
+  
+  res
+}
+```
+
+
+```{r}
+mods <- enum_models(2, c("A", "B", "C"))
+mods
+```
+
+
+```{r}
+quant <- function(.data, var_1, connective, var_2) {
+  A <- .data %>%
+    filter(var == var_1) %>%
+    pull(value)
+  
+  B <- .data %>%
+    filter(var == var_2) %>%
+    pull(value) 
+  
+  stopifnot(length(A) == 1)
+  stopifnot(length(B) == 1)
+  
+  connective(A, B)
+}
+```
+
+
+```{r}
+select_all_x_are_y <- function(.mods, x, y){
+  mod_ids <- .mods %>%
+    group_by(.model, ind) %>%
+    summarise(if_x_y = quant(cur_data_all(),
+                           x, `%=>%`, y)) %>%
+    group_by(.model) %>%
+    summarise(all_x_y = sum(if_x_y) == n()) %>%
+    pull(.model)
+  
+  .mods %>%
+    filter(.model %in% mod_ids)
+}
+```
+
+
+```{r}
+test_models
+```
+
+
+```{r}
+premise_mods <- mods %>%
+  select_all_x_are_y("A", "B") %>%
+  select_all_x_are_y("B", "C")
+```
+
+
+```{r}
+conclusion_mods <- premise_mods %>%
+  select_all_x_are_y("C", "A")
+```
+
+
+```{r}
+prob_conclusion <- function(premise_mods, conclusion_mods) {
+  prem_ids <- premise_mods %>% pull(.model) %>% unique()
+  conc_ids <- premise_mods %>% pull(.model) %>% unique()
+  
+  c(prems = prem_ids, concs = conc_ids)
+}
+```
+
+
+```{r}
+prob_conclusion(premise_mods, conclusion_mods)
+```
+
+
+
+

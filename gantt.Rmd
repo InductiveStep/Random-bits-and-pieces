@@ -1,0 +1,21 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+#remotes::install_github("giocomai/ganttrify")
+library(ganttrify)
+```
+
+```{r}
+ganttrify::test_project
+```
+
+
+```{r}
+ganttrify(project = ganttrify::test_project,
+          project_start_date = "2022-09",
+          font_family = "Arial")
+```
+

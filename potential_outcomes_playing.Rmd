@@ -1,0 +1,91 @@
+---
+title: "Exploring potential outcomes"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+the_n <- 10000
+```
+
+
+```{r}
+dat <- tibble(
+  baseline     = rnorm(the_n, mean = 10, sd = 1),
+  baseline_obs = baseline + rnorm(the_n, mean = 0, sd = 1),
+  y_treat      = 1.2 * baseline + 0.8 +
+                    rnorm(the_n, mean = 0, sd = .2),
+  y_control    = 1.2 * baseline + 0.0 +
+                    rnorm(the_n, mean = 0, sd = .2),
+  TE = y_treat - y_control
+)
+```
+
+
+```{r}
+dat
+```
+
+
+
+```{r}
+dat <- dat %>%
+  mutate(treat_by_rct = sample(rep(c(0,1), the_n/2), replace = T),
+         treat_by_cutoff = rbinom(the_n, 1,
+                             (baseline_obs >= 11) * 0.8 +
+                             (1-(baseline_obs >= 11)) * 0.2)) %>%
+  mutate(y_by_cutoff = ifelse(treat_by_cutoff, y_treat, y_control),
+         y_by_rct    = ifelse(treat_by_rct, y_treat, y_control))
+```
+
+
+```{r}
+dat %>%
+  select(baseline_obs, treat_by_cutoff)
+```
+
+```{r}
+dat %>%
+  summarise(ATE = mean(y_treat - y_control))
+```
+
+```{r}
+glm(treat_by_cutoff ~ baseline_obs, data = dat, family = binomial) %>%
+  summary()
+```
+
+
+
+```{r}
+lm(y_by_cutoff ~ treat_by_cutoff, data = dat) %>%
+  summary()
+```
+
+
+```{r}
+lm(y_by_cutoff ~ treat_by_cutoff + baseline_obs, data = dat) %>%
+  summary()
+```
+
+
+
+```{r}
+lm(y_by_rct ~ treat_by_rct, data = dat) %>%
+  summary()
+```
+
+
+
+```{r}
+lm(y_by_rct ~ treat_by_rct + baseline_obs, data = dat) %>%
+  summary()
+```
+
+
+
+
