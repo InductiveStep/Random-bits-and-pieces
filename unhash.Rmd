@@ -1,0 +1,41 @@
+---
+title: "Reverse hash"
+output: html_notebook
+---
+
+```{r}
+library(openssl)
+```
+
+
+
+```{r}
+ids <- as.character(1000000000:9999999999)
+```
+
+```{r}
+search_id <- ids[100000]
+search_hash <- md5(search_id)
+search_id
+```
+
+
+```{r}
+found <- FALSE
+i <- 1
+
+while (!found && i <= length(ids)) {
+  current_hash <- md5(ids[i])
+
+  if (current_hash == search_hash)
+    found <- TRUE
+  else
+    i <- i+1
+}
+
+ifelse(found, ids[i], paste0("Not found, i = ", i))
+```
+
+
+
+

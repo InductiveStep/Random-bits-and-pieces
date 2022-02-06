@@ -1,0 +1,80 @@
+---
+title: "UK crime data test"
+author: "Andi Fugard"
+output: html_notebook
+---
+
+
+```{r}
+library(ukpolice)
+library(tidyverse)
+library(leaflet)
+library(leaflet.extras)
+```
+
+
+
+
+```{r}
+date_df <- expand.grid(year = 2020:2021,
+                       month = 1:12)
+```
+
+
+```{r}
+dates <- paste0(date_df$year, "-",
+                str_pad(date_df$month, width = 2, pad = "0"))
+dates
+```
+
+
+```{r}
+local_crimes_mh <- lapply(dates,
+                       \(d) ukc_crime_coord(lat = 51.5709,
+                                            lng = -0.0960,
+                                            date = d)) %>%
+  bind_rows()
+```
+
+
+```{r}
+local_crimes_mh
+```
+
+
+```{r}
+local_crimes_mh %>%
+  leaflet() %>%
+  addTiles() %>%
+  addHeatmap(
+    lng = ~ longitude %>% as.numeric(),
+    lat = ~ latitude  %>% as.numeric()
+  )
+```
+
+
+
+```{r}
+local_crimes_mh %>%
+  leaflet() %>%
+  addTiles() %>%
+  addCircleMarkers(
+    lng = ~ longitude %>% as.numeric(),
+    lat = ~ latitude  %>% as.numeric(),
+    popup = ~ paste0(
+      "<B>", category, "</B>",
+      "<BR>",
+      street_name,
+      "<BR>",
+      month,
+      "<BR><BR>",
+      "Outcome: ", outcome_status_category,
+      "<BR>(",
+      outcome_status_date, ")"
+    ),
+    radius = 2
+  )
+```
+
+
+
