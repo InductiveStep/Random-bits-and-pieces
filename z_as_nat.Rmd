@@ -6,11 +6,16 @@ output:
     df_print: paged
 ---
 
+
+Include helpful packages:
+
 ```{r message=FALSE}
 library(tidyverse)
 library(broom)
 ```
 
+
+## The puzzle
 
 You can represent all infinitely many integers ($\mathbb{Z}$),
 
@@ -49,7 +54,11 @@ Seems to work...
 -3:3 %>% PZ() %>% Z()
 ```
 
-Now, how might we define subtraction on these representations of $\mathbb{Z}$, assuming that out here at the meta-level we can use negatives but in the representation it's only ever possible to save a natural number. I will assume that we have addition, multiplication, and subtraction on naturals.
+Now, how might we define subtraction on these representations of $\mathbb{Z}$, assuming that out here at the meta-level we can use negatives but in the representation it's only ever possible to save a natural number...? I will assume that we have addition, multiplication, and subtraction on naturals.
+
+
+
+## A convoluted solution
 
 Some helper functions:
 
@@ -59,7 +68,7 @@ odd  <- \(x) !even(x)
 ```
 
 
-And a bunch of examples:
+And a bunch of example sums with the correct answers:
 
 ```{r}
 examples <- expand.grid(x = -5:5, y = -5:5) %>%
@@ -99,9 +108,9 @@ slice_sample(examples, n = 5)
 ```
 
 
-Next up, I'm going to use... wait for it... linear regression... to estimate the answer for each of these 12 cases:
+Next up, I'm going to use... wait for it... linear regression... to calculate the answer for each of these 12 cases:
 
-```{r}
+```{r warning=FALSE}
 mods <- examples %>%
   nest(data = -cond) %>% 
   mutate(
@@ -139,7 +148,7 @@ cat(mods_wide$case, sep = ",\n")
 ```
 
 
-This function was mostly written by pasting in the answer above:
+Now just copy and paste it into a function:
 
 ```{r}
 pz_sub <- function(x_pz, y_pz) {
@@ -200,6 +209,5 @@ examples %>%
   filter(r_pz != r_pz_est)
 ```
 
-
-
+Exercise to reader: prove that `pz_sub` is correct for all pairs of integers.
 

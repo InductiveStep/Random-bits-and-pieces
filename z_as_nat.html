@@ -172,8 +172,11 @@ pre code {
 </div>
 
 
+<p>Include helpful packages:</p>
 <pre class="r"><code>library(tidyverse)
 library(broom)</code></pre>
+<div id="the-puzzle" class="section level2">
+<h2>The puzzle</h2>
 <p>You can represent all infinitely many integers (<span class="math inline">\(\mathbb{Z}\)</span>),</p>
 <p>…, -3, -2, -1, 0, 1, 2, 3, …</p>
 <p>using natural numbers (*)</p>
@@ -197,11 +200,14 @@ library(broom)</code></pre>
 <p>Seems to work…</p>
 <pre class="r"><code>-3:3 %&gt;% PZ() %&gt;% Z()</code></pre>
 <pre><code>## [1] -3 -2 -1  0  1  2  3</code></pre>
-<p>Now, how might we define subtraction on these representations of <span class="math inline">\(\mathbb{Z}\)</span>, assuming that out here at the meta-level we can use negatives but in the representation it’s only ever possible to save a natural number. I will assume that we have addition, multiplication, and subtraction on naturals.</p>
+<p>Now, how might we define subtraction on these representations of <span class="math inline">\(\mathbb{Z}\)</span>, assuming that out here at the meta-level we can use negatives but in the representation it’s only ever possible to save a natural number…? I will assume that we have addition, multiplication, and subtraction on naturals.</p>
+</div>
+<div id="a-convoluted-solution" class="section level2">
+<h2>A convoluted solution</h2>
 <p>Some helper functions:</p>
 <pre class="r"><code>even &lt;- \(x) x %% 2 == 0
 odd  &lt;- \(x) !even(x)</code></pre>
-<p>And a bunch of examples:</p>
+<p>And a bunch of example sums with the correct answers:</p>
 <pre class="r"><code>examples &lt;- expand.grid(x = -5:5, y = -5:5) %&gt;%
   mutate(
     x_pz     = PZ(x),
@@ -240,37 +246,18 @@ odd  &lt;- \(x) !even(x)</code></pre>
 <pre class="r"><code>slice_sample(examples, n = 5)</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["x"],"name":[1],"type":["int"],"align":["right"]},{"label":["y"],"name":[2],"type":["int"],"align":["right"]},{"label":["x_pz"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["y_pz"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["x_abs_pz"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["y_abs_pz"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["c1"],"name":[7],"type":["chr"],"align":["left"]},{"label":["c2"],"name":[8],"type":["chr"],"align":["left"]},{"label":["c3"],"name":[9],"type":["chr"],"align":["left"]},{"label":["cond"],"name":[10],"type":["chr"],"align":["left"]},{"label":["r"],"name":[11],"type":["int"],"align":["right"]},{"label":["r_pz"],"name":[12],"type":["dbl"],"align":["right"]}],"data":[{"1":"0","2":"5","3":"0","4":"10","5":"0","6":"10","7":"even(x_pz)","8":"even(y_pz)","9":"x_abs_pz < y_abs_pz","10":"even(x_pz) & even(y_pz) & x_abs_pz < y_abs_pz","11":"-5","12":"9"},{"1":"-1","2":"-3","3":"1","4":"5","5":"2","6":"6","7":"odd(x_pz)","8":"odd(y_pz)","9":"x_abs_pz < y_abs_pz","10":"odd(x_pz) & odd(y_pz) & x_abs_pz < y_abs_pz","11":"2","12":"4"},{"1":"3","2":"1","3":"6","4":"2","5":"6","6":"2","7":"even(x_pz)","8":"even(y_pz)","9":"x_abs_pz > y_abs_pz","10":"even(x_pz) & even(y_pz) & x_abs_pz > y_abs_pz","11":"2","12":"4"},{"1":"5","2":"-5","3":"10","4":"9","5":"10","6":"10","7":"even(x_pz)","8":"odd(y_pz)","9":"x_abs_pz == y_abs_pz","10":"even(x_pz) & odd(y_pz) & x_abs_pz == y_abs_pz","11":"10","12":"20"},{"1":"-4","2":"-1","3":"7","4":"1","5":"8","6":"2","7":"odd(x_pz)","8":"odd(y_pz)","9":"x_abs_pz > y_abs_pz","10":"odd(x_pz) & odd(y_pz) & x_abs_pz > y_abs_pz","11":"-3","12":"5"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["x"],"name":[1],"type":["int"],"align":["right"]},{"label":["y"],"name":[2],"type":["int"],"align":["right"]},{"label":["x_pz"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["y_pz"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["x_abs_pz"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["y_abs_pz"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["c1"],"name":[7],"type":["chr"],"align":["left"]},{"label":["c2"],"name":[8],"type":["chr"],"align":["left"]},{"label":["c3"],"name":[9],"type":["chr"],"align":["left"]},{"label":["cond"],"name":[10],"type":["chr"],"align":["left"]},{"label":["r"],"name":[11],"type":["int"],"align":["right"]},{"label":["r_pz"],"name":[12],"type":["dbl"],"align":["right"]}],"data":[{"1":"2","2":"-3","3":"4","4":"5","5":"4","6":"6","7":"even(x_pz)","8":"odd(y_pz)","9":"x_abs_pz < y_abs_pz","10":"even(x_pz) & odd(y_pz) & x_abs_pz < y_abs_pz","11":"5","12":"10"},{"1":"-1","2":"-4","3":"1","4":"7","5":"2","6":"8","7":"odd(x_pz)","8":"odd(y_pz)","9":"x_abs_pz < y_abs_pz","10":"odd(x_pz) & odd(y_pz) & x_abs_pz < y_abs_pz","11":"3","12":"6"},{"1":"5","2":"1","3":"10","4":"2","5":"10","6":"2","7":"even(x_pz)","8":"even(y_pz)","9":"x_abs_pz > y_abs_pz","10":"even(x_pz) & even(y_pz) & x_abs_pz > y_abs_pz","11":"4","12":"8"},{"1":"-3","2":"-1","3":"5","4":"1","5":"6","6":"2","7":"odd(x_pz)","8":"odd(y_pz)","9":"x_abs_pz > y_abs_pz","10":"odd(x_pz) & odd(y_pz) & x_abs_pz > y_abs_pz","11":"-2","12":"3"},{"1":"-2","2":"4","3":"3","4":"8","5":"4","6":"8","7":"odd(x_pz)","8":"even(y_pz)","9":"x_abs_pz < y_abs_pz","10":"odd(x_pz) & even(y_pz) & x_abs_pz < y_abs_pz","11":"-6","12":"11"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
-<p>Next up, I’m going to use… wait for it… linear regression… to estimate the answer for each of these 12 cases:</p>
+<p>Next up, I’m going to use… wait for it… linear regression… to calculate the answer for each of these 12 cases:</p>
 <pre class="r"><code>mods &lt;- examples %&gt;%
   nest(data = -cond) %&gt;% 
   mutate(
     fit = map(data, ~ lm(r_pz ~ x_pz * y_pz, data = .x)),
     tidied = map(fit, tidy)
   ) %&gt;% 
-  unnest(tidied)</code></pre>
-<pre><code>## Warning in summary.lm(x): essentially perfect fit: summary may be unreliable
-
-## Warning in summary.lm(x): essentially perfect fit: summary may be unreliable
-
-## Warning in summary.lm(x): essentially perfect fit: summary may be unreliable
-
-## Warning in summary.lm(x): essentially perfect fit: summary may be unreliable
-
-## Warning in summary.lm(x): essentially perfect fit: summary may be unreliable
-
-## Warning in summary.lm(x): essentially perfect fit: summary may be unreliable
-
-## Warning in summary.lm(x): essentially perfect fit: summary may be unreliable
-
-## Warning in summary.lm(x): essentially perfect fit: summary may be unreliable
-
-## Warning in summary.lm(x): essentially perfect fit: summary may be unreliable
-
-## Warning in summary.lm(x): essentially perfect fit: summary may be unreliable</code></pre>
-<pre class="r"><code>mods</code></pre>
+  unnest(tidied)
+mods</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
 {"columns":[{"label":["cond"],"name":[1],"type":["chr"],"align":["left"]},{"label":["data"],"name":[2],"type":["list"],"align":["right"]},{"label":["fit"],"name":[3],"type":["list"],"align":["right"]},{"label":["term"],"name":[4],"type":["chr"],"align":["left"]},{"label":["estimate"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["std.error"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["statistic"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["p.value"],"name":[8],"type":["dbl"],"align":["right"]}],"data":[{"1":"odd(x_pz) & odd(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"(Intercept)","5":"0.000000e+00","6":"0.000000e+00","7":"NaN","8":"NaN"},{"1":"odd(x_pz) & odd(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz","5":"0.000000e+00","6":"0.000000e+00","7":"NaN","8":"NaN"},{"1":"odd(x_pz) & odd(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"y_pz","5":"NA","6":"NA","7":"NA","8":"NA"},{"1":"odd(x_pz) & odd(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz:y_pz","5":"0.000000e+00","6":"0.000000e+00","7":"NaN","8":"NaN"},{"1":"odd(x_pz) & odd(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"(Intercept)","5":"-1.123467e-15","6":"1.627336e-15","7":"-6.903719e-01","8":"5.157631e-01"},{"1":"odd(x_pz) & odd(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz","5":"-1.000000e+00","6":"7.772970e-16","7":"-1.286510e+15","8":"1.488763e-89"},{"1":"odd(x_pz) & odd(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"y_pz","5":"1.000000e+00","6":"2.250065e-16","7":"4.444316e+15","8":"8.759394e-93"},{"1":"odd(x_pz) & odd(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz:y_pz","5":"-1.566880e-16","6":"9.300224e-17","7":"-1.684776e+00","8":"1.430130e-01"},{"1":"even(x_pz) & odd(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"(Intercept)","5":"1.000000e+00","6":"1.171231e-15","7":"8.538029e+14","8":"7.146821e-160"},{"1":"even(x_pz) & odd(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz","5":"1.000000e+00","6":"6.277814e-16","7":"1.592911e+15","8":"7.497898e-163"},{"1":"even(x_pz) & odd(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"y_pz","5":"1.000000e+00","6":"1.889932e-16","7":"5.291195e+15","8":"1.380241e-168"},{"1":"even(x_pz) & odd(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz:y_pz","5":"2.006463e-17","6":"7.767573e-17","7":"2.583127e-01","8":"8.009349e-01"},{"1":"even(x_pz) & odd(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"(Intercept)","5":"7.944109e-15","6":"5.739258e-15","7":"1.384170e+00","8":"3.005250e-01"},{"1":"even(x_pz) & odd(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz","5":"2.000000e+00","6":"2.011730e-15","7":"9.941693e+14","8":"1.011764e-30"},{"1":"even(x_pz) & odd(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"y_pz","5":"NA","6":"NA","7":"NA","8":"NA"},{"1":"even(x_pz) & odd(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz:y_pz","5":"8.590629e-17","6":"1.787939e-16","7":"4.804765e-01","8":"6.783110e-01"},{"1":"odd(x_pz) & odd(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"(Intercept)","5":"-1.000000e+00","6":"1.977289e-15","7":"-5.057428e+14","8":"4.033902e-87"},{"1":"odd(x_pz) & odd(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz","5":"1.000000e+00","6":"2.733935e-16","7":"3.657731e+15","8":"2.818597e-92"},{"1":"odd(x_pz) & odd(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"y_pz","5":"-1.000000e+00","6":"9.444526e-16","7":"-1.058814e+15","8":"4.790542e-89"},{"1":"odd(x_pz) & odd(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz:y_pz","5":"-2.175105e-16","6":"1.130021e-16","7":"-1.924836e+00","8":"1.025760e-01"},{"1":"even(x_pz) & odd(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"(Intercept)","5":"1.000000e+00","6":"2.893881e-15","7":"3.455567e+14","8":"3.964498e-86"},{"1":"even(x_pz) & odd(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz","5":"1.000000e+00","6":"3.536702e-16","7":"2.827493e+15","8":"1.320974e-91"},{"1":"even(x_pz) & odd(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"y_pz","5":"1.000000e+00","6":"1.365488e-15","7":"7.323390e+14","8":"4.375530e-88"},{"1":"even(x_pz) & odd(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz:y_pz","5":"-2.705189e-16","6":"1.461830e-16","7":"-1.850550e+00","8":"1.137034e-01"},{"1":"odd(x_pz) & even(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"(Intercept)","5":"-9.173067e-16","6":"9.897935e-16","7":"-9.267657e-01","8":"3.739352e-01"},{"1":"odd(x_pz) & even(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz","5":"1.000000e+00","6":"1.597160e-16","7":"6.261113e+15","8":"2.167102e-169"},{"1":"odd(x_pz) & even(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"y_pz","5":"1.000000e+00","6":"5.305309e-16","7":"1.884904e+15","8":"1.177237e-163"},{"1":"odd(x_pz) & even(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz:y_pz","5":"3.015076e-17","6":"6.564287e-17","7":"4.593151e-01","8":"6.549518e-01"},{"1":"even(x_pz) & even(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"(Intercept)","5":"0.000000e+00","6":"0.000000e+00","7":"NaN","8":"NaN"},{"1":"even(x_pz) & even(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz","5":"0.000000e+00","6":"0.000000e+00","7":"NaN","8":"NaN"},{"1":"even(x_pz) & even(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"y_pz","5":"NA","6":"NA","7":"NA","8":"NA"},{"1":"even(x_pz) & even(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz:y_pz","5":"0.000000e+00","6":"0.000000e+00","7":"NaN","8":"NaN"},{"1":"even(x_pz) & even(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"(Intercept)","5":"3.669227e-15","6":"2.806981e-15","7":"1.307179e+00","8":"2.178163e-01"},{"1":"even(x_pz) & even(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz","5":"1.000000e+00","6":"3.954735e-16","7":"2.528615e+15","8":"4.648764e-165"},{"1":"even(x_pz) & even(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"y_pz","5":"-1.000000e+00","6":"1.471131e-15","7":"-6.797489e+14","8":"8.774307e-159"},{"1":"even(x_pz) & even(y_pz) & x_abs_pz > y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz:y_pz","5":"1.306562e-16","6":"1.625386e-16","7":"8.038472e-01","8":"4.385118e-01"},{"1":"odd(x_pz) & even(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"(Intercept)","5":"1.000000e+00","6":"3.800160e-15","7":"2.631468e+14","8":"1.444122e-29"},{"1":"odd(x_pz) & even(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz","5":"2.000000e+00","6":"1.964361e-15","7":"1.018143e+15","8":"9.646784e-31"},{"1":"odd(x_pz) & even(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"y_pz","5":"NA","6":"NA","7":"NA","8":"NA"},{"1":"odd(x_pz) & even(y_pz) & x_abs_pz == y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz:y_pz","5":"-1.319041e-16","6":"1.745840e-16","7":"-7.555339e-01","8":"5.287871e-01"},{"1":"even(x_pz) & even(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"(Intercept)","5":"-1.000000e+00","6":"8.053733e-16","7":"-1.241660e+15","8":"1.161492e-161"},{"1":"even(x_pz) & even(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz","5":"-1.000000e+00","6":"4.220941e-16","7":"-2.369140e+15","8":"9.518065e-165"},{"1":"even(x_pz) & even(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"y_pz","5":"1.000000e+00","6":"1.134685e-16","7":"8.813022e+15","8":"5.042819e-171"},{"1":"even(x_pz) & even(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz:y_pz","5":"-2.553326e-17","6":"4.663525e-17","7":"-5.475099e-01","8":"5.949628e-01"},{"1":"odd(x_pz) & even(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"(Intercept)","5":"3.370400e-15","6":"1.671756e-15","7":"2.016083e+00","8":"9.038951e-02"},{"1":"odd(x_pz) & even(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz","5":"1.000000e+00","6":"7.888239e-16","7":"1.267710e+15","8":"1.626238e-89"},{"1":"odd(x_pz) & even(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"y_pz","5":"1.000000e+00","6":"2.043105e-16","7":"4.894511e+15","8":"4.909619e-93"},{"1":"odd(x_pz) & even(y_pz) & x_abs_pz < y_abs_pz","2":"<tibble[,11]>","3":"<S3: lm>","4":"x_pz:y_pz","5":"-5.332939e-17","6":"8.444794e-17","7":"-6.315061e-01","8":"5.509950e-01"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
@@ -318,7 +305,7 @@ odd  &lt;- \(x) !even(x)</code></pre>
 ##        1 + 1 * x_pz + 1 * y_pz ,
 ##      odd(x_pz) &amp; even(y_pz) &amp; x_abs_pz == y_abs_pz ~
 ##        1 + 2 * x_pz + 0 * y_pz</code></pre>
-<p>This function was mostly written by pasting in the answer above:</p>
+<p>Now just copy and paste it into a function:</p>
 <pre class="r"><code>pz_sub &lt;- function(x_pz, y_pz) {
   x_abs_pz &lt;- ifelse(even(x_pz), x_pz, x_pz + 1)
   y_abs_pz &lt;- ifelse(even(y_pz), y_pz, y_pz + 1)
@@ -369,6 +356,8 @@ odd  &lt;- \(x) !even(x)</code></pre>
 <script data-pagedtable-source type="application/json">
 {"columns":[{"label":["x"],"name":[1],"type":["int"],"align":["right"]},{"label":["y"],"name":[2],"type":["int"],"align":["right"]},{"label":["x_pz"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["y_pz"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["x_abs_pz"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["y_abs_pz"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["c1"],"name":[7],"type":["chr"],"align":["left"]},{"label":["c2"],"name":[8],"type":["chr"],"align":["left"]},{"label":["c3"],"name":[9],"type":["chr"],"align":["left"]},{"label":["cond"],"name":[10],"type":["chr"],"align":["left"]},{"label":["r"],"name":[11],"type":["int"],"align":["right"]},{"label":["r_pz"],"name":[12],"type":["dbl"],"align":["right"]},{"label":["r_pz_est"],"name":[13],"type":["dbl"],"align":["right"]}],"data":[],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
+</div>
+<p>Exercise to reader: prove that <code>pz_sub</code> is correct for all pairs of integers.</p>
 </div>
 
 
