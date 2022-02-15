@@ -1,0 +1,205 @@
+---
+title: "Subtraction on integers encoded as natural numbers"
+author: Andi Fugard
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r message=FALSE}
+library(tidyverse)
+library(broom)
+```
+
+
+You can represent all infinitely many integers ($\mathbb{Z}$),
+
+..., -3, -2, -1, 0, 1, 2, 3, ...
+
+using natural numbers (\mathbb{N}*)
+
+0, 1, 2, 3, ...
+
+by mapping nonnegative numbers, $z$, to even numbers $2z$ and all negative numbers to odd numbers $-2z - 1$:
+
+```{r}
+PZ <- function(z) {
+  ifelse(z >= 0, 2*z, -2*z - 1)
+}
+```
+
+Here are some examples:
+
+```{r}
+tibble(z  = -3:3,
+       pz = PZ(z))
+```
+
+And to reverse:
+
+```{r}
+Z <- function(pz) {
+  ifelse(pz %% 2 == 0, pz/2, -(pz + 1)/2)
+}
+```
+
+Seems to work...
+
+```{r}
+-3:3 %>% PZ() %>% Z()
+```
+
+Now, how might we define subtraction on these representations of $\mathbb{Z}$, assuming that out here at the meta-level we can use negatives but in the representation it's only ever possible to save a natural number. I will assume that we have addition, multiplication, and subtraction on naturals.
+
+Some helper functions:
+
+```{r}
+even <- \(x) x %% 2 == 0
+odd  <- \(x) !even(x)
+```
+
+
+And a bunch of examples:
+
+```{r}
+examples <- expand.grid(x = -5:5, y = -5:5) %>%
+  mutate(
+    x_pz     = PZ(x),
+    y_pz     = PZ(y),
+    x_abs_pz = PZ(abs(x)), # I'm guessing these
+    y_abs_pz = PZ(abs(y)), # will be handy
+    
+    # Some key conditions that will help us do the sums
+    c1       = ifelse(even(x_pz), "even(x_pz)", "odd(x_pz)"),
+    c2       = ifelse(even(y_pz), "even(y_pz)", "odd(y_pz)"),
+    c3       = case_when(x_abs_pz < y_abs_pz ~ "x_abs_pz < y_abs_pz",
+                         x_abs_pz > y_abs_pz ~ "x_abs_pz > y_abs_pz",
+                         TRUE                ~ "x_abs_pz == y_abs_pz"),
+    
+    # Paste the conditions together as an R conjunction:
+    cond     = paste(c1, c2, c3, sep = " & "),
+    
+    # Now do subtraction and work out what it's like represented in N:
+    r        = x - y,
+    r_pz     = PZ(x - y)
+  )
+```
+
+
+There are 12 combinations of conditions:
+
+```{r}
+examples$cond %>% unique()
+```
+
+
+
+```{r}
+slice_sample(examples, n = 5)
+```
+
+
+Next up, I'm going to use... wait for it... linear regression... to estimate the answer for each of these 12 cases:
+
+```{r}
+mods <- examples %>%
+  nest(data = -cond) %>% 
+  mutate(
+    fit = map(data, ~ lm(r_pz ~ x_pz * y_pz, data = .x)),
+    tidied = map(fit, tidy)
+  ) %>% 
+  unnest(tidied)
+mods
+```
+
+Transform the answer into an output suitable for a `case_when`:
+
+```{r}
+mods_wide <- mods %>%
+  select(cond, term, estimate) %>%
+  mutate(estimate = ifelse(is.na(estimate),
+                           0,
+                           round(estimate, 5))) %>%
+  pivot_wider(id_cols = "cond",
+              names_from = "term",
+              values_from = "estimate") %>%
+  arrange(`(Intercept)`, x_pz, y_pz) %>%
+  mutate(
+    formula = paste0(`(Intercept)`, " + ",
+                     x_pz, " * x_pz + ",
+                     y_pz, " * y_pz "),
+    case = paste("    ", cond, "~\n      ", formula)
+  )
+```
+
+For ease of copy and paste:
+
+```{r}
+cat(mods_wide$case, sep = ",\n")
+```
+
+
+This function was mostly written by pasting in the answer above:
+
+```{r}
+pz_sub <- function(x_pz, y_pz) {
+  x_abs_pz <- ifelse(even(x_pz), x_pz, x_pz + 1)
+  y_abs_pz <- ifelse(even(y_pz), y_pz, y_pz + 1)
+  
+  case_when(
+     even(x_pz) & even(y_pz) & x_abs_pz < y_abs_pz ~
+       -1 + -1 * x_pz + 1 * y_pz ,
+     odd(x_pz) & odd(y_pz) & x_abs_pz > y_abs_pz ~
+       -1 + 1 * x_pz + -1 * y_pz ,
+     odd(x_pz) & odd(y_pz) & x_abs_pz < y_abs_pz ~
+       0 + -1 * x_pz + 1 * y_pz ,
+     odd(x_pz) & odd(y_pz) & x_abs_pz == y_abs_pz ~
+       0 + 0 * x_pz + 0 * y_pz ,
+     even(x_pz) & even(y_pz) & x_abs_pz == y_abs_pz ~
+       0 + 0 * x_pz + 0 * y_pz ,
+     even(x_pz) & even(y_pz) & x_abs_pz > y_abs_pz ~
+       0 + 1 * x_pz + -1 * y_pz ,
+     odd(x_pz) & even(y_pz) & x_abs_pz > y_abs_pz ~
+       0 + 1 * x_pz + 1 * y_pz ,
+     odd(x_pz) & even(y_pz) & x_abs_pz < y_abs_pz ~
+       0 + 1 * x_pz + 1 * y_pz ,
+     even(x_pz) & odd(y_pz) & x_abs_pz == y_abs_pz ~
+       0 + 2 * x_pz + 0 * y_pz ,
+     even(x_pz) & odd(y_pz) & x_abs_pz < y_abs_pz ~
+       1 + 1 * x_pz + 1 * y_pz ,
+     even(x_pz) & odd(y_pz) & x_abs_pz > y_abs_pz ~
+       1 + 1 * x_pz + 1 * y_pz ,
+     odd(x_pz) & even(y_pz) & x_abs_pz == y_abs_pz ~
+       1 + 2 * x_pz + 0 * y_pz
+  )
+}
+```
+
+
+Give it a test:
+
+```{r}
+examples <- examples %>% mutate(
+  r_pz_est = pz_sub(x_pz, y_pz)
+)
+```
+
+
+Did it work...?
+
+```{r}
+examples %>%
+  select(x, y, r, x_pz, y_pz, r_pz, r_pz_est)
+```
+
+
+Yes.
+
+```{r}
+examples %>%
+  filter(r_pz != r_pz_est)
+```
+
+
+
+

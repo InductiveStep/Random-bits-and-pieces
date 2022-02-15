@@ -1,0 +1,161 @@
+---
+title: "Matching experiment"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(MatchIt)
+library(optmatch)
+library(cobalt)
+```
+
+
+Simulate multilevel data with wards nested in LAs.
+
+```{r}
+set.seed(11111102)
+```
+
+
+```{r}
+la_n <- 200
+
+la_dat <- tibble(la_id = 1:la_n) %>%
+  mutate(la_1 = rnorm(n = n()),
+         la_2 = rnorm(n = n()),
+         la_3 = rnorm(n = n())
+         )
+
+slice_sample(la_dat, n = 5)
+```
+
+
+```{r}
+ward_dat <- expand_grid(la_id = la_dat$la_id, ward_id = 1:10) %>%
+  mutate(ward_la_id = paste0(la_id, "_", ward_id))
+
+slice_sample(ward_dat, n = 5)
+```
+
+
+```{r}
+all_dat <- left_join(la_dat, ward_dat) %>%
+  mutate(
+    ward_1 = la_1 + la_2 + rnorm(sd = .5, n = n()),
+    ward_2 = la_1 + la_2 + rnorm(sd = .5, n = n())
+  )
+
+head(all_dat)
+```
+
+Now select five LAs for intervention:
+
+```{r}
+intervention_LAs <- sample(all_dat$la_id %>% unique(), size = 5)
+intervention_LAs
+```
+
+
+```{r}
+all_dat <- all_dat %>%
+  mutate(treat_la = (la_id %in% intervention_LAs) %>% as.numeric(),
+         treat_ward = treat_la * rbinom(n(), 1, .5))
+```
+
+
+Now we want to remove any wards that aren't intervention but are in an intervention LA.
+
+```{r}
+all_dat <- all_dat %>%
+  filter(!(treat_la & !treat_ward))
+```
+
+
+```{r}
+mat <- matchit(
+  treat_ward ~ la_1 + la_2 + la_3 + ward_1 + ward_2,
+  distance = "mahalanobis",
+  method = "optimal",
+  ratio = 1,
+  data = all_dat
+)
+mat
+```
+
+
+```{r}
+love.plot(mat)
+```
+
+
+
+```{r}
+summary(mat)
+```
+
+
+```{r}
+get_matches(mat)
+```
+
+
+```{r}
+match.data(mat, drop.unmatched = F) %>%
+  arrange(subclass, desc(treat_la))
+```
+
+
+```{r}
+var_names <- c("la_1", "la_2", "la_3", "ward_1", "ward_2")
+```
+
+
+```{r}
+cov_mat <- all_dat %>%
+  select(all_of(var_names)) %>%
+  cov()
+```
+
+
+```{r}
+cov_mat
+```
+
+
+
+```{r}
+the_matches <- get_matches(mat)
+the_matches
+```
+
+
+```{r}
+rownames(cov_mat)
+```
+
+```{r}
+calc_distance <- Vectorize(function(the_subclass, matchit_obj, cov) {
+  match_pair <- get_matches(matchit_obj) %>%
+                filter(the_subclass == subclass) %>%
+                select(colnames(cov))
+  
+  mahalanobis(match_pair[1,] %>% t() %>% as.vector(),
+              match_pair[2,] %>% t() %>% as.vector(), cov)
+}, vectorize.args = "the_subclass")
+```
+
+
+
+```{r}
+dists <- tibble(
+  subclass = unique(the_matches$subclass),
+  dist     = calc_distance(subclass, mat, cov_mat)
+)
+dists
+```
+
+
+
+
+

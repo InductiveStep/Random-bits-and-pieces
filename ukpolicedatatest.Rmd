@@ -44,6 +44,17 @@ local_crimes_mh
 
 ```{r}
 local_crimes_mh %>%
+  group_by(category) %>%
+  summarise(n = n()) %>%
+  mutate(perc = (n*100/sum(n)) %>% round(0)) %>%
+  arrange(desc(perc))
+```
+
+
+
+
+```{r}
+local_crimes_mh %>%
   leaflet() %>%
   addTiles() %>%
   addHeatmap(
@@ -53,14 +64,14 @@ local_crimes_mh %>%
 ```
 
 
-
 ```{r}
-local_crimes_mh %>%
+map_crimes <- function(dat) {
+  dat %>%
   leaflet() %>%
   addTiles() %>%
   addCircleMarkers(
-    lng = ~ longitude %>% as.numeric(),
-    lat = ~ latitude  %>% as.numeric(),
+    lng = ~ longitude %>% as.numeric() %>% jitter(),
+    lat = ~ latitude  %>% as.numeric() %>% jitter(),
     popup = ~ paste0(
       "<B>", category, "</B>",
       "<BR>",
@@ -72,9 +83,39 @@ local_crimes_mh %>%
       "<BR>(",
       outcome_status_date, ")"
     ),
-    radius = 2
+    radius = 1
   )
+}
 ```
 
+
+
+
+```{r}
+local_crimes_mh %>%
+  map_crimes()
+```
+
+
+```{r}
+num_10_crimes <- lapply(dates,
+                       \(d) ukc_crime_coord(lat = 51.5034,
+                                            lng = -0.1276,
+                                            date = d)) %>%
+  bind_rows()
+```
+
+```{r}
+num_10_crimes %>%
+  map_crimes()
+```
+
+
+```{r}
+num_10_crimes %>%
+  filter(str_detect(street_name, "On or near Downing Street")) %>%
+  group_by(month, category) %>%
+  summarise(n = n())
+```
 
 
