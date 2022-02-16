@@ -17,15 +17,15 @@ library(broom)
 
 ## The puzzle
 
-You can represent all infinitely many integers ($\mathbb{Z}$),
+You can represent all infinitely many integers ($z \in \mathbb{Z}$),
 
 ..., -3, -2, -1, 0, 1, 2, 3, ...
 
-using natural numbers (\mathbb{N}*)
+using natural numbers ($\mathbb{N}$)
 
 0, 1, 2, 3, ...
 
-by mapping nonnegative numbers, $z$, to even numbers $2z$ and all negative numbers to odd numbers $-2z - 1$:
+by mapping nonnegative numbers to even numbers $2z$ and all negative numbers to odd numbers $-2z - 1$:
 
 ```{r}
 PZ <- function(z) {
