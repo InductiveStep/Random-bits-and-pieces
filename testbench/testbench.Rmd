@@ -1,0 +1,50 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(testthat)
+```
+
+
+## Sink true output
+
+```{r}
+res <- lm(rating ~ ., data = attitude)
+```
+
+```{r}
+sink("lm_true.txt")
+summary(res)
+sink()
+```
+
+
+
+
+## Sink test output
+
+```{r}
+sink("lm_test.txt")
+summary(res)
+sink()
+```
+
+
+## Compare
+
+
+```{r}
+true_res <- readLines(con = file("lm_true.txt"))
+true_res
+```
+
+
+```{r}
+adist(true_res, true_res)
+```
+
+
+

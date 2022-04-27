@@ -1,0 +1,100 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+calc_sd <- function(y_sd, prop_var) {
+  sqrt(y_sd^2 * ((1/prop_var) - 1))
+}
+```
+
+
+```{r}
+the_n  <- 200
+means  <- seq(-200,200,15)
+sds    <- c(1,2,5,10,20,50)
+slopes <- seq(-60,60,10)
+the_p  <- 10
+```
+
+```{r}
+params <- tibble(
+  mean   = sample(means,  size = the_p, replace = TRUE),
+  sd     = sample(sds,    size = the_p, replace = TRUE),
+  slopes = sample(slopes, size = the_p, replace = TRUE)
+)
+params <- rbind(c(1, 0, sample(slopes, size = 1)),
+                params)
+params
+```
+
+
+```{r}
+dat <- mapply(\(m,sd) rnorm(the_n, m, sd),
+                params$mean,
+                params$sd) %>%
+  as.tibble()
+names(dat) <- paste("x", 0:the_p, sep = "_")
+```
+
+
+```{r}
+dat
+```
+
+```{r}
+dat_sim <- dat
+dat_sim$y_pure <- as.matrix(dat) %*%
+                    as.matrix(params$slopes)
+dat_sim$y <- dat_sim$y_pure + 
+               rnorm(the_n, 0, calc_sd(sd(dat_sim$y_pure), 1/3))
+dat_sim <- as.tibble(dat_sim)
+```
+
+```{r}
+mod <- lm(y ~ ., data = dat_sim %>%
+            select(-x_0, -y_pure))
+summary(mod)
+```
+
+```{r}
+cbind(coef(mod), params$slopes) %>% round(2)
+```
+
+
+
+```{r}
+x_means <- dat_sim %>%
+  summarise(across(everything(), mean)) %>%
+  select(starts_with("x_"), -x_0)
+```
+
+```{r}
+coef(mod)
+```
+
+
+
+```{r}
+cbind(predicted = predict(mod, newdata = x_means, interval = "confidence"),
+      `raw mean` = mean(dat_sim$y))
+```
+
+
+```{r}
+predict(lm(y ~ 1, data = dat_sim), newdat = data.frame(1),
+        interval = "confidence")
+```
+
+
+```{r}
+t.test(dat_sim$y)
+```
+
+
+

@@ -1,0 +1,39 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+
+```{r}
+library(tidyverse)
+library(car)
+```
+
+
+```{r}
+set.seed(123456)
+```
+
+
+```{r}
+dat <- tibble(id = 1:400) %>%
+  mutate(
+    high_motivation = c(rep(0,n()/2), rep(1,n()/2)),
+    treat = rbinom(n(), 1, high_motivation*.8 + .1),
+    outcome = high_motivation*.8 + treat*.4 + rnorm(n(),0,1)
+  )
+dat
+```
+
+
+```{r}
+mod <- lm(outcome ~ treat + high_motivation, data = dat)
+summary(mod)
+```
+
+```{r}
+vif(mod)
+```
+

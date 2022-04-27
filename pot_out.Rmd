@@ -1,0 +1,41 @@
+---
+title: "Potential outcomes again"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+dat <- tibble(id = 1:100) |>
+  mutate(e  = rnorm(n(), 0, 1),
+         y0_true = rnorm(n(), 0, 1),
+         y0 = y0_true + e,
+         y1 = y0_true + .7 + e,
+         te = y1 - y0)
+```
+
+
+```{r}
+var(dat$te) / nrow(dat) |> sqrt()
+```
+
+```{r}
+cor(dat$y0, dat$y1)
+```
+
+
+
+```{r}
+sum(dat$y1 * dat$y0)/(nrow(dat)-1) - (sum(dat$y1)/(nrow(dat)-1))*(sum(dat$y0)/(nrow(dat)-1))
+```
+```{r}
+cov(dat$y1, dat$y0)
+```
+
+
+
+
+

@@ -1,0 +1,137 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(survey)
+library(srvyr)
+library(lmtest)
+library(sandwich)
+```
+
+
+
+```{r}
+var_diff <- function(x, y) {
+  (var(x) / length(x)) + 
+    (var(y) / length(y))
+}
+```
+
+
+```{r}
+var_diff_finite <- function(x, y, rho, popn) {
+  var_diff(x, y) - ((((sd(x) - sd(y))^2)/ popn) 
+                    + ((2*(1-rho)*sd(x)*sd(y))/popn) )
+}
+```
+
+
+```{r}
+dat <- tibble(treat = rbinom(200, 1, .5)) %>%
+  mutate(
+    y = .3*treat + rnorm(n(), 0, 1),
+    weight = 1,
+    popn = n()
+  )
+dat
+```
+
+
+
+
+```{r}
+dat %>%
+  group_by(treat) %>%
+  summarise(popn = n())
+```
+
+
+
+```{r}
+t.test(y ~ treat, data = dat)$stderr
+```
+
+
+```{r}
+y0 <- dat %>% filter(treat == 1) %>% pull(y)
+y1 <- dat %>% filter(treat == 0) %>% pull(y)
+```
+
+
+```{r}
+var_diff(y0,y1) %>% sqrt()
+```
+
+```{r}
+var_diff_finite(y0, y1, 1, nrow(dat)) %>% sqrt()
+```
+
+
+```{r}
+lm_mod <- lm(y ~ treat,
+                       data = dat)
+summary(lm_mod)
+```
+
+
+```{r}
+?gls
+```
+
+
+
+```{r}
+coeftest(lm_mod, vcov = vcovHC(lm_mod, type = "HC0"))
+```
+
+
+
+
+```{r}
+dat_svy <- dat %>%
+  as_survey(
+    ids = NULL,
+    strata = treat,
+    fpc = popn,
+    weights = weight
+  )
+
+survey_mod <- svyglm(y ~ treat,
+                       design = dat_svy)
+
+summary(survey_mod)
+```
+
+
+Aronow, P. M., Green, D. P., & Lee, D. K. K. (2014). Sharp bounds on the variance in randomized experiments. Annals of Statistics, 42(3), 850–871. https://doi.org/10.1214/13-AOS1200 :
+
+```{r}
+sharp.var <- function(yt,yc,N=length(c(yt,yc)),upper=TRUE) {
+  m <- length(yt)
+  n <- m + length(yc)
+  FPvar <- function(x,N) (N-1)/(N*(length(x)-1)) * sum((x - mean(x))^2)
+  yt <- sort(yt)
+  
+  if(upper == TRUE)
+    yc <- sort(yc)
+  else yc <- sort(yc,decreasing=TRUE)
+  
+  p_i <- unique(sort(c(seq(0,n-m,1)/(n-m),seq(0,m,1)/m))) - .Machine$double.eps^.5
+  p_i[1] <- .Machine$double.eps^.5
+  yti <- yt[ceiling(p_i*m)]
+  yci <- yc[ceiling(p_i*(n-m))]
+  p_i_minus <- c(NA,p_i[1: (length(p_i)-1)])
+  return(((N-m)/m * FPvar(yt,N) + (N-(n-m))/(n-m) * FPvar(yc,N) +2*sum(((p_i-p_i_minus)*yti*yci)[2:length(p_i)]) -2*mean(yt)*mean(yc))/(N-1))
+}
+```
+
+
+```{r}
+sharp.var(y0,y1) |> sqrt()
+```
+
+

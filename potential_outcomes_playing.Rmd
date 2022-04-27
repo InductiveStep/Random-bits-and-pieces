@@ -6,23 +6,42 @@ output: html_notebook
 
 ```{r}
 library(tidyverse)
+library(survey)
+library(srvyr)
 ```
 
 
 ```{r}
-the_n <- 10000
+set.seed(42421149)
 ```
+
+
+
+```{r}
+the_n <- 500
+randomisations_n <- choose(the_n, the_n /2)
+one_sim_time <- (1.116104 * 60) / 12870
+randomisations_time <- randomisations_n*one_sim_time
+
+tibble(`Randomisations`= randomisations_n,
+  `Time (mins)` = randomisations_time / 60)
+```
+
 
 
 ```{r}
 dat <- tibble(
   baseline     = rnorm(the_n, mean = 10, sd = 1),
   baseline_obs = baseline + rnorm(the_n, mean = 0, sd = 1),
-  y_treat      = 1.2 * baseline + 0.8 +
+  y_treat      = 1.2 * baseline + .3 +
                     rnorm(the_n, mean = 0, sd = .2),
   y_control    = 1.2 * baseline + 0.0 +
                     rnorm(the_n, mean = 0, sd = .2),
-  TE = y_treat - y_control
+  TE = y_treat - y_control,
+  popn_all = the_n,
+  popn_half = the_n/2,
+  weight = 1,
+  id = 1:the_n
 )
 ```
 
@@ -35,7 +54,7 @@ dat
 
 ```{r}
 dat <- dat %>%
-  mutate(treat_by_rct = sample(rep(c(0,1), the_n/2), replace = T),
+  mutate(treat_by_rct = sample(rep(c(0,1), the_n/2), replace = F),
          treat_by_cutoff = rbinom(the_n, 1,
                              (baseline_obs >= 11) * 0.8 +
                              (1-(baseline_obs >= 11)) * 0.2)) %>%
@@ -46,17 +65,7 @@ dat <- dat %>%
 
 ```{r}
 dat %>%
-  select(baseline_obs, treat_by_cutoff)
-```
-
-```{r}
-dat %>%
   summarise(ATE = mean(y_treat - y_control))
-```
-
-```{r}
-glm(treat_by_cutoff ~ baseline_obs, data = dat, family = binomial) %>%
-  summary()
 ```
 
 
@@ -81,11 +90,172 @@ lm(y_by_rct ~ treat_by_rct, data = dat) %>%
 
 
 
+```{r ols_mod}
+ols_mod <- lm(y_by_rct ~ treat_by_rct + baseline_obs, data = dat)
+ols_mod %>% summary()
+```
+
 ```{r}
-lm(y_by_rct ~ treat_by_rct + baseline_obs, data = dat) %>%
-  summary()
+dim(dat)
+```
+
+```{r}
+dat_svy_all <- dat %>%
+  as_survey(
+    ids = id,
+    strata = treat_by_rct,
+    fpc = popn_all,
+    weights = weight
+  )
+
+dat_svy_half <- dat %>%
+  as_survey(
+    ids = id,
+    strata = treat_by_rct,
+    fpc = popn_half,
+    weights = weight
+  )
+```
+
+
+```{r}
+dat_svy_all
+```
+
+```{r}
+dat_svy_half
+```
+
+```{r}
+survey_mod_half <- svyglm(y_by_rct ~ treat_by_rct + baseline_obs,
+                     design = dat_svy_half)
+survey_mod_all <- svyglm(y_by_rct ~ treat_by_rct + baseline_obs,
+                     design = dat_svy_all)
+```
+
+
+```{r}
+summary(survey_mod_half)
+```
+
+```{r survey_mod_all}
+summary(survey_mod_all)
 ```
 
 
 
+```{r}
+table(dat$treat_by_rct)
+```
+
+
+
+```{r}
+one_sim <- function() {
+  sim_dat <- dat %>%
+    mutate(perm_treat_by_rct = sample(treat_by_rct))
+  
+  mod <- lm(y_by_rct ~ perm_treat_by_rct + baseline_obs,
+            data = sim_dat) 
+  coef(mod)["perm_treat_by_rct"]
+}
+```
+
+```{r}
+one_sim()
+```
+
+
+```{r sample-of-permutations}
+slopes <- replicate(100000, one_sim())
+```
+
+```{r}
+hist(slopes)
+```
+
+
+```{r pval_sample_perms}
+pval_sample_perms <- mean(abs(coef(ols_mod)["treat_by_rct"]) <= abs(slopes))
+pval_sample_perms
+```
+
+```{r}
+rbind(`Sample of permutations p`  = pval_sample_perms,
+      `OLS p`                     = ols_p,
+      `FPC p`                     = fpc_p) |> round(6)
+```
+
+
+
+
+
+```{r}
+treat_units <- combn(1:the_n, the_n/2)
+```
+
+
+```{r}
+one_sim_fixed <- function(treats) {
+  ass <- rep(0, dat$treat_by_rct %>% length)
+  ass[treats] <- 1
+  
+  sim_dat <- dat %>%
+    mutate(perm_treat_by_rct = ass)
+  
+  mod <- lm(y_by_rct ~ perm_treat_by_rct + baseline_obs,
+            data = sim_dat) 
+  coef(mod)["perm_treat_by_rct"]
+}
+```
+
+
+```{r all_permutations}
+time_start <- Sys.time()
+
+all_slopes <- rep(NA, ncol(treat_units))
+
+for (i in 1:length(all_slopes)) {
+  all_slopes[i] <- one_sim_fixed(treat_units[,i])
+}
+
+time_end <- Sys.time()
+time_end - time_start
+```
+
+
+
+```{r}
+length(all_slopes)
+```
+
+```{r}
+hist(all_slopes, xlab = "Slope", main = "")
+```
+
+
+```{r}
+permtest_p <- mean(abs(coef(ols_mod)["treat_by_rct"]) <= abs(all_slopes))
+```
+
+
+```{r}
+ols_p <- (ols_mod |>
+            summary() |>
+            coefficients())["treat_by_rct","Pr(>|t|)"]
+```
+
+```{r}
+fpc_p <- (survey_mod_all |>
+            summary() |>
+            coefficients())["treat_by_rct","Pr(>|t|)"]
+```
+
+The total sample size `r the_n`, giving `r randomisations_n` possible randomisations with half to treat and half to control.
+
+```{r}
+rbind(`All permutations p`  = permtest_p,
+      `OLS p`               = ols_p,
+      `FPC p`               = fpc_p) |> round(6)
+```
 
