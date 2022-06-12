@@ -1,0 +1,54 @@
+---
+title: "Pottering around with CACE/LATE"
+output: html_notebook
+---
+
+Include the packages we need:
+
+```{r}
+library(tidyverse)
+library(ivreg)
+```
+
+Simulate some data:
+
+```{r}
+the_n <- 10000
+dat <- tibble(
+  mot   = rbinom(the_n, 1, .7),
+  treat = rbinom(the_n, 1, .5),
+  comp  = treat * mot * rbinom(the_n, 1, .5),
+  y     = 2 * mot + .4 * comp + rnorm(the_n, 0, 1)
+)
+```
+
+Estimate the ATE under ITT.
+
+```{r}
+itt_mod <- lm(y ~ treat, data = dat)
+summary(itt_mod)
+```
+
+Let's see what the association is between compliance and outcome:
+
+```{r}
+mod <- lm(y ~ comp, data = dat)
+summary(mod)
+```
+
+How about trying ATE again but this time excluding anyone who didn't comply from the treat group:
+
+```{r}
+comp_dat <- dat %>%
+  filter(comp == 1 | treat == 0) 
+
+mod <- lm(y ~ treat, data = comp_dat)
+summary(mod)
+```
+
+Now, 2SLS:
+
+```{r}
+iv <- ivreg(y ~ comp | treat, data = dat)
+summary(iv)
+```

@@ -1,0 +1,66 @@
+---
+title: "Exploring standard errors"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(sandwich)
+library(lmtest)
+library(nlme)
+library(emmeans)
+```
+
+
+
+```{r}
+tot_n <- 30
+dat <- tibble(
+  t = rbinom(tot_n, 1, .7),
+  y = rnorm(tot_n, 10 + 1 * t, 1 + 1*t)
+)
+```
+
+```{r}
+dat %>%
+  group_by(t) %>%
+  summarise(mean = mean(y),
+            sd = sd(y))
+```
+
+
+
+
+```{r}
+lm_mod <- lm(y ~ t, data = dat)
+```
+
+
+
+```{r}
+vcov_lm_mod = vcovHC(lm_mod, type = "HC3")
+coeftest(lm_mod, vcov = vcov_lm_mod)
+```
+
+```{r}
+gls_mod <- gls(y ~ t, data = dat,
+               weights = varIdent(form = ~ 1 | t))
+
+contrast(emmeans(gls_mod, ~ t), "trt.vs.ctrl", ref = "0") |> as.data.frame()
+```
+
+```{r}
+t_test <- t.test(y ~ t, data = dat)
+t_test
+```
+
+```{r}
+c(
+  se = t_test$stderr,
+  df = t_test$parameter,
+  t = t_test$statistic,
+  p = t_test$p.value
+)
+```
+

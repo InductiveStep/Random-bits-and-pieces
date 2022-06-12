@@ -10,32 +10,38 @@ library(tidyverse)
 
 ```{r}
 dat <- tibble(id = 1:100) |>
-  mutate(e  = rnorm(n(), 0, 1),
-         y0_true = rnorm(n(), 0, 1),
-         y0 = y0_true + e,
-         y1 = y0_true + .7 + e,
+  mutate(y0 = rnorm(n(), 0, 1) + rnorm(n(), 0, 1),
+         y1 = y0 + .7  + rnorm(n(), 0, 1),
          te = y1 - y0)
 ```
 
 
 ```{r}
-var(dat$te) / nrow(dat) |> sqrt()
+mean(dat$te)
 ```
-
-```{r}
-cor(dat$y0, dat$y1)
-```
-
 
 
 ```{r}
-sum(dat$y1 * dat$y0)/(nrow(dat)-1) - (sum(dat$y1)/(nrow(dat)-1))*(sum(dat$y0)/(nrow(dat)-1))
+dat_rct <- dat %>%
+  mutate(w = sample(rep(0:1,n()/2)),
+         y = w * y1 + (1 - w) * y0)
 ```
+
+
+
 ```{r}
-cov(dat$y1, dat$y0)
+mod <- lm(y ~ w, data = dat_rct)
+summary(mod)
 ```
 
 
+```{r}
+mod <- lm(y ~ w, data = dat_rct)
+summary(mod)
+```
 
-
+```{r}
+rbind(`lm mod` = coef(mod)["w"] |> as.numeric(),
+      `true te` = mean(dat$te))
+```
 
