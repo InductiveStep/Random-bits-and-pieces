@@ -1,0 +1,9 @@
+---
+title: "Covariate Balancing Generalised Propensity Score"
+output: html_notebook
+---
+
+```{r}
+library(CBPS)
+```
+

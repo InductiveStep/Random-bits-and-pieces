@@ -1,0 +1,52 @@
+---
+title: "PSweight"
+author: "Andi Fugard"
+date: '2022-07-07'
+output: html_document
+---
+
+```{r}
+library(PSweight)
+```
+
+
+```{r}
+data(psdata)
+```
+
+Propensity and outcome models
+
+```{r}
+ps.formula  <- trt ~ cov1+cov2+cov3+cov4+cov5+cov6
+out.formula <- Y   ~ cov1+cov2+cov3+cov4+cov5+cov6
+```
+
+```{r}
+ato1  <-
+  PSweight(
+    ps.formula = ps.formula,
+    yname = 'Y',
+    data = psdata,
+    weight = 'overlap'
+  )
+summary(ato1)
+```
+
+
+```{r}
+ato2 <-
+  PSweight(
+    ps.formula = ps.formula,
+    yname = 'Y',
+    data = psdata,
+    augmentation = TRUE,
+    out.formula = out.formula,
+    family = 'gaussian',
+    weight = 'overlap'
+  )
+
+summary(ato2)
+```
+
+
+

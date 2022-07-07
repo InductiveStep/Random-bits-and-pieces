@@ -1,0 +1,20 @@
+---
+title: "Gender guess"
+output: html_notebook
+---
+
+```{r}
+library(gender)
+library()
+```
+
+
+
+```{r}
+gender(c("Andi", "Andy", "Andie", "Andrew"),
+       method = "genderize")
+```
+
+
+
+
