@@ -1,0 +1,62 @@
+---
+title: "Binary search tree"
+output: html_notebook
+---
+
+```{r}
+branch <- function(left, value, right) {
+  list(left = left,
+       value = value,
+       right = right)
+}
+
+empty <- list(value = NA)
+```
+
+```{r}
+inorder <- function(branch) {
+  if (is.na(branch$value))
+    c()
+  else
+    c(inorder(branch$left),
+      branch$value,
+      inorder(branch$right))
+}
+```
+
+
+```{r}
+insert <- function(x, branch) {
+  if (is.na(branch$value))
+    branch(empty, x, empty)
+  else if (x < branch$value)
+    branch(insert(x, branch$left),
+           branch$value,
+           branch$right)
+  else
+    branch(branch$left,
+           branch$value,
+           insert(x, branch$right))
+}
+```
+
+```{r}
+grow_tree <- function(vals) {
+  tree <- empty
+  for (v in vals)
+    tree <- insert(v, tree)
+  tree
+}
+```
+
+```{r}
+rand_vals <- sample(1:99, size = 20, replace = T)
+rand_vals
+```
+
+```{r}
+grow_tree(rand_vals) |> inorder()
+```
+
+
+

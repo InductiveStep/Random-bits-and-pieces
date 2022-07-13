@@ -1,0 +1,133 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Working through:
+
+* Roughan, M. (2019). Practically surreal: Surreal arithmetic in Julia. SoftwareX, 9, 293–298. https://doi.org/10.1016/j.softx.2019.03.005
+
+* Tøndering, C. (2019). Surreal Numbers – An Introduction. http://www.tondering.dk/claus/surreal.html
+
+
+```{r}
+is_integer <- \(x) x == as.integer(x)
+```
+
+```{r}
+as.surreal <- function(l) {
+  res <- l
+  class(res) <- "surreal"
+  res
+}
+```
+
+```{r}
+nullset <- list()
+class(nullset) <- "surreal"
+```
+
+```{r}
+simplify_dyadic <- \(n, k) {
+  stopifnot(is_integer(n))
+  stopifnot(is_integer(k))
+  stopifnot(k >= 0)
+  
+  while (k > 0 && n %% 2 == 0) {
+    n <- n/2
+    k <- k - 1
+  }
+  
+  c(n, k)
+}
+```
+
+```{r}
+# x = n/2^k
+dali <- \(n, k, loud = FALSE) {
+  stopifnot(is_integer(n))
+  stopifnot(is_integer(k))
+  stopifnot(k >= 0)
+  
+  if (loud) {
+    cat("dali called with ")
+    cat(n); cat("/"); cat(2^k)
+  }
+  
+  n_old <- n
+  k_old <- k
+  
+  simple <- simplify_dyadic(n,k)
+  n <- simple[1]
+  k <- simple[2]
+  
+  if (loud && (n != n_old || k != k_old)) {
+    cat(" = "); cat(n); cat("/"); cat(2^k)
+  }
+  
+  if (loud) {
+    cat(" = "); cat(n/2^k); cat("\n")
+  }
+  
+  res <- NA
+  
+  if (n == 0) {
+    res <- list(l = nullset, r = nullset)
+  }
+  else if (k == 0) {
+    if (n > 0)
+      res <- list(l = dali(n - 1, 0), r = nullset)
+    else
+      res <- list(l = nullset, r = dali(n + 1, 0))      
+  }
+  else {
+    res <- list(l = dali(n-1, k), r = dali(n+1, k))
+  }
+  
+  class(res) <- "surreal"
+  res
+}
+```
+
+Three kinds of surreal number structure:
+
+* Empty list: nullset
+* List with an l and an r: recurse over it - it's equivalent to a singleton set
+* List with names = NULL: loop over it
+
+```{r}
+print.surreal <- function(s) {
+  if (length(s) == 0) {
+    cat("∅")
+  }
+  else if ((length(s) == 2) &&
+           all(names(s) == c("l", "r"))) {
+    cat("{")
+    print.surreal(s$l)
+    cat(" | ")
+    print.surreal(s$r)
+    cat("}")    
+  }
+  else {
+    if (length(s) >= 2) {
+      for (x in s[1:(length(s)-1)]) {
+        print(x)
+        cat(", ")
+      }
+      s <- s[[length(s)]]
+    }
+    # This prints s with length(s)=1, including
+    # the last item from the for-loop above
+    print(s)
+  }
+}
+```
+
+```{r}
+list(l = list(dali(1,0), dali(0,0), dali(0,0)),
+     r = nullset) |> as.surreal()
+```
+
+
+
+
