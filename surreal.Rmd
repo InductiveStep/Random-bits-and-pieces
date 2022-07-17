@@ -6,13 +6,25 @@ output:
     df_print: paged
 ---
 
+Here are my [notes and links to useful resources on surreals](https://www.andifugard.info/surreal-numbers/).
 
 Please don't use this to do any sums for safety critical systems ;-)
 
+This is a helper function:
 
 ```{r is_integer}
 is_integer <- \(x) x == as.integer(x)
 ```
+
+```{r}
+is_integer(42)
+```
+
+```{r}
+is_integer(pi)
+```
+
+I represent surreals as lists. This is another helper to make them and apply the class "surreal".
 
 ```{r as.surreal}
 as.surreal <- function(l) {
@@ -26,6 +38,8 @@ as.surreal <- function(l) {
 }
 ```
 
+Rather than sets of surreals, I'm using lists and ignoring duplicates and order in the output...
+
 ```{r}
 as.surreal_list <- function(sl) {
   res <- sl
@@ -33,6 +47,8 @@ as.surreal_list <- function(sl) {
   res
 }
 ```
+
+Some useful predicates:
 
 ```{r is-surreal-surreals}
 is.surreal <- function(s)
@@ -46,6 +62,8 @@ is.nullset <- function(s) {
 }
 ```
 
+And the main way to construct surreals and lists of surreals:
+
 ```{r surreal-surreals}
 surreal <- function(l, r) {
   list(l = l,
@@ -58,6 +76,8 @@ surreals <- function(...) {
   res
 }
 ```
+
+How to peek into the left or right pair of a surreal. Note that if there's nothing there to peek at, I just return an empty set.
 
 ```{r LR}
 L <- function(s) {
@@ -79,10 +99,14 @@ R <- function(s) {
 }
 ```
 
+And the empty set. Well, list.
+
 ```{r nullset}
 nullset <- list()
 class(nullset) <- "surreal"
 ```
+
+This seems to work... At present it just removes duplicates and nullsets. It could also go through and remove elements in L that are smaller than the largest surreal and elements of R that are larger than the smallest surreal.
 
 ```{r}
 simplify_surreals <- function(s) {
@@ -114,6 +138,8 @@ simplify_surreals <- function(s) {
 }
 ```
 
+This simplifies dyadic numbers, $n/2^k$.
+
 ```{r simplify_dyadic}
 simplify_dyadic <- \(n, k) {
   stopifnot(is_integer(n))
@@ -128,6 +154,8 @@ simplify_dyadic <- \(n, k) {
   c(n, k)
 }
 ```
+
+This is Tøndering's "dali" function that builds a surreal from a dyadic number.
 
 ```{r dali}
 # x = n/2^k
@@ -176,6 +204,8 @@ dali <- \(n, k, loud = FALSE) {
 }
 ```
 
+Print surreals:
+
 ```{r print.surreal}
 print.surreal <- function(s) {
   stopifnot(class(s) == "surreal")
@@ -197,6 +227,8 @@ print.surreal <- function(s) {
 }
 ```
 
+And lists of surreals:
+
 ```{r print.surreal_list}
 print.surreal_list <- function(surs) {
   stopifnot(class(surs) == "surreal_list")
@@ -215,6 +247,8 @@ print.surreal_list <- function(surs) {
 }
 ```
 
+(In)equalities:
+
 ```{r}
 less_equal <- function(x, y) {
   greater_equal(y, x)
@@ -222,7 +256,8 @@ less_equal <- function(x, y) {
 
 greater_equal <- function(x, y) {
   if (is.nullset(x) || is.nullset(y))
-    FALSE
+    FALSE # BEWARE: I don't know why this isn't TRUE...
+          # but it seems to work as is 
   else {
     res <- c() 
 
@@ -254,6 +289,8 @@ greater <- function(x,y)
   greater_equal(x,y) && !equal(x,y)
 ```
 
+Given all the above, addition is relatively painless. You will see I haven't done multiplication yet.
+
 ```{r add}
 add <- function(a, b) {
   if (length(a) == 0 || length(b) == 0) {
@@ -268,6 +305,7 @@ add <- function(a, b) {
 }
 ```
 
+And some examples:
 
 ```{r}
 add(dali(0,0), dali(0,0))
@@ -296,6 +334,8 @@ dali(2,0) # 2
 # 1+1 = 2
 add(dali(1,0), dali(1,0)) |> simplify_surreals()
 ```
+
+Hurrah, so 1+1 = 2. Great.
 
 ```{r}
 add(dali(2,0), dali(-2,0)) |> simplify_surreals()
@@ -330,11 +370,12 @@ correct_ans
 ```{r}
 equal(raw_sum, simp_sum)
 ```
+
 ```{r}
 equal(simp_sum, correct_ans)
 ```
 
-
+Let's check whether a putative surreal really is:
 
 ```{r}
 legit_surreal <- function(s) {
@@ -342,9 +383,14 @@ legit_surreal <- function(s) {
 }
 ```
 
+YES:
+
 ```{r}
 legit_surreal(dali(0,1))
 ```
+
+NOPE:
+
 ```{r}
 legit_surreal(surreal(dali(0,1), dali(0,1)))
 ```
