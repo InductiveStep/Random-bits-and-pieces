@@ -216,11 +216,11 @@ print.surreal <- function(s) {
   }
   else if ((length(s) == 2) &&
            all(names(s) == c("l", "r"))) {
-    cat("{")
+    cat("(")
     print(s |> L())
     cat(" | ")
     print(s |> R())
-    cat("}")    
+    cat(")")    
   }
   else
     stop("I don't know how to print that surreal")
@@ -394,3 +394,84 @@ NOPE:
 ```{r}
 legit_surreal(surreal(dali(0,1), dali(0,1)))
 ```
+
+
+
+```{r}
+nullset
+```
+
+## Try building surreals systematically
+
+
+```{r}
+new_surreals <- function(old_list) {
+  cat("Starting with: ")
+  print(old_list)
+  cat("\n")
+  res <- list()
+  
+  for (l in old_list)
+    for (r in old_list) {
+      candidate <- surreal(l, r)
+      deja_vu <- (length(c(old_list, list(candidate)) 
+                         |> unique()) == length(old_list))
+      
+      if (!deja_vu) {
+        cat("Checking: ")
+        print(candidate)
+  
+        if (legit_surreal(candidate)) {
+          res <- c(res, list(candidate))
+          cat(" - Yes\n")
+        }
+        else
+          cat(" - No\n")
+      }
+    }
+  
+  res <- res |> as.surreal_list()
+  res
+}
+```
+
+
+
+
+```{r}
+cat("Let's make some surreal numbers!\n\n")
+
+last_day = 2
+so_far <- surreals(nullset)
+
+for (i in 1:(last_day+1)) {
+  cat("Day ")
+  cat(i-1)
+  cat("\n")
+  so_far <- c(so_far, new_surreals(so_far)) |> unique() |>
+    as.surreal_list()
+  cat("\n")
+}
+
+cat("By the end of day ")
+cat(last_day)
+cat(", we got the following surreals:\n")
+
+for (s in so_far) {
+  print(s)
+  cat("\n")
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

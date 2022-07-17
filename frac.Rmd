@@ -1,0 +1,43 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+gcd <- function(a, b) {
+  if (b == 0)
+    a
+  else
+    gcd(b, a %% b)
+}
+```
+
+```{r}
+rational <- function(r, q) {
+  whole      <- floor(r)
+  fractional <- r - whole
+  
+  lower <- q * whole +   floor(fractional * q)
+  upper <- q * whole + ceiling(fractional * q)
+  
+  lower_gcd <- gcd(lower, q)
+  upper_gcd <- gcd(upper, q)
+  
+  res <- list(
+    p  = c(lower, upper),
+    q  = c(q, q),
+    p_ = c(lower / lower_gcd, upper / upper_gcd),
+    q_ = c(q / lower_gcd, q / upper_gcd),
+    e  = c(r - lower/q, upper/q - r)
+  )
+  
+  res
+}
+```
+
+
+```{r}
+rational(pi, 2^11)
+```
+
+
