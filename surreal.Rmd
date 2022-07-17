@@ -1,33 +1,120 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: 'Surreal numbers: work in progress'
+author: "Andi Fugard"
+output:
+  html_document:
+    df_print: paged
 ---
 
-Working through:
 
-* Roughan, M. (2019). Practically surreal: Surreal arithmetic in Julia. SoftwareX, 9, 293–298. https://doi.org/10.1016/j.softx.2019.03.005
-
-* Tøndering, C. (2019). Surreal Numbers – An Introduction. http://www.tondering.dk/claus/surreal.html
+Please don't use this to do any sums for safety critical systems ;-)
 
 
-```{r}
+```{r is_integer}
 is_integer <- \(x) x == as.integer(x)
 ```
 
-```{r}
+```{r as.surreal}
 as.surreal <- function(l) {
   res <- l
+  
+  if(is.null(res) || length(l) == 0)
+    res <- nullset
+  
   class(res) <- "surreal"
   res
 }
 ```
 
 ```{r}
+as.surreal_list <- function(sl) {
+  res <- sl
+  class(res) <- "surreal_list"
+  res
+}
+```
+
+```{r is-surreal-surreals}
+is.surreal <- function(s)
+  class(s) == "surreal"
+
+is.surreal_list <- function(sl)
+  class(sl) == "surreal_list"
+
+is.nullset <- function(s) {
+  is.surreal(s) && length(s) == 0
+}
+```
+
+```{r surreal-surreals}
+surreal <- function(l, r) {
+  list(l = l,
+       r = r) |> as.surreal()
+}
+
+surreals <- function(...) {
+  res <- list(...) |> unique()
+  class(res) <- "surreal_list"
+  res
+}
+```
+
+```{r LR}
+L <- function(s) {
+  stopifnot(class(s) == "surreal")
+  
+  if (is.null(s) || length(s) == 0)
+    nullset
+  else
+    s$l
+}
+
+R <- function(s) {
+  stopifnot(class(s) == "surreal")
+  
+  if (is.null(s) || length(s) == 0)
+    nullset
+  else
+    s$r
+}
+```
+
+```{r nullset}
 nullset <- list()
 class(nullset) <- "surreal"
 ```
 
 ```{r}
+simplify_surreals <- function(s) {
+  if (is.surreal(s)) {
+    if (is.nullset(s))
+      nullset
+    else
+      surreal(simplify_surreals(s |> L()),
+              simplify_surreals(s |> R()))
+  }
+  else if (is.surreal_list(s)) {
+    if (length(s) == 0)
+      nullset
+    else if (length(s) == 1)
+      simplify_surreals(s[[1]])
+    else {
+      # find nulls and zap them
+      res <- c()
+      for (one_s in s) {
+        one_res <- simplify_surreals(one_s)
+        if (!is.nullset(one_res))
+          res <- c(res, list(one_res))
+      }
+      res |> unique() |> as.surreal_list()
+    }
+  }
+  else
+    stop("No idea what to do with that, sorry")
+}
+```
+
+```{r simplify_dyadic}
 simplify_dyadic <- \(n, k) {
   stopifnot(is_integer(n))
   stopifnot(is_integer(k))
@@ -42,7 +129,7 @@ simplify_dyadic <- \(n, k) {
 }
 ```
 
-```{r}
+```{r dali}
 # x = n/2^k
 dali <- \(n, k, loud = FALSE) {
   stopifnot(is_integer(n))
@@ -89,45 +176,175 @@ dali <- \(n, k, loud = FALSE) {
 }
 ```
 
-Three kinds of surreal number structure:
-
-* Empty list: nullset
-* List with an l and an r: recurse over it - it's equivalent to a singleton set
-* List with names = NULL: loop over it
-
-```{r}
+```{r print.surreal}
 print.surreal <- function(s) {
+  stopifnot(class(s) == "surreal")
+  stopifnot(length(s) %in% c(0,2))
+  
   if (length(s) == 0) {
     cat("∅")
   }
   else if ((length(s) == 2) &&
            all(names(s) == c("l", "r"))) {
     cat("{")
-    print.surreal(s$l)
+    print(s |> L())
     cat(" | ")
-    print.surreal(s$r)
+    print(s |> R())
     cat("}")    
   }
+  else
+    stop("I don't know how to print that surreal")
+}
+```
+
+```{r print.surreal_list}
+print.surreal_list <- function(surs) {
+  stopifnot(class(surs) == "surreal_list")
+  
+  if (length(surs) == 0)
+    cat("∅")
   else {
-    if (length(s) >= 2) {
-      for (x in s[1:(length(s)-1)]) {
-        print(x)
+    i <- 1
+    for (s in surs) {
+      print(s)
+      if (i < length(surs))
         cat(", ")
-      }
-      s <- s[[length(s)]]
+      i <- i+1
     }
-    # This prints s with length(s)=1, including
-    # the last item from the for-loop above
-    print(s)
   }
 }
 ```
 
 ```{r}
-list(l = list(dali(1,0), dali(0,0), dali(0,0)),
-     r = nullset) |> as.surreal()
+less_equal <- function(x, y) {
+  greater_equal(y, x)
+}
+
+greater_equal <- function(x, y) {
+  if (is.nullset(x) || is.nullset(y))
+    FALSE
+  else {
+    res <- c() 
+
+    if (is.surreal(x |> R()))
+      res <- c(res, less_equal(x |> R(), y))
+    else
+      for (x_R in x |> R())
+        res <- c(res, less_equal(x_R, y))
+    
+    if (is.surreal(y |> L()))
+      res <- c(res, less_equal(x, y |> L()))
+    else    
+      for (y_L in y |> L())
+        res <- c(res, less_equal(x, y_L))
+
+    !any(res)
+  }
+}
+```
+
+```{r}
+equal <- function(x,y)
+  greater_equal(x,y) && less_equal(x,y)
+
+less <- function(x,y)
+  less_equal(x,y) && !equal(x,y)
+
+greater <- function(x,y)
+  greater_equal(x,y) && !equal(x,y)
+```
+
+```{r add}
+add <- function(a, b) {
+  if (length(a) == 0 || length(b) == 0) {
+    nullset
+  }
+  else {
+    surreal(l = surreals(add(a |> L(), b),
+                         add(a, b |> L())),
+            r = surreals(add(a |> R(), b),
+                         add(a, b |> R())))
+  }
+}
+```
+
+
+```{r}
+add(dali(0,0), dali(0,0))
+```
+
+```{r}
+add(dali(1,0), dali(1,0)) |> simplify_surreals()
+```
+
+```{r}
+add(dali(1,0), dali(1,1))
+```
+
+```{r}
+add(dali(1,0), dali(1,1)) |> simplify_surreals()
+```
+
+
+```{r}
+dali(1,0) # 1
+```
+```{r}
+dali(2,0) # 2
+```
+```{r}
+# 1+1 = 2
+add(dali(1,0), dali(1,0)) |> simplify_surreals()
+```
+
+```{r}
+add(dali(2,0), dali(-2,0)) |> simplify_surreals()
+```
+
+That mess above is equal to zero.
+
+```{r}
+equal(add(dali(2,0), dali(-2,0)), dali(0,0))
+```
+
+```{r}
+raw_sum <- add(dali(2,2), dali(2,2))
+simp_sum <- raw_sum |> simplify_surreals()
+correct_ans <- dali(1,0)
+```
+
+```{r}
+raw_sum
+```
+
+
+```{r}
+simp_sum
+```
+
+```{r}
+correct_ans
+```
+
+
+```{r}
+equal(raw_sum, simp_sum)
+```
+```{r}
+equal(simp_sum, correct_ans)
 ```
 
 
 
+```{r}
+legit_surreal <- function(s) {
+  !greater_equal(s |> L(), s |> R())
+}
+```
 
+```{r}
+legit_surreal(dali(0,1))
+```
+```{r}
+legit_surreal(surreal(dali(0,1), dali(0,1)))
+```
