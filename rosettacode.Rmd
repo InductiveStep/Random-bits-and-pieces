@@ -1,0 +1,143 @@
+---
+title: "Rosetta Code"
+output: html_notebook
+---
+
+## Base64
+
+```{r}
+"VG8gZXJyIGlzIGh1bWFuLCBidXQgdG8gcmVhbGx5IGZvdWwgdGhpbmdzIHVwIHlvdSBuZWVkIGEgY29tcHV0ZXIuCiAgICAtLVBhdWwgUi5FaHJsaWNo" |>
+  base64enc::base64decode() |>
+  rawToChar() |>
+  cat()
+```
+
+
+## Currying
+
+```{r}
+curry   <- \(f) \(x) \(y) f(x, y)
+uncurry <- \(f) \(x, y) f(x)(y)
+
+add_curry <- curry(`+`)
+add2 <- add_curry(2)
+add2(40)
+uncurry(add_curry)(40, 2)
+```
+
+
+## Box the compass
+
+
+```{r}
+pts <- data.frame(
+  des = c("N", "NxE", "NNE", "NExN", "NE", "NExE", "ENE", "ExN",
+          "E", "ExS", "ESE", "SExE", "SE", "SExS", "SSE", "SxE",
+          "S", "SxW", "SSW", "SWxS", "SW", "SWxW", "WSW", "WxS",
+          "W", "WxN", "WNW", "NWxW", "NW", "NWxN", "NNW", "NxW",
+          "N")
+)
+pts$deg <- seq(0, 360, 360/32)
+
+heading <- Vectorize(function(deg) {
+  res <- pts
+  res$diff <- abs(res$deg - deg)
+  
+  res <- res[order(res$diff), ]
+  res[1,]$des[1]
+})
+
+test <- data.frame(
+  deg = c(  0.0,   16.87,  16.88,  33.75,  50.62,  50.63,  67.5,   84.37,
+           84.38, 101.25, 118.12, 118.13, 135.0,  151.87, 151.88, 168.75,
+          185.62, 185.63, 202.5,  219.37, 219.38, 236.25, 253.12, 253.13, 
+          270.0,  286.87, 286.88, 303.75, 320.62, 320.63, 337.5,  354.37,
+          354.38)
+)
+
+test$heading <- heading(test$deg)
+test
+```
+
+```{r}
+all.equal(test$heading, pts$des)
+```
+
+
+
+## Entropy
+
+```{r}
+strsplit("hello", "")[[1]]
+```
+
+
+```{r}
+entropy <- function(str) {
+  vec   <- strsplit(str, "")[[1]]
+  N     <- length(vec)
+  p_xi  <- table(vec) / N
+  
+  -sum(p_xi * log(p_xi, 2))
+}
+```
+
+```{r}
+entropy("1223334444")
+```
+
+```{r}
+pi |> as.character() |> entropy()
+```
+
+
+
+
+```{r}
+entropy |>
+  body() |>
+  as.character() |>
+  paste(collapse = "\n") |>
+  entropy()
+```
+
+```{r}
+(entropy |>
+  body() |>
+  as.character() |>
+  paste(collapse = "\n") |>
+  strsplit(""))[[1]] |>
+  table()
+```
+
+
+## Fib word
+
+This is too slow. Work some magic.
+
+```{r}
+f_word <- Vectorize(function(n) {
+  stopifnot(n >= 1)
+  
+  if (n == 1)
+    "1"
+  else if (n == 2)
+    "0"
+  else
+    paste0(f_word(n-1), f_word(n-2))
+})
+
+f_word(30)
+```
+
+
+```{r}
+hcf_stackoverlow <- \() hcf_stackoverlow()
+hcf_stackoverlow()
+```
+
+```{r}
+while(TRUE) {}
+```
+
+

@@ -12,7 +12,7 @@
 <meta name="author" content="Andi Fugard" />
 
 
-<title>Surreal numbers: work in progress</title>
+<title>Enumerate the rationals</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1633,585 +1633,107 @@ pre code {
 
 
 
-<h1 class="title toc-ignore">Surreal numbers: work in progress</h1>
+<h1 class="title toc-ignore">Enumerate the rationals</h1>
 <h4 class="author">Andi Fugard</h4>
 
 </div>
 
 
-<p>Here are my <a href="https://www.andifugard.info/surreal-numbers/">notes and links to
-useful resources on surreals</a>.</p>
-<p>Please don’t use this to do any sums for safety critical systems
-;-)</p>
-<p>This is a helper function:</p>
-<pre class="r"><code>is_integer &lt;- \(x) x == as.integer(x)</code></pre>
-<pre class="r"><code>is_integer(42)</code></pre>
-<pre><code>## [1] TRUE</code></pre>
-<pre class="r"><code>is_integer(pi)</code></pre>
-<pre><code>## [1] FALSE</code></pre>
-<p>I represent surreals as lists. This is another helper to make them
-and apply the class “surreal”.</p>
-<pre class="r"><code>as.surreal &lt;- function(l) {
-  res &lt;- l
+<div id="cantor-zigzag" class="section level2">
+<h2>Cantor zigzag</h2>
+<pre class="r"><code>rats_zigzag &lt;- function(n = 10) {
+  stopifnot(n &gt;= 2)
+  p &lt;- 1
+  q &lt;- 1
+  dir &lt;- &quot;E&quot;
   
-  if(is.null(res) || length(l) == 0)
-    res &lt;- nullset
+  ps    &lt;- rep(NA, n)
+  qs    &lt;- rep(NA, n)
+  ps[1] &lt;- 1
+  qs[1] &lt;- 1
   
-  class(res) &lt;- &quot;surreal&quot;
-  res
-}</code></pre>
-<p>Rather than sets of surreals, I’m using lists and ignoring duplicates
-and order in the output…</p>
-<pre class="r"><code>as.surreal_list &lt;- function(sl) {
-  res &lt;- sl
-  class(res) &lt;- &quot;surreal_list&quot;
-  res
-}</code></pre>
-<p>Some useful predicates:</p>
-<pre class="r"><code>is.surreal &lt;- function(s)
-  class(s) == &quot;surreal&quot;
-
-is.surreal_list &lt;- function(sl)
-  class(sl) == &quot;surreal_list&quot;
-
-is.nullset &lt;- function(s) {
-  is.surreal(s) &amp;&amp; length(s) == 0
-}</code></pre>
-<p>And the main way to construct surreals and lists of surreals:</p>
-<pre class="r"><code>surreal &lt;- function(l, r) {
-  list(l = l,
-       r = r) |&gt; as.surreal()
-}
-
-surreals &lt;- function(...) {
-  res &lt;- list(...) |&gt; unique()
-  class(res) &lt;- &quot;surreal_list&quot;
-  res
-}</code></pre>
-<p>How to peek into the left or right pair of a surreal. Note that if
-there’s nothing there to peek at, I just return an empty set.</p>
-<pre class="r"><code>L &lt;- function(s) {
-  stopifnot(class(s) == &quot;surreal&quot;)
-  
-  if (is.null(s) || length(s) == 0)
-    nullset
-  else
-    s$l
-}
-
-R &lt;- function(s) {
-  stopifnot(class(s) == &quot;surreal&quot;)
-  
-  if (is.null(s) || length(s) == 0)
-    nullset
-  else
-    s$r
-}</code></pre>
-<p>And the empty set. Well, list.</p>
-<pre class="r"><code>nullset &lt;- list()
-class(nullset) &lt;- &quot;surreal&quot;</code></pre>
-<p>This seems to work… At present it just removes duplicates and
-nullsets. It could also go through and remove elements in L that are
-smaller than the largest surreal and elements of R that are larger than
-the smallest surreal.</p>
-<pre class="r"><code>simplify_surreals &lt;- function(s) {
-  if (is.surreal(s)) {
-    if (is.nullset(s))
-      nullset
-    else
-      surreal(simplify_surreals(s |&gt; L()),
-              simplify_surreals(s |&gt; R()))
-  }
-  else if (is.surreal_list(s)) {
-    if (length(s) == 0)
-      nullset
-    else if (length(s) == 1)
-      simplify_surreals(s[[1]])
-    else {
-      # find nulls and zap them
-      res &lt;- c()
-      for (one_s in s) {
-        one_res &lt;- simplify_surreals(one_s)
-        if (!is.nullset(one_res))
-          res &lt;- c(res, list(one_res))
-      }
-      res |&gt; unique() |&gt; as.surreal_list()
+  for (i in 2:n) {
+    if (dir == &quot;E&quot;) {
+      p &lt;- p + 1
+      dir &lt;- &quot;SW&quot;
     }
-  }
-  else
-    stop(&quot;No idea what to do with that, sorry&quot;)
-}</code></pre>
-<p>This simplifies dyadic numbers, <span class="math inline">\(n/2^k\)</span>.</p>
-<pre class="r"><code>simplify_dyadic &lt;- \(n, k) {
-  stopifnot(is_integer(n))
-  stopifnot(is_integer(k))
-  stopifnot(k &gt;= 0)
-  
-  while (k &gt; 0 &amp;&amp; n %% 2 == 0) {
-    n &lt;- n/2
-    k &lt;- k - 1
-  }
-  
-  c(n, k)
-}</code></pre>
-<p>This is Tøndering’s “dali” function that builds a surreal from a
-dyadic number.</p>
-<pre class="r"><code># x = n/2^k
-dali &lt;- \(n, k, loud = FALSE) {
-  stopifnot(is_integer(n))
-  stopifnot(is_integer(k))
-  stopifnot(k &gt;= 0)
-  
-  if (loud) {
-    cat(&quot;dali called with &quot;)
-    cat(n); cat(&quot;/&quot;); cat(2^k)
-  }
-  
-  n_old &lt;- n
-  k_old &lt;- k
-  
-  simple &lt;- simplify_dyadic(n,k)
-  n &lt;- simple[1]
-  k &lt;- simple[2]
-  
-  if (loud &amp;&amp; (n != n_old || k != k_old)) {
-    cat(&quot; = &quot;); cat(n); cat(&quot;/&quot;); cat(2^k)
-  }
-  
-  if (loud) {
-    cat(&quot; = &quot;); cat(n/2^k); cat(&quot;\n&quot;)
-  }
-  
-  res &lt;- NA
-  
-  if (n == 0) {
-    res &lt;- list(l = nullset, r = nullset)
-  }
-  else if (k == 0) {
-    if (n &gt; 0)
-      res &lt;- list(l = dali(n - 1, 0), r = nullset)
-    else
-      res &lt;- list(l = nullset, r = dali(n + 1, 0))      
-  }
-  else {
-    res &lt;- list(l = dali(n-1, k), r = dali(n+1, k))
-  }
-  
-  class(res) &lt;- &quot;surreal&quot;
-  res
-}</code></pre>
-<p>Print surreals:</p>
-<pre class="r"><code>print.surreal &lt;- function(s) {
-  stopifnot(class(s) == &quot;surreal&quot;)
-  stopifnot(length(s) %in% c(0,2))
-  
-  if (length(s) == 0) {
-    cat(&quot;∅&quot;)
-  }
-  else if ((length(s) == 2) &amp;&amp;
-           all(names(s) == c(&quot;l&quot;, &quot;r&quot;))) {
-    cat(&quot;(&quot;)
-    print(s |&gt; L())
-    cat(&quot; | &quot;)
-    print(s |&gt; R())
-    cat(&quot;)&quot;)    
-  }
-  else
-    stop(&quot;I don&#39;t know how to print that surreal&quot;)
-}</code></pre>
-<p>And lists of surreals:</p>
-<pre class="r"><code>print.surreal_list &lt;- function(surs) {
-  stopifnot(class(surs) == &quot;surreal_list&quot;)
-  
-  if (length(surs) == 0)
-    cat(&quot;∅&quot;)
-  else {
-    i &lt;- 1
-    for (s in surs) {
-      print(s)
-      if (i &lt; length(surs))
-        cat(&quot;, &quot;)
-      i &lt;- i+1
+    else if (dir == &quot;SW&quot;) {
+      p &lt;- p - 1
+      q &lt;- q + 1
+      
+      if (p == 1)
+        dir &lt;- &quot;S&quot;
     }
-  }
-}</code></pre>
-<p>(In)equalities:</p>
-<pre class="r"><code>less_equal &lt;- function(x, y) {
-  greater_equal(y, x)
-}
-
-greater_equal &lt;- function(x, y) {
-  if (is.nullset(x) || is.nullset(y))
-    FALSE # BEWARE: I don&#39;t know why this isn&#39;t TRUE...
-          # but it seems to work as is 
-  else {
-    res &lt;- c() 
-
-    if (is.surreal(x |&gt; R()))
-      res &lt;- c(res, less_equal(x |&gt; R(), y))
+    else if (dir == &quot;S&quot;) {
+      q &lt;- q + 1
+      dir &lt;- &quot;NE&quot;
+    }
+    else if (dir == &quot;NE&quot;) {
+      p &lt;- p + 1
+      q &lt;- q - 1
+      
+      if (q == 1)
+        dir &lt;- &quot;E&quot;
+    }
     else
-      for (x_R in x |&gt; R())
-        res &lt;- c(res, less_equal(x_R, y))
+      stop(&quot;I don&#39;t recognise that direction&quot;)
     
-    if (is.surreal(y |&gt; L()))
-      res &lt;- c(res, less_equal(x, y |&gt; L()))
-    else    
-      for (y_L in y |&gt; L())
-        res &lt;- c(res, less_equal(x, y_L))
-
-    !any(res)
+    ps[i] &lt;- p
+    qs[i] &lt;- q
   }
+  
+  dat &lt;- data.frame(p = ps, q = qs)
+  dat$str &lt;- paste0(dat$p, &quot;/&quot;, dat$q)
+  
+  dat
 }</code></pre>
-<pre class="r"><code>equal &lt;- function(x,y)
-  greater_equal(x,y) &amp;&amp; less_equal(x,y)
-
-less &lt;- function(x,y)
-  less_equal(x,y) &amp;&amp; !equal(x,y)
-
-greater &lt;- function(x,y)
-  greater_equal(x,y) &amp;&amp; !equal(x,y)</code></pre>
-<p>Given all the above, addition is relatively painless. You will see I
-haven’t done multiplication yet.</p>
-<p>This can be improved very quickly by removing duplicates (TODO). Also
-it doesn’t work with sets as inputs. It’s fine for adding dalis.</p>
-<pre class="r"><code>add &lt;- function(a, b) {
-  if (length(a) == 0 || length(b) == 0) {
-    nullset
+<pre class="r"><code>rats_zigzag(100)$str |&gt;
+  paste(collapse = &quot;, &quot;) |&gt;
+  cat() </code></pre>
+<pre><code>## 1/1, 2/1, 1/2, 1/3, 2/2, 3/1, 4/1, 3/2, 2/3, 1/4, 1/5, 2/4, 3/3, 4/2, 5/1, 6/1, 5/2, 4/3, 3/4, 2/5, 1/6, 1/7, 2/6, 3/5, 4/4, 5/3, 6/2, 7/1, 8/1, 7/2, 6/3, 5/4, 4/5, 3/6, 2/7, 1/8, 1/9, 2/8, 3/7, 4/6, 5/5, 6/4, 7/3, 8/2, 9/1, 10/1, 9/2, 8/3, 7/4, 6/5, 5/6, 4/7, 3/8, 2/9, 1/10, 1/11, 2/10, 3/9, 4/8, 5/7, 6/6, 7/5, 8/4, 9/3, 10/2, 11/1, 12/1, 11/2, 10/3, 9/4, 8/5, 7/6, 6/7, 5/8, 4/9, 3/10, 2/11, 1/12, 1/13, 2/12, 3/11, 4/10, 5/9, 6/8, 7/7, 8/6, 9/5, 10/4, 11/3, 12/2, 13/1, 14/1, 13/2, 12/3, 11/4, 10/5, 9/6, 8/7, 7/8, 6/9</code></pre>
+</div>
+<div id="stern-brocot-sandwich" class="section level2">
+<h2>Stern-Brocot sandwich</h2>
+<pre class="r"><code>mediants &lt;- function(ps, qs) {
+  stopifnot(length(ps) == length(qs))
+  n &lt;- length(ps)
+  m &lt;- 2*n - 1
+  
+  nps &lt;- rep(NA, m)
+  nqs &lt;- rep(NA, m)
+  
+  for (i in 1:n) {
+    nps[2*i - 1] &lt;- ps[i]
+    nqs[2*i - 1] &lt;- qs[i]
   }
-  else {
-    surreal(l = surreals(add(a |&gt; L(), b),
-                         add(a, b |&gt; L())),
-            r = surreals(add(a |&gt; R(), b),
-                         add(a, b |&gt; R())))
+  
+  ps &lt;- nps
+  qs &lt;- nqs
+  
+  for (i in seq(2, m-1, 2)) {
+    ps[i] &lt;- ps[i-1] + ps[i+1]
+    qs[i] &lt;- qs[i-1] + qs[i+1]
   }
-}</code></pre>
-<p>And some examples:</p>
-<pre class="r"><code>add(dali(0,0), dali(0,0))</code></pre>
-<pre><code>## (∅ | ∅)</code></pre>
-<pre class="r"><code>add(dali(1,0), dali(1,0)) |&gt; simplify_surreals()</code></pre>
-<pre><code>## (((∅ | ∅) | ∅) | ∅)</code></pre>
-<pre class="r"><code>add(dali(1,0), dali(1,1))</code></pre>
-<pre><code>## ((∅, (∅ | ∅) | ∅, (∅, (∅ | ∅) | ∅)), ((∅ | ∅), ∅ | ∅) | ∅, ((∅, (∅ | ∅) | ∅), ((∅ | ∅), ∅ | ∅) | ∅))</code></pre>
-<pre class="r"><code>add(dali(1,0), dali(1,1)) |&gt; simplify_surreals()</code></pre>
-<pre><code>## (((∅ | ∅) | ((∅ | ∅) | ∅)), ((∅ | ∅) | ∅) | (((∅ | ∅) | ∅) | ∅))</code></pre>
-<pre class="r"><code>dali(1,0) # 1</code></pre>
-<pre><code>## ((∅ | ∅) | ∅)</code></pre>
-<pre class="r"><code>dali(2,0) # 2</code></pre>
-<pre><code>## (((∅ | ∅) | ∅) | ∅)</code></pre>
-<pre class="r"><code># 1+1 = 2
-add(dali(1,0), dali(1,0)) |&gt; simplify_surreals()</code></pre>
-<pre><code>## (((∅ | ∅) | ∅) | ∅)</code></pre>
-<p>Hurrah, so 1+1 = 2. Great.</p>
-<pre class="r"><code>add(dali(2,0), dali(-2,0)) |&gt; simplify_surreals()</code></pre>
-<pre><code>## (((∅ | (∅ | (∅ | ∅))) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅))) | (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | (((∅ | ∅) | ∅) | ∅)))</code></pre>
-<p>That mess above is equal to zero.</p>
-<pre class="r"><code>equal(add(dali(2,0), dali(-2,0)), dali(0,0))</code></pre>
-<pre><code>## [1] TRUE</code></pre>
-<p>It’s easy to see as left and right are mirror images of each
-other.</p>
-<p><code>(((∅ | (∅ | (∅ | ∅))) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅))) | (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | (((∅ | ∅) | ∅) | ∅)))</code></p>
-<pre class="r"><code>raw_sum &lt;- add(dali(2,2), dali(2,2))
-simp_sum &lt;- raw_sum |&gt; simplify_surreals()
-correct_ans &lt;- dali(1,0)</code></pre>
-<pre class="r"><code>raw_sum</code></pre>
-<pre><code>## ((∅, (∅ | ∅) | ∅, (∅, (∅ | ∅) | ∅)), ((∅ | ∅), ∅ | ((∅ | ∅), ∅ | ∅), ∅) | ((∅, (∅ | ∅) | ∅, (∅, (∅ | ∅) | ∅)), ((∅ | ∅), ∅ | ∅) | ∅, ((∅, (∅ | ∅) | ∅), ((∅ | ∅), ∅ | ∅) | ∅)), ((∅, (∅ | ∅) | ∅), ((∅ | ∅), ∅ | ((∅ | ∅), ∅ | ∅), ∅) | ((∅, (∅ | ∅) | ∅), ((∅ | ∅), ∅ | ∅) | ∅), ∅))</code></pre>
-<pre class="r"><code>simp_sum</code></pre>
-<pre><code>## (((∅ | ∅) | ((∅ | ∅) | ∅)) | (((∅ | ∅) | ((∅ | ∅) | ∅)), ((∅ | ∅) | ∅) | (((∅ | ∅) | ∅) | ∅)), (((∅ | ∅) | ∅), ((∅ | ∅) | ((∅ | ∅) | ∅)) | (((∅ | ∅) | ∅) | ∅)))</code></pre>
-<pre class="r"><code>correct_ans</code></pre>
-<pre><code>## ((∅ | ∅) | ∅)</code></pre>
-<pre class="r"><code>equal(raw_sum, simp_sum)</code></pre>
-<pre><code>## [1] TRUE</code></pre>
-<pre class="r"><code>equal(simp_sum, correct_ans)</code></pre>
-<pre><code>## [1] TRUE</code></pre>
-<p>Let’s check whether a putative surreal really is:</p>
-<pre class="r"><code>legit_surreal &lt;- function(s) {
-  !greater_equal(s |&gt; L(), s |&gt; R())
-}</code></pre>
-<p>YES:</p>
-<pre class="r"><code>legit_surreal(dali(0,1))</code></pre>
-<pre><code>## [1] TRUE</code></pre>
-<p>NOPE:</p>
-<pre class="r"><code>legit_surreal(surreal(dali(0,1), dali(0,1)))</code></pre>
-<pre><code>## [1] FALSE</code></pre>
-<pre class="r"><code>nullset</code></pre>
-<pre><code>## ∅</code></pre>
-<div id="try-building-surreals-systematically" class="section level2">
-<h2>Try building surreals systematically</h2>
-<pre class="r"><code>new_surreals &lt;- function(old_list) {
-  cat(&quot;Starting with: &quot;)
-  print(old_list)
-  cat(&quot;\n&quot;)
-  res &lt;- list()
   
-  checked &lt;- 0
-  legit   &lt;- 0
+  res &lt;- data.frame(p = ps, q = qs)
+  res$str = with(res, paste0(p, &quot;/&quot;, q))
   
-  for (l in old_list)
-    for (r in old_list) {
-      candidate &lt;- surreal(l, r)
-      
-      # There must be an easier way that works!
-      deja_vu &lt;- (length(c(old_list, list(candidate)) 
-                         |&gt; unique()) == length(old_list))
-      
-      if (!deja_vu) {
-        cat(&quot;Checking: &quot;)
-        print(candidate)
-        checked &lt;- checked + 1
-  
-        if (legit_surreal(candidate)) {
-          res &lt;- c(res, list(candidate))
-          cat(&quot; - Yes\n&quot;)
-          legit &lt;- legit + 1
-        }
-        else
-          cat(&quot; - No\n&quot;)
-      }
-    }
-  cat(&quot;\n&quot;)
-  cat(legit)
-  cat(&quot;/&quot;)
-  cat(checked)
-  cat(&quot; were valid\n&quot;)
-  
-  res |&gt; as.surreal_list()
-}</code></pre>
-<pre class="r"><code>cat(&quot;Let&#39;s make some surreal numbers!\n\n&quot;)</code></pre>
-<pre><code>## Let&#39;s make some surreal numbers!</code></pre>
-<pre class="r"><code>last_day = 3
-so_far &lt;- surreals(nullset)
+  res
+}
 
-for (i in 1:(last_day+1)) {
-  cat(&quot;Day &quot;)
-  cat(i-1)
-  cat(&quot;\n&quot;)
-  so_far &lt;- c(so_far, new_surreals(so_far)) |&gt; unique() |&gt;
-    as.surreal_list()
-  cat(&quot;\n&quot;)
+rats_stern_brocot &lt;- function(steps = 1) {
+  story_so_far &lt;- data.frame(p = c(0,1), q = c(1,0))
+  
+  for (i in 1:steps) {
+    story_so_far &lt;- with(story_so_far, mediants(p, q))
+  }
+  
+  story_so_far
 }</code></pre>
-<pre><code>## Day 0
-## Starting with: ∅
-## Checking: (∅ | ∅) - Yes
-## 
-## 1/1 were valid
-## 
-## Day 1
-## Starting with: ∅, (∅ | ∅)
-## Checking: (∅ | (∅ | ∅)) - Yes
-## Checking: ((∅ | ∅) | ∅) - Yes
-## Checking: ((∅ | ∅) | (∅ | ∅)) - No
-## 
-## 2/3 were valid
-## 
-## Day 2
-## Starting with: ∅, (∅ | ∅), (∅ | (∅ | ∅)), ((∅ | ∅) | ∅)
-## Checking: (∅ | (∅ | (∅ | ∅))) - Yes
-## Checking: (∅ | ((∅ | ∅) | ∅)) - Yes
-## Checking: ((∅ | ∅) | (∅ | ∅)) - No
-## Checking: ((∅ | ∅) | (∅ | (∅ | ∅))) - No
-## Checking: ((∅ | ∅) | ((∅ | ∅) | ∅)) - Yes
-## Checking: ((∅ | (∅ | ∅)) | ∅) - Yes
-## Checking: ((∅ | (∅ | ∅)) | (∅ | ∅)) - Yes
-## Checking: ((∅ | (∅ | ∅)) | (∅ | (∅ | ∅))) - No
-## Checking: ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) - Yes
-## Checking: (((∅ | ∅) | ∅) | ∅) - Yes
-## Checking: (((∅ | ∅) | ∅) | (∅ | ∅)) - No
-## Checking: (((∅ | ∅) | ∅) | (∅ | (∅ | ∅))) - No
-## Checking: (((∅ | ∅) | ∅) | ((∅ | ∅) | ∅)) - No
-## 
-## 7/13 were valid
-## 
-## Day 3
-## Starting with: ∅, (∅ | ∅), (∅ | (∅ | ∅)), ((∅ | ∅) | ∅), (∅ | (∅ | (∅ | ∅))), (∅ | ((∅ | ∅) | ∅)), ((∅ | ∅) | ((∅ | ∅) | ∅)), ((∅ | (∅ | ∅)) | ∅), ((∅ | (∅ | ∅)) | (∅ | ∅)), ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)), (((∅ | ∅) | ∅) | ∅)
-## Checking: (∅ | (∅ | (∅ | (∅ | ∅)))) - Yes
-## Checking: (∅ | (∅ | ((∅ | ∅) | ∅))) - Yes
-## Checking: (∅ | ((∅ | ∅) | ((∅ | ∅) | ∅))) - Yes
-## Checking: (∅ | ((∅ | (∅ | ∅)) | ∅)) - Yes
-## Checking: (∅ | ((∅ | (∅ | ∅)) | (∅ | ∅))) - Yes
-## Checking: (∅ | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅))) - Yes
-## Checking: (∅ | (((∅ | ∅) | ∅) | ∅)) - Yes
-## Checking: ((∅ | ∅) | (∅ | ∅)) - No
-## Checking: ((∅ | ∅) | (∅ | (∅ | ∅))) - No
-## Checking: ((∅ | ∅) | (∅ | (∅ | (∅ | ∅)))) - No
-## Checking: ((∅ | ∅) | (∅ | ((∅ | ∅) | ∅))) - No
-## Checking: ((∅ | ∅) | ((∅ | ∅) | ((∅ | ∅) | ∅))) - Yes
-## Checking: ((∅ | ∅) | ((∅ | (∅ | ∅)) | ∅)) - No
-## Checking: ((∅ | ∅) | ((∅ | (∅ | ∅)) | (∅ | ∅))) - No
-## Checking: ((∅ | ∅) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅))) - No
-## Checking: ((∅ | ∅) | (((∅ | ∅) | ∅) | ∅)) - Yes
-## Checking: ((∅ | (∅ | ∅)) | (∅ | (∅ | ∅))) - No
-## Checking: ((∅ | (∅ | ∅)) | (∅ | (∅ | (∅ | ∅)))) - No
-## Checking: ((∅ | (∅ | ∅)) | (∅ | ((∅ | ∅) | ∅))) - Yes
-## Checking: ((∅ | (∅ | ∅)) | ((∅ | ∅) | ((∅ | ∅) | ∅))) - Yes
-## Checking: ((∅ | (∅ | ∅)) | ((∅ | (∅ | ∅)) | ∅)) - Yes
-## Checking: ((∅ | (∅ | ∅)) | ((∅ | (∅ | ∅)) | (∅ | ∅))) - Yes
-## Checking: ((∅ | (∅ | ∅)) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅))) - Yes
-## Checking: ((∅ | (∅ | ∅)) | (((∅ | ∅) | ∅) | ∅)) - Yes
-## Checking: (((∅ | ∅) | ∅) | (∅ | ∅)) - No
-## Checking: (((∅ | ∅) | ∅) | (∅ | (∅ | ∅))) - No
-## Checking: (((∅ | ∅) | ∅) | ((∅ | ∅) | ∅)) - No
-## Checking: (((∅ | ∅) | ∅) | (∅ | (∅ | (∅ | ∅)))) - No
-## Checking: (((∅ | ∅) | ∅) | (∅ | ((∅ | ∅) | ∅))) - No
-## Checking: (((∅ | ∅) | ∅) | ((∅ | ∅) | ((∅ | ∅) | ∅))) - No
-## Checking: (((∅ | ∅) | ∅) | ((∅ | (∅ | ∅)) | ∅)) - No
-## Checking: (((∅ | ∅) | ∅) | ((∅ | (∅ | ∅)) | (∅ | ∅))) - No
-## Checking: (((∅ | ∅) | ∅) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅))) - No
-## Checking: (((∅ | ∅) | ∅) | (((∅ | ∅) | ∅) | ∅)) - Yes
-## Checking: ((∅ | (∅ | (∅ | ∅))) | ∅) - Yes
-## Checking: ((∅ | (∅ | (∅ | ∅))) | (∅ | ∅)) - Yes
-## Checking: ((∅ | (∅ | (∅ | ∅))) | (∅ | (∅ | ∅))) - Yes
-## Checking: ((∅ | (∅ | (∅ | ∅))) | ((∅ | ∅) | ∅)) - Yes
-## Checking: ((∅ | (∅ | (∅ | ∅))) | (∅ | (∅ | (∅ | ∅)))) - No
-## Checking: ((∅ | (∅ | (∅ | ∅))) | (∅ | ((∅ | ∅) | ∅))) - Yes
-## Checking: ((∅ | (∅ | (∅ | ∅))) | ((∅ | ∅) | ((∅ | ∅) | ∅))) - Yes
-## Checking: ((∅ | (∅ | (∅ | ∅))) | ((∅ | (∅ | ∅)) | ∅)) - Yes
-## Checking: ((∅ | (∅ | (∅ | ∅))) | ((∅ | (∅ | ∅)) | (∅ | ∅))) - Yes
-## Checking: ((∅ | (∅ | (∅ | ∅))) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅))) - Yes
-## Checking: ((∅ | (∅ | (∅ | ∅))) | (((∅ | ∅) | ∅) | ∅)) - Yes
-## Checking: ((∅ | ((∅ | ∅) | ∅)) | ∅) - Yes
-## Checking: ((∅ | ((∅ | ∅) | ∅)) | (∅ | ∅)) - No
-## Checking: ((∅ | ((∅ | ∅) | ∅)) | (∅ | (∅ | ∅))) - No
-## Checking: ((∅ | ((∅ | ∅) | ∅)) | ((∅ | ∅) | ∅)) - Yes
-## Checking: ((∅ | ((∅ | ∅) | ∅)) | (∅ | (∅ | (∅ | ∅)))) - No
-## Checking: ((∅ | ((∅ | ∅) | ∅)) | (∅ | ((∅ | ∅) | ∅))) - No
-## Checking: ((∅ | ((∅ | ∅) | ∅)) | ((∅ | ∅) | ((∅ | ∅) | ∅))) - Yes
-## Checking: ((∅ | ((∅ | ∅) | ∅)) | ((∅ | (∅ | ∅)) | ∅)) - No
-## Checking: ((∅ | ((∅ | ∅) | ∅)) | ((∅ | (∅ | ∅)) | (∅ | ∅))) - No
-## Checking: ((∅ | ((∅ | ∅) | ∅)) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅))) - No
-## Checking: ((∅ | ((∅ | ∅) | ∅)) | (((∅ | ∅) | ∅) | ∅)) - Yes
-## Checking: (((∅ | ∅) | ((∅ | ∅) | ∅)) | ∅) - Yes
-## Checking: (((∅ | ∅) | ((∅ | ∅) | ∅)) | (∅ | ∅)) - No
-## Checking: (((∅ | ∅) | ((∅ | ∅) | ∅)) | (∅ | (∅ | ∅))) - No
-## Checking: (((∅ | ∅) | ((∅ | ∅) | ∅)) | ((∅ | ∅) | ∅)) - Yes
-## Checking: (((∅ | ∅) | ((∅ | ∅) | ∅)) | (∅ | (∅ | (∅ | ∅)))) - No
-## Checking: (((∅ | ∅) | ((∅ | ∅) | ∅)) | (∅ | ((∅ | ∅) | ∅))) - No
-## Checking: (((∅ | ∅) | ((∅ | ∅) | ∅)) | ((∅ | ∅) | ((∅ | ∅) | ∅))) - No
-## Checking: (((∅ | ∅) | ((∅ | ∅) | ∅)) | ((∅ | (∅ | ∅)) | ∅)) - No
-## Checking: (((∅ | ∅) | ((∅ | ∅) | ∅)) | ((∅ | (∅ | ∅)) | (∅ | ∅))) - No
-## Checking: (((∅ | ∅) | ((∅ | ∅) | ∅)) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅))) - No
-## Checking: (((∅ | ∅) | ((∅ | ∅) | ∅)) | (((∅ | ∅) | ∅) | ∅)) - Yes
-## Checking: (((∅ | (∅ | ∅)) | ∅) | ∅) - Yes
-## Checking: (((∅ | (∅ | ∅)) | ∅) | (∅ | ∅)) - No
-## Checking: (((∅ | (∅ | ∅)) | ∅) | (∅ | (∅ | ∅))) - No
-## Checking: (((∅ | (∅ | ∅)) | ∅) | ((∅ | ∅) | ∅)) - Yes
-## Checking: (((∅ | (∅ | ∅)) | ∅) | (∅ | (∅ | (∅ | ∅)))) - No
-## Checking: (((∅ | (∅ | ∅)) | ∅) | (∅ | ((∅ | ∅) | ∅))) - No
-## Checking: (((∅ | (∅ | ∅)) | ∅) | ((∅ | ∅) | ((∅ | ∅) | ∅))) - Yes
-## Checking: (((∅ | (∅ | ∅)) | ∅) | ((∅ | (∅ | ∅)) | ∅)) - No
-## Checking: (((∅ | (∅ | ∅)) | ∅) | ((∅ | (∅ | ∅)) | (∅ | ∅))) - No
-## Checking: (((∅ | (∅ | ∅)) | ∅) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅))) - No
-## Checking: (((∅ | (∅ | ∅)) | ∅) | (((∅ | ∅) | ∅) | ∅)) - Yes
-## Checking: (((∅ | (∅ | ∅)) | (∅ | ∅)) | ∅) - Yes
-## Checking: (((∅ | (∅ | ∅)) | (∅ | ∅)) | (∅ | ∅)) - Yes
-## Checking: (((∅ | (∅ | ∅)) | (∅ | ∅)) | (∅ | (∅ | ∅))) - No
-## Checking: (((∅ | (∅ | ∅)) | (∅ | ∅)) | ((∅ | ∅) | ∅)) - Yes
-## Checking: (((∅ | (∅ | ∅)) | (∅ | ∅)) | (∅ | (∅ | (∅ | ∅)))) - No
-## Checking: (((∅ | (∅ | ∅)) | (∅ | ∅)) | (∅ | ((∅ | ∅) | ∅))) - Yes
-## Checking: (((∅ | (∅ | ∅)) | (∅ | ∅)) | ((∅ | ∅) | ((∅ | ∅) | ∅))) - Yes
-## Checking: (((∅ | (∅ | ∅)) | (∅ | ∅)) | ((∅ | (∅ | ∅)) | ∅)) - Yes
-## Checking: (((∅ | (∅ | ∅)) | (∅ | ∅)) | ((∅ | (∅ | ∅)) | (∅ | ∅))) - No
-## Checking: (((∅ | (∅ | ∅)) | (∅ | ∅)) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅))) - Yes
-## Checking: (((∅ | (∅ | ∅)) | (∅ | ∅)) | (((∅ | ∅) | ∅) | ∅)) - Yes
-## Checking: (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | ∅) - Yes
-## Checking: (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | (∅ | ∅)) - No
-## Checking: (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | (∅ | (∅ | ∅))) - No
-## Checking: (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | ((∅ | ∅) | ∅)) - Yes
-## Checking: (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | (∅ | (∅ | (∅ | ∅)))) - No
-## Checking: (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | (∅ | ((∅ | ∅) | ∅))) - No
-## Checking: (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | ((∅ | ∅) | ((∅ | ∅) | ∅))) - Yes
-## Checking: (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | ((∅ | (∅ | ∅)) | ∅)) - No
-## Checking: (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | ((∅ | (∅ | ∅)) | (∅ | ∅))) - No
-## Checking: (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅))) - No
-## Checking: (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | (((∅ | ∅) | ∅) | ∅)) - Yes
-## Checking: ((((∅ | ∅) | ∅) | ∅) | ∅) - Yes
-## Checking: ((((∅ | ∅) | ∅) | ∅) | (∅ | ∅)) - No
-## Checking: ((((∅ | ∅) | ∅) | ∅) | (∅ | (∅ | ∅))) - No
-## Checking: ((((∅ | ∅) | ∅) | ∅) | ((∅ | ∅) | ∅)) - No
-## Checking: ((((∅ | ∅) | ∅) | ∅) | (∅ | (∅ | (∅ | ∅)))) - No
-## Checking: ((((∅ | ∅) | ∅) | ∅) | (∅ | ((∅ | ∅) | ∅))) - No
-## Checking: ((((∅ | ∅) | ∅) | ∅) | ((∅ | ∅) | ((∅ | ∅) | ∅))) - No
-## Checking: ((((∅ | ∅) | ∅) | ∅) | ((∅ | (∅ | ∅)) | ∅)) - No
-## Checking: ((((∅ | ∅) | ∅) | ∅) | ((∅ | (∅ | ∅)) | (∅ | ∅))) - No
-## Checking: ((((∅ | ∅) | ∅) | ∅) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅))) - No
-## Checking: ((((∅ | ∅) | ∅) | ∅) | (((∅ | ∅) | ∅) | ∅)) - No
-## 
-## 50/111 were valid</code></pre>
-<pre class="r"><code>cat(&quot;By the end of day &quot;)</code></pre>
-<pre><code>## By the end of day</code></pre>
-<pre class="r"><code>cat(last_day)</code></pre>
-<pre><code>## 3</code></pre>
-<pre class="r"><code>cat(&quot;, we got the following surreals:\n&quot;)</code></pre>
-<pre><code>## , we got the following surreals:</code></pre>
-<pre class="r"><code>for (s in so_far) {
-  print(s)
-  cat(&quot;\n&quot;)
-}</code></pre>
-<pre><code>## ∅
-## (∅ | ∅)
-## (∅ | (∅ | ∅))
-## ((∅ | ∅) | ∅)
-## (∅ | (∅ | (∅ | ∅)))
-## (∅ | ((∅ | ∅) | ∅))
-## ((∅ | ∅) | ((∅ | ∅) | ∅))
-## ((∅ | (∅ | ∅)) | ∅)
-## ((∅ | (∅ | ∅)) | (∅ | ∅))
-## ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅))
-## (((∅ | ∅) | ∅) | ∅)
-## (∅ | (∅ | (∅ | (∅ | ∅))))
-## (∅ | (∅ | ((∅ | ∅) | ∅)))
-## (∅ | ((∅ | ∅) | ((∅ | ∅) | ∅)))
-## (∅ | ((∅ | (∅ | ∅)) | ∅))
-## (∅ | ((∅ | (∅ | ∅)) | (∅ | ∅)))
-## (∅ | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)))
-## (∅ | (((∅ | ∅) | ∅) | ∅))
-## ((∅ | ∅) | ((∅ | ∅) | ((∅ | ∅) | ∅)))
-## ((∅ | ∅) | (((∅ | ∅) | ∅) | ∅))
-## ((∅ | (∅ | ∅)) | (∅ | ((∅ | ∅) | ∅)))
-## ((∅ | (∅ | ∅)) | ((∅ | ∅) | ((∅ | ∅) | ∅)))
-## ((∅ | (∅ | ∅)) | ((∅ | (∅ | ∅)) | ∅))
-## ((∅ | (∅ | ∅)) | ((∅ | (∅ | ∅)) | (∅ | ∅)))
-## ((∅ | (∅ | ∅)) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)))
-## ((∅ | (∅ | ∅)) | (((∅ | ∅) | ∅) | ∅))
-## (((∅ | ∅) | ∅) | (((∅ | ∅) | ∅) | ∅))
-## ((∅ | (∅ | (∅ | ∅))) | ∅)
-## ((∅ | (∅ | (∅ | ∅))) | (∅ | ∅))
-## ((∅ | (∅ | (∅ | ∅))) | (∅ | (∅ | ∅)))
-## ((∅ | (∅ | (∅ | ∅))) | ((∅ | ∅) | ∅))
-## ((∅ | (∅ | (∅ | ∅))) | (∅ | ((∅ | ∅) | ∅)))
-## ((∅ | (∅ | (∅ | ∅))) | ((∅ | ∅) | ((∅ | ∅) | ∅)))
-## ((∅ | (∅ | (∅ | ∅))) | ((∅ | (∅ | ∅)) | ∅))
-## ((∅ | (∅ | (∅ | ∅))) | ((∅ | (∅ | ∅)) | (∅ | ∅)))
-## ((∅ | (∅ | (∅ | ∅))) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)))
-## ((∅ | (∅ | (∅ | ∅))) | (((∅ | ∅) | ∅) | ∅))
-## ((∅ | ((∅ | ∅) | ∅)) | ∅)
-## ((∅ | ((∅ | ∅) | ∅)) | ((∅ | ∅) | ∅))
-## ((∅ | ((∅ | ∅) | ∅)) | ((∅ | ∅) | ((∅ | ∅) | ∅)))
-## ((∅ | ((∅ | ∅) | ∅)) | (((∅ | ∅) | ∅) | ∅))
-## (((∅ | ∅) | ((∅ | ∅) | ∅)) | ∅)
-## (((∅ | ∅) | ((∅ | ∅) | ∅)) | ((∅ | ∅) | ∅))
-## (((∅ | ∅) | ((∅ | ∅) | ∅)) | (((∅ | ∅) | ∅) | ∅))
-## (((∅ | (∅ | ∅)) | ∅) | ∅)
-## (((∅ | (∅ | ∅)) | ∅) | ((∅ | ∅) | ∅))
-## (((∅ | (∅ | ∅)) | ∅) | ((∅ | ∅) | ((∅ | ∅) | ∅)))
-## (((∅ | (∅ | ∅)) | ∅) | (((∅ | ∅) | ∅) | ∅))
-## (((∅ | (∅ | ∅)) | (∅ | ∅)) | ∅)
-## (((∅ | (∅ | ∅)) | (∅ | ∅)) | (∅ | ∅))
-## (((∅ | (∅ | ∅)) | (∅ | ∅)) | ((∅ | ∅) | ∅))
-## (((∅ | (∅ | ∅)) | (∅ | ∅)) | (∅ | ((∅ | ∅) | ∅)))
-## (((∅ | (∅ | ∅)) | (∅ | ∅)) | ((∅ | ∅) | ((∅ | ∅) | ∅)))
-## (((∅ | (∅ | ∅)) | (∅ | ∅)) | ((∅ | (∅ | ∅)) | ∅))
-## (((∅ | (∅ | ∅)) | (∅ | ∅)) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)))
-## (((∅ | (∅ | ∅)) | (∅ | ∅)) | (((∅ | ∅) | ∅) | ∅))
-## (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | ∅)
-## (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | ((∅ | ∅) | ∅))
-## (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | ((∅ | ∅) | ((∅ | ∅) | ∅)))
-## (((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | (((∅ | ∅) | ∅) | ∅))
-## ((((∅ | ∅) | ∅) | ∅) | ∅)</code></pre>
-<p>This is fun and unexpected:</p>
-<pre class="r"><code>equal(surreal(dali(3,0), dali(17,0)), dali(10,0))</code></pre>
-<pre><code>## [1] FALSE</code></pre>
-<pre class="r"><code>equal(surreal(dali(3,0), dali(17,0)), dali(4,0))</code></pre>
-<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>rats_stern_brocot(7)$str |&gt;
+  paste(collapse = &quot;, &quot;) |&gt;
+  cat()</code></pre>
+<pre><code>## 0/1, 1/7, 1/6, 2/11, 1/5, 3/14, 2/9, 3/13, 1/4, 4/15, 3/11, 5/18, 2/7, 5/17, 3/10, 4/13, 1/3, 5/14, 4/11, 7/19, 3/8, 8/21, 5/13, 7/18, 2/5, 7/17, 5/12, 8/19, 3/7, 7/16, 4/9, 5/11, 1/2, 6/11, 5/9, 9/16, 4/7, 11/19, 7/12, 10/17, 3/5, 11/18, 8/13, 13/21, 5/8, 12/19, 7/11, 9/14, 2/3, 9/13, 7/10, 12/17, 5/7, 13/18, 8/11, 11/15, 3/4, 10/13, 7/9, 11/14, 4/5, 9/11, 5/6, 6/7, 1/1, 7/6, 6/5, 11/9, 5/4, 14/11, 9/7, 13/10, 4/3, 15/11, 11/8, 18/13, 7/5, 17/12, 10/7, 13/9, 3/2, 14/9, 11/7, 19/12, 8/5, 21/13, 13/8, 18/11, 5/3, 17/10, 12/7, 19/11, 7/4, 16/9, 9/5, 11/6, 2/1, 11/5, 9/4, 16/7, 7/3, 19/8, 12/5, 17/7, 5/2, 18/7, 13/5, 21/8, 8/3, 19/7, 11/4, 14/5, 3/1, 13/4, 10/3, 17/5, 7/2, 18/5, 11/3, 15/4, 4/1, 13/3, 9/2, 14/3, 5/1, 11/2, 6/1, 7/1, 1/0</code></pre>
 </div>
 
 

@@ -1,0 +1,117 @@
+---
+title: "Enumerate the rationals"
+author: Andi Fugard
+output:
+  html_document:
+    df_print: paged
+---
+
+
+
+## Cantor zigzag
+
+```{r}
+rats_zigzag <- function(n = 10) {
+  stopifnot(n >= 2)
+  p <- 1
+  q <- 1
+  dir <- "E"
+  
+  ps    <- rep(NA, n)
+  qs    <- rep(NA, n)
+  ps[1] <- 1
+  qs[1] <- 1
+  
+  for (i in 2:n) {
+    if (dir == "E") {
+      p <- p + 1
+      dir <- "SW"
+    }
+    else if (dir == "SW") {
+      p <- p - 1
+      q <- q + 1
+      
+      if (p == 1)
+        dir <- "S"
+    }
+    else if (dir == "S") {
+      q <- q + 1
+      dir <- "NE"
+    }
+    else if (dir == "NE") {
+      p <- p + 1
+      q <- q - 1
+      
+      if (q == 1)
+        dir <- "E"
+    }
+    else
+      stop("I don't recognise that direction")
+    
+    ps[i] <- p
+    qs[i] <- q
+  }
+  
+  dat <- data.frame(p = ps, q = qs)
+  dat$str <- paste0(dat$p, "/", dat$q)
+  
+  dat
+}
+```
+
+
+
+```{r}
+rats_zigzag(100)$str |>
+  paste(collapse = ", ") |>
+  cat() 
+```
+
+## Stern-Brocot sandwich
+
+```{r}
+mediants <- function(ps, qs) {
+  stopifnot(length(ps) == length(qs))
+  n <- length(ps)
+  m <- 2*n - 1
+  
+  nps <- rep(NA, m)
+  nqs <- rep(NA, m)
+  
+  for (i in 1:n) {
+    nps[2*i - 1] <- ps[i]
+    nqs[2*i - 1] <- qs[i]
+  }
+  
+  ps <- nps
+  qs <- nqs
+  
+  for (i in seq(2, m-1, 2)) {
+    ps[i] <- ps[i-1] + ps[i+1]
+    qs[i] <- qs[i-1] + qs[i+1]
+  }
+  
+  res <- data.frame(p = ps, q = qs)
+  res$str = with(res, paste0(p, "/", q))
+  
+  res
+}
+
+rats_stern_brocot <- function(steps = 1) {
+  story_so_far <- data.frame(p = c(0,1), q = c(1,0))
+  
+  for (i in 1:steps) {
+    story_so_far <- with(story_so_far, mediants(p, q))
+  }
+  
+  story_so_far
+}
+```
+
+
+```{r}
+rats_stern_brocot(7)$str |>
+  paste(collapse = ", ") |>
+  cat()
+```
+

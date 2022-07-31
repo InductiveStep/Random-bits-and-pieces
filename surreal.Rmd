@@ -291,6 +291,8 @@ greater <- function(x,y)
 
 Given all the above, addition is relatively painless. You will see I haven't done multiplication yet.
 
+This can be improved very quickly by removing duplicates (TODO). Also it doesn't work with sets as inputs. It's fine for adding dalis.
+
 ```{r add}
 add <- function(a, b) {
   if (length(a) == 0 || length(b) == 0) {
@@ -346,6 +348,11 @@ That mess above is equal to zero.
 ```{r}
 equal(add(dali(2,0), dali(-2,0)), dali(0,0))
 ```
+
+It's easy to see as left and right are mirror images of each other.
+
+`(((∅ | (∅ | (∅ | ∅))) | ((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅))) |
+(((∅ | (∅ | ∅)) | ((∅ | ∅) | ∅)) | (((∅ | ∅) | ∅) | ∅)))`
 
 ```{r}
 raw_sum <- add(dali(2,2), dali(2,2))
@@ -411,27 +418,38 @@ new_surreals <- function(old_list) {
   cat("\n")
   res <- list()
   
+  checked <- 0
+  legit   <- 0
+  
   for (l in old_list)
     for (r in old_list) {
       candidate <- surreal(l, r)
+      
+      # There must be an easier way that works!
       deja_vu <- (length(c(old_list, list(candidate)) 
                          |> unique()) == length(old_list))
       
       if (!deja_vu) {
         cat("Checking: ")
         print(candidate)
+        checked <- checked + 1
   
         if (legit_surreal(candidate)) {
           res <- c(res, list(candidate))
           cat(" - Yes\n")
+          legit <- legit + 1
         }
         else
           cat(" - No\n")
       }
     }
+  cat("\n")
+  cat(legit)
+  cat("/")
+  cat(checked)
+  cat(" were valid\n")
   
-  res <- res |> as.surreal_list()
-  res
+  res |> as.surreal_list()
 }
 ```
 
@@ -441,7 +459,7 @@ new_surreals <- function(old_list) {
 ```{r}
 cat("Let's make some surreal numbers!\n\n")
 
-last_day = 2
+last_day = 3
 so_far <- surreals(nullset)
 
 for (i in 1:(last_day+1)) {
@@ -452,7 +470,10 @@ for (i in 1:(last_day+1)) {
     as.surreal_list()
   cat("\n")
 }
+```
 
+
+```{r}
 cat("By the end of day ")
 cat(last_day)
 cat(", we got the following surreals:\n")
@@ -464,14 +485,11 @@ for (s in so_far) {
 ```
 
 
+This is fun and unexpected:
 
-
-
-
-
-
-
-
-
-
-
+```{r}
+equal(surreal(dali(3,0), dali(17,0)), dali(10,0))
+```
+```{r}
+equal(surreal(dali(3,0), dali(17,0)), dali(4,0))
+```
