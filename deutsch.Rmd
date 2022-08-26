@@ -1,0 +1,88 @@
+---
+title: "The Deutsch algorithm"
+output: html_notebook
+---
+
+
+```{r}
+Id <- diag(2)
+Id
+```
+```{r}
+X <- matrix(c(0,1,
+              1,0), nrow = 2)
+X
+```
+
+```{r}
+CNOT <- matrix(c(
+  1, 0, 0, 0,
+  0, 1, 0, 0,
+  0, 0, 0, 1,
+  0, 0, 1, 0
+), nrow = 4)
+CNOT
+```
+
+```{r}
+H <- 1/sqrt(2) * matrix(c(
+  1,1,
+  1,-1
+), nrow = 2)
+H
+```
+
+
+
+```{r}
+Uf0 <- Id %x% Id
+Uf1 <- CNOT
+Uf2 <- CNOT %*% (Id %x% X)
+Uf3 <- Id %x% X
+```
+
+
+```{r}
+Uf1
+```
+
+```{r}
+H1 <- H %*% c(0,1)
+```
+
+
+```{r}
+frontend <- H1 %x% H1
+frontend
+```
+
+```{r}
+backend <- H %x% Id
+rownames(backend) <- c("|00>","|01>","|10>","|11>")
+backend
+```
+
+```{r}
+backend %*% Uf0 %*% frontend
+```
+
+```{r}
+backend %*% Uf1 %*% frontend
+```
+
+
+```{r}
+backend %*% Uf2 %*% frontend
+```
+
+
+```{r}
+backend %*% Uf3 %*% frontend
+```
+
+
+
+
+
+
+

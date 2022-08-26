@@ -1,0 +1,49 @@
+---
+title: "Permutations"
+output: html_notebook
+---
+
+
+
+
+```{r}
+insert_all <- function(x, xs) {
+  res <- list()
+  
+  for (i in 0:length(xs))
+    res <- append(res, list(append(xs, x, i)))
+
+  res  
+}
+```
+
+
+```{r}
+insert_all(1, 2:4)
+```
+
+
+```{r}
+perms <- function(xs) {
+  res <- list()
+  
+  if (length(xs) == 0)
+    res <- list(c())
+  else {
+    ys <- perms(tail(xs, length(xs) - 1))
+    for (y in ys)
+      res <- append(res, insert_all(xs[1], y))
+  }
+    
+  res
+}
+```
+
+
+```{r}
+perms(1:4)
+```
+
+
+
+
