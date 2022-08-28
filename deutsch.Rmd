@@ -43,11 +43,29 @@ Uf3 <- Id %x% X
 
 
 ```{r}
+Uf0
+```
+
+
+```{r}
 Uf1
 ```
 
+
+```{r}
+Uf2
+```
+
+
+```{r}
+Uf3
+```
+
+
+
 ```{r}
 H1 <- H %*% c(0,1)
+H1
 ```
 
 
@@ -63,23 +81,26 @@ backend
 ```
 
 ```{r}
+Uf0 %*% frontend
 backend %*% Uf0 %*% frontend
 ```
 
 ```{r}
+Uf1 %*% frontend
 backend %*% Uf1 %*% frontend
 ```
 
 
 ```{r}
+Uf2 %*% frontend
 backend %*% Uf2 %*% frontend
 ```
 
 
 ```{r}
+Uf3 %*% frontend
 backend %*% Uf3 %*% frontend
 ```
-
 
 
 
