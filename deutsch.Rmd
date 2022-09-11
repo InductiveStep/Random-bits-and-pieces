@@ -104,6 +104,16 @@ backend %*% Uf3 %*% frontend
 
 
 
+```{r}
+Uf2
+```
+
+
+```{r}
+Uf2 %*% t(Uf2)
+```
+
+
 
 
 
