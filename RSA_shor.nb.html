@@ -11,7 +11,7 @@
 
 
 
-<title>Quantum reversibility</title>
+<title>RSA and Shor</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1762,7 +1762,7 @@ pre code {
 
 
 
-<h1 class="title toc-ignore">Quantum reversibility</h1>
+<h1 class="title toc-ignore">RSA and Shor</h1>
 
 </div>
 
@@ -1770,86 +1770,165 @@ pre code {
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubm90IDwtIG1hdHJpeChjKDAsMSxcbiAgICAgICAgICAgICAgICAxLDApLCBucm93ID0gMilcbmBgYCJ9 -->
-<pre class="r"><code>not &lt;- matrix(c(0,1,
-                1,0), nrow = 2)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5dmVyc2UpXG5gYGAifQ== -->
+<pre class="r"><code>library(tidyverse)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubm90ICUqJSBjKDAsMSlcblxuYGBgIn0= -->
-<pre class="r"><code>not %*% c(0,1)
-</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiUmVnaXN0ZXJlZCBTMyBtZXRob2RzIG92ZXJ3cml0dGVuIGJ5ICdkYnBseXInOlxuICBtZXRob2QgICAgICAgICBmcm9tXG4gIHByaW50LnRibF9sYXp5ICAgICBcbiAgcHJpbnQudGJsX3NxbCAgICAgIFxu4pSA4pSAIEF0dGFjaGluZyBwYWNrYWdlcyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgdGlkeXZlcnNlIDEuMy4xIOKUgOKUgFxu4pyUIGdncGxvdDIgMy4zLjYgICAgIOKclCBwdXJyciAgIDAuMy40XG7inJQgdGliYmxlICAzLjEuNyAgICAg4pyUIGRwbHlyICAgMS4wLjlcbuKclCB0aWR5ciAgIDEuMi4wICAgICDinJQgc3RyaW5nciAxLjQuMFxu4pyUIHJlYWRyICAgMi4xLjIgICAgIOKclCBmb3JjYXRzIDAuNS4xXG7ilIDilIAgQ29uZmxpY3RzIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCB0aWR5dmVyc2VfY29uZmxpY3RzKCkg4pSA4pSAXG7inJYgZHBseXI6OmZpbHRlcigpIG1hc2tzIHN0YXRzOjpmaWx0ZXIoKVxu4pyWIGRwbHlyOjpsYWcoKSAgICBtYXNrcyBzdGF0czo6bGFnKClcbiJ9 -->
+<pre><code>Registered S3 methods overwritten by &#39;dbplyr&#39;:
+  method         from
+  print.tbl_lazy     
+  print.tbl_sql      
+── Attaching packages ────────────────────────────────────── tidyverse 1.3.1 ──
+✔ ggplot2 3.3.6     ✔ purrr   0.3.4
+✔ tibble  3.1.7     ✔ dplyr   1.0.9
+✔ tidyr   1.2.0     ✔ stringr 1.4.0
+✔ readr   2.1.2     ✔ forcats 0.5.1
+── Conflicts ───────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShnbXApXG5gYGAifQ== -->
+<pre class="r"><code>library(gmp)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiICAgICBbLDFdXG5bMSxdICAgIDFcblsyLF0gICAgMFxuIn0= -->
-<pre><code>     [,1]
-[1,]    1
-[2,]    0</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYZ21w4oCZXG5cblRoZSBmb2xsb3dpbmcgb2JqZWN0cyBhcmUgbWFza2VkIGZyb20g4oCYcGFja2FnZTpiYXNl4oCZOlxuXG4gICAgJSolLCBhcHBseSwgY3Jvc3Nwcm9kLCBtYXRyaXgsIHRjcm9zc3Byb2RcbiJ9 -->
+<pre><code>
+Attaching package: ‘gmp’
+
+The following objects are masked from ‘package:base’:
+
+    %*%, apply, crossprod, matrix, tcrossprod</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubm90ICUqJSB0KG5vdClcblxuYGBgIn0= -->
-<pre class="r"><code>not %*% t(not)
-</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuMl4xMDI0XG5gYGAifQ== -->
+<pre class="r"><code>2^1024</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiICAgICBbLDFdIFssMl1cblsxLF0gICAgMSAgICAwXG5bMixdICAgIDAgICAgMVxuIn0= -->
-<pre><code>     [,1] [,2]
-[1,]    1    0
-[2,]    0    1</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIEluZlxuIn0= -->
+<pre><code>[1] Inf</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYW5kXG5cbmBgYCJ9 -->
-<pre class="r"><code>and
-</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuMl5hcy5iaWd6KDEwMjQpXG5gYGAifQ== -->
+<pre class="r"><code>2^as.bigz(1024)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3I6IG9iamVjdCAnYW5kJyBub3QgZm91bmRcbiJ9 -->
-<pre><code>Error: object &#39;and&#39; not found</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>1 0 1 0</p>
-<p>1 0 0 1</p>
-<p>0 1 1 0</p>
-<p>0 1 0 1</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxub25lMTYgPC0gbWF0cml4KDE6NF4yLCBucm93ID0gNCwgYnlyb3cgPSBUKVxub25lMTZcbmBgYCJ9 -->
-<pre class="r"><code>one16 &lt;- matrix(1:4^2, nrow = 4, byrow = T)
-one16</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiICAgICBbLDFdIFssMl0gWywzXSBbLDRdXG5bMSxdICAgIDEgICAgMiAgICAzICAgIDRcblsyLF0gICAgNSAgICA2ICAgIDcgICAgOFxuWzMsXSAgICA5ICAgMTAgICAxMSAgIDEyXG5bNCxdICAgMTMgICAxNCAgIDE1ICAgMTZcbiJ9 -->
-<pre><code>     [,1] [,2] [,3] [,4]
-[1,]    1    2    3    4
-[2,]    5    6    7    8
-[3,]    9   10   11   12
-[4,]   13   14   15   16</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiQmlnIEludGVnZXIgKCdiaWd6JykgOlxuWzFdIDE3OTc2OTMxMzQ4NjIzMTU5MDc3MjkzMDUxOTA3ODkwMjQ3MzM2MTc5NzY5Nzg5NDIzMDY1NzI3MzQzMDA4MTE1NzczMjY3NTgwNTUwMDk2MzEzMjcwODQ3NzMyMjQwNzUzNjAyMTEyMDExMzg3OTg3MTM5MzM1NzY1ODc4OTc2ODgxNDQxNjYyMjQ5Mjg0NzQzMDYzOTQ3NDEyNDM3Nzc2Nzg5MzQyNDg2NTQ4NTI3NjMwMjIxOTYwMTI0NjA5NDExOTQ1MzA4Mjk1MjA4NTAwNTc2ODgzODE1MDY4MjM0MjQ2Mjg4MTQ3MzkxMzExMDU0MDgyNzIzNzE2MzM1MDUxMDY4NDU4NjI5ODIzOTk0NzI0NTkzODQ3OTcxNjMwNDgzNTM1NjMyOTYyNDIyNDEzNzIxNlxuIn0= -->
+<pre><code>Big Integer (&#39;bigz&#39;) :
+[1] 179769313486231590772930519078902473361797697894230657273430081157732675805500963132708477322407536021120113879871393357658789768814416622492847430639474124377767893424865485276302219601246094119453082952085005768838150682342462881473913110540827237163350510684586298239947245938479716304835356329624224137216</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudChvbmUxNilcblxuYGBgIn0= -->
-<pre class="r"><code>t(one16)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucCA8LSBuZXh0cHJpbWUoMl5hcy5iaWd6KDI1KSlcbnBcbmBgYCJ9 -->
+<pre class="r"><code>p &lt;- nextprime(2^as.bigz(25))
+p</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiQmlnIEludGVnZXIgKCdiaWd6JykgOlxuWzFdIDMzNTU0NDY3XG4ifQ== -->
+<pre><code>Big Integer (&#39;bigz&#39;) :
+[1] 33554467</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucSA8LSBuZXh0cHJpbWUoMl5hcy5iaWd6KDI2KSlcbnFcbmBgYCJ9 -->
+<pre class="r"><code>q &lt;- nextprime(2^as.bigz(26))
+q</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiQmlnIEludGVnZXIgKCdiaWd6JykgOlxuWzFdIDY3MTA4ODc5XG4ifQ== -->
+<pre><code>Big Integer (&#39;bigz&#39;) :
+[1] 67108879</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuTiA8LSBwKnFcbk5cbmBgYCJ9 -->
+<pre class="r"><code>N &lt;- p*q
+N</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiQmlnIEludGVnZXIgKCdiaWd6JykgOlxuWzFdIDg3OTYxOTU3ODI5MTFcbiJ9 -->
+<pre><code>Big Integer (&#39;bigz&#39;) :
+[1] 8796195782911</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGVzdF9nY2QgPC0gVmVjdG9yaXplKGZ1bmN0aW9uKHgsIE4pIHtcbiAgaWYgKGdjZCh4LE4pID09IDEpXG4gICAgVFJVRVxuICBlbHNlXG4gICAgRkFMU0Vcbn0sIHZlY3Rvcml6ZS5hcmdzID0gXCJ4XCIpXG5gYGAifQ== -->
+<pre class="r"><code>test_gcd &lt;- Vectorize(function(x, N) {
+  if (gcd(x,N) == 1)
+    TRUE
+  else
+    FALSE
+}, vectorize.args = &quot;x&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWFrZV9HX04gPC0gZnVuY3Rpb24oTikge1xuICByZXMgPC0gYXMuYmlneigxOihOLTEpKVxuICBvayAgPC0gdGVzdF9nY2QocmVzLCBOKVxuICBcbiAgcmVzW29rXVxufVxuYGBgIn0= -->
+<pre class="r"><code>make_G_N &lt;- function(N) {
+  res &lt;- as.bigz(1:(N-1))
+  ok  &lt;- test_gcd(res, N)
+  
+  res[ok]
+}</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWFrZV9HX04oMTAwNSlcblxuYGBgIn0= -->
+<pre class="r"><code>make_G_N(1005)
 </code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiICAgICBbLDFdIFssMl0gWywzXSBbLDRdXG5bMSxdICAgIDEgICAgNSAgICA5ICAgMTNcblsyLF0gICAgMiAgICA2ICAgMTAgICAxNFxuWzMsXSAgICAzICAgIDcgICAxMSAgIDE1XG5bNCxdICAgIDQgICAgOCAgIDEyICAgMTZcbiJ9 -->
-<pre><code>     [,1] [,2] [,3] [,4]
-[1,]    1    5    9   13
-[2,]    2    6   10   14
-[3,]    3    7   11   15
-[4,]    4    8   12   16</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiQmlnIEludGVnZXIgKCdiaWd6Jykgb2JqZWN0IG9mIGxlbmd0aCA1Mjg6XG4gIFsxXSAxICAgIDIgICAgNCAgICA3ICAgIDggICAgMTEgICAxMyAgIDE0ICAgMTYgICAxNyAgIDE5ICAgMjIgICAyMyAgIDI2ICBcbiBbMTVdIDI4ICAgMjkgICAzMSAgIDMyICAgMzQgICAzNyAgIDM4ICAgNDEgICA0MyAgIDQ0ICAgNDYgICA0NyAgIDQ5ICAgNTIgIFxuIFsyOV0gNTMgICA1NiAgIDU4ICAgNTkgICA2MSAgIDYyICAgNjQgICA2OCAgIDcxICAgNzMgICA3NCAgIDc2ICAgNzcgICA3OSAgXG4gWzQzXSA4MiAgIDgzICAgODYgICA4OCAgIDg5ICAgOTEgICA5MiAgIDk0ICAgOTcgICA5OCAgIDEwMSAgMTAzICAxMDQgIDEwNiBcbiBbNTddIDEwNyAgMTA5ICAxMTIgIDExMyAgMTE2ICAxMTggIDExOSAgMTIxICAxMjIgIDEyNCAgMTI3ICAxMjggIDEzMSAgMTMzIFxuIFs3MV0gMTM2ICAxMzcgIDEzOSAgMTQyICAxNDMgIDE0NiAgMTQ4ICAxNDkgIDE1MSAgMTUyICAxNTQgIDE1NyAgMTU4ICAxNjEgXG4gWzg1XSAxNjMgIDE2NCAgMTY2ICAxNjcgIDE2OSAgMTcyICAxNzMgIDE3NiAgMTc4ICAxNzkgIDE4MSAgMTgyICAxODQgIDE4NyBcbiBbOTldIDE4OCAgMTkxICAxOTMgIDE5NCAgMTk2ICAxOTcgIDE5OSAgMjAyICAyMDMgIDIwNiAgMjA4ICAyMDkgIDIxMSAgMjEyIFxuWzExM10gMjE0ICAyMTcgIDIxOCAgMjIxICAyMjMgIDIyNCAgMjI2ICAyMjcgIDIyOSAgMjMyICAyMzMgIDIzNiAgMjM4ICAyMzkgXG5bMTI3XSAyNDEgIDI0MiAgMjQ0ICAyNDcgIDI0OCAgMjUxICAyNTMgIDI1NCAgMjU2ICAyNTcgIDI1OSAgMjYyICAyNjMgIDI2NiBcblsxNDFdIDI2OSAgMjcxICAyNzIgIDI3NCAgMjc3ICAyNzggIDI4MSAgMjgzICAyODQgIDI4NiAgMjg3ICAyODkgIDI5MiAgMjkzIFxuWzE1NV0gMjk2ICAyOTggIDI5OSAgMzAxICAzMDIgIDMwNCAgMzA3ICAzMDggIDMxMSAgMzEzICAzMTQgIDMxNiAgMzE3ICAzMTkgXG5bMTY5XSAzMjIgIDMyMyAgMzI2ICAzMjggIDMyOSAgMzMxICAzMzIgIDMzNCAgMzM3ICAzMzggIDM0MSAgMzQzICAzNDQgIDM0NiBcblsxODNdIDM0NyAgMzQ5ICAzNTIgIDM1MyAgMzU2ICAzNTggIDM1OSAgMzYxICAzNjIgIDM2NCAgMzY3ICAzNjggIDM3MSAgMzczIFxuWzE5N10gMzc0ICAzNzYgIDM3NyAgMzc5ICAzODIgIDM4MyAgMzg2ICAzODggIDM4OSAgMzkxICAzOTIgIDM5NCAgMzk3ICAzOTggXG5bMjExXSA0MDEgIDQwMyAgNDA0ICA0MDYgIDQwNyAgNDA5ICA0MTIgIDQxMyAgNDE2ICA0MTggIDQxOSAgNDIxICA0MjIgIDQyNCBcblsyMjVdIDQyNyAgNDI4ICA0MzEgIDQzMyAgNDM0ICA0MzYgIDQzNyAgNDM5ICA0NDIgIDQ0MyAgNDQ2ICA0NDggIDQ0OSAgNDUxIFxuWzIzOV0gNDUyICA0NTQgIDQ1NyAgNDU4ICA0NjEgIDQ2MyAgNDY0ICA0NjYgIDQ2NyAgNDcyICA0NzMgIDQ3NiAgNDc4ICA0NzkgXG5bMjUzXSA0ODEgIDQ4MiAgNDg0ICA0ODcgIDQ4OCAgNDkxICA0OTMgIDQ5NCAgNDk2ICA0OTcgIDQ5OSAgNTAyICA1MDMgIDUwNiBcblsyNjddIDUwOCAgNTA5ICA1MTEgIDUxMiAgNTE0ICA1MTcgIDUxOCAgNTIxICA1MjMgIDUyNCAgNTI2ICA1MjcgIDUyOSAgNTMyIFxuWzI4MV0gNTMzICA1MzggIDUzOSAgNTQxICA1NDIgIDU0NCAgNTQ3ICA1NDggIDU1MSAgNTUzICA1NTQgIDU1NiAgNTU3ICA1NTkgXG5bMjk1XSA1NjIgIDU2MyAgNTY2ICA1NjggIDU2OSAgNTcxICA1NzIgIDU3NCAgNTc3ICA1NzggIDU4MSAgNTgzICA1ODQgIDU4NiBcblszMDldIDU4NyAgNTg5ICA1OTIgIDU5MyAgNTk2ICA1OTggIDU5OSAgNjAxICA2MDIgIDYwNCAgNjA3ICA2MDggIDYxMSAgNjEzIFxuWzMyM10gNjE0ICA2MTYgIDYxNyAgNjE5ICA2MjIgIDYyMyAgNjI2ICA2MjggIDYyOSAgNjMxICA2MzIgIDYzNCAgNjM3ICA2MzggXG5bMzM3XSA2NDEgIDY0MyAgNjQ0ICA2NDYgIDY0NyAgNjQ5ICA2NTIgIDY1MyAgNjU2ICA2NTggIDY1OSAgNjYxICA2NjIgIDY2NCBcblszNTFdIDY2NyAgNjY4ICA2NzEgIDY3MyAgNjc0ICA2NzYgIDY3NyAgNjc5ICA2ODIgIDY4MyAgNjg2ICA2ODggIDY4OSAgNjkxIFxuWzM2NV0gNjkyICA2OTQgIDY5NyAgNjk4ICA3MDEgIDcwMyAgNzA0ICA3MDYgIDcwNyAgNzA5ICA3MTIgIDcxMyAgNzE2ICA3MTggXG5bMzc5XSA3MTkgIDcyMSAgNzIyICA3MjQgIDcyNyAgNzI4ICA3MzEgIDczMyAgNzM0ICA3MzYgIDczOSAgNzQyICA3NDMgIDc0NiBcblszOTNdIDc0OCAgNzQ5ICA3NTEgIDc1MiAgNzU0ICA3NTcgIDc1OCAgNzYxICA3NjMgIDc2NCAgNzY2ICA3NjcgIDc2OSAgNzcyIFxuWzQwN10gNzczICA3NzYgIDc3OCAgNzc5ICA3ODEgIDc4MiAgNzg0ICA3ODcgIDc4OCAgNzkxICA3OTMgIDc5NCAgNzk2ICA3OTcgXG5bNDIxXSA3OTkgIDgwMiAgODAzICA4MDYgIDgwOCAgODA5ICA4MTEgIDgxMiAgODE0ICA4MTcgIDgxOCAgODIxICA4MjMgIDgyNCBcbls0MzVdIDgyNiAgODI3ICA4MjkgIDgzMiAgODMzICA4MzYgIDgzOCAgODM5ICA4NDEgIDg0MiAgODQ0ICA4NDcgIDg0OCAgODUxIFxuWzQ0OV0gODUzICA4NTQgIDg1NiAgODU3ICA4NTkgIDg2MiAgODYzICA4NjYgIDg2OCAgODY5ICA4NzIgIDg3NCAgODc3ICA4NzggXG5bNDYzXSA4ODEgIDg4MyAgODg0ICA4ODYgIDg4NyAgODg5ICA4OTIgIDg5MyAgODk2ICA4OTggIDg5OSAgOTAxICA5MDIgIDkwNCBcbls0NzddIDkwNyAgOTA4ICA5MTEgIDkxMyAgOTE0ICA5MTYgIDkxNyAgOTE5ICA5MjIgIDkyMyAgOTI2ICA5MjggIDkyOSAgOTMxIFxuWzQ5MV0gOTMyICA5MzQgIDkzNyAgOTQxICA5NDMgIDk0NCAgOTQ2ICA5NDcgIDk0OSAgOTUyICA5NTMgIDk1NiAgOTU4ICA5NTkgXG5bNTA1XSA5NjEgIDk2MiAgOTY0ICA5NjcgIDk2OCAgOTcxICA5NzMgIDk3NCAgOTc2ICA5NzcgIDk3OSAgOTgyICA5ODMgIDk4NiBcbls1MTldIDk4OCAgOTg5ICA5OTEgIDk5MiAgOTk0ICA5OTcgIDk5OCAgMTAwMSAxMDAzIDEwMDRcbiJ9 -->
+<pre><code>Big Integer (&#39;bigz&#39;) object of length 528:
+  [1] 1    2    4    7    8    11   13   14   16   17   19   22   23   26  
+ [15] 28   29   31   32   34   37   38   41   43   44   46   47   49   52  
+ [29] 53   56   58   59   61   62   64   68   71   73   74   76   77   79  
+ [43] 82   83   86   88   89   91   92   94   97   98   101  103  104  106 
+ [57] 107  109  112  113  116  118  119  121  122  124  127  128  131  133 
+ [71] 136  137  139  142  143  146  148  149  151  152  154  157  158  161 
+ [85] 163  164  166  167  169  172  173  176  178  179  181  182  184  187 
+ [99] 188  191  193  194  196  197  199  202  203  206  208  209  211  212 
+[113] 214  217  218  221  223  224  226  227  229  232  233  236  238  239 
+[127] 241  242  244  247  248  251  253  254  256  257  259  262  263  266 
+[141] 269  271  272  274  277  278  281  283  284  286  287  289  292  293 
+[155] 296  298  299  301  302  304  307  308  311  313  314  316  317  319 
+[169] 322  323  326  328  329  331  332  334  337  338  341  343  344  346 
+[183] 347  349  352  353  356  358  359  361  362  364  367  368  371  373 
+[197] 374  376  377  379  382  383  386  388  389  391  392  394  397  398 
+[211] 401  403  404  406  407  409  412  413  416  418  419  421  422  424 
+[225] 427  428  431  433  434  436  437  439  442  443  446  448  449  451 
+[239] 452  454  457  458  461  463  464  466  467  472  473  476  478  479 
+[253] 481  482  484  487  488  491  493  494  496  497  499  502  503  506 
+[267] 508  509  511  512  514  517  518  521  523  524  526  527  529  532 
+[281] 533  538  539  541  542  544  547  548  551  553  554  556  557  559 
+[295] 562  563  566  568  569  571  572  574  577  578  581  583  584  586 
+[309] 587  589  592  593  596  598  599  601  602  604  607  608  611  613 
+[323] 614  616  617  619  622  623  626  628  629  631  632  634  637  638 
+[337] 641  643  644  646  647  649  652  653  656  658  659  661  662  664 
+[351] 667  668  671  673  674  676  677  679  682  683  686  688  689  691 
+[365] 692  694  697  698  701  703  704  706  707  709  712  713  716  718 
+[379] 719  721  722  724  727  728  731  733  734  736  739  742  743  746 
+[393] 748  749  751  752  754  757  758  761  763  764  766  767  769  772 
+[407] 773  776  778  779  781  782  784  787  788  791  793  794  796  797 
+[421] 799  802  803  806  808  809  811  812  814  817  818  821  823  824 
+[435] 826  827  829  832  833  836  838  839  841  842  844  847  848  851 
+[449] 853  854  856  857  859  862  863  866  868  869  872  874  877  878 
+[463] 881  883  884  886  887  889  892  893  896  898  899  901  902  904 
+[477] 907  908  911  913  914  916  917  919  922  923  926  928  929  931 
+[491] 932  934  937  941  943  944  946  947  949  952  953  956  958  959 
+[505] 961  962  964  967  968  971  973  974  976  977  979  982  983  986 
+[519] 988  989  991  992  994  997  998  1001 1003 1004</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlF1YW50dW0gcmV2ZXJzaWJpbGl0eSINCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KLS0tDQoNCg0KDQpgYGB7cn0NCm5vdCA8LSBtYXRyaXgoYygwLDEsDQogICAgICAgICAgICAgICAgMSwwKSwgbnJvdyA9IDIpDQpgYGANCg0KDQpgYGB7cn0NCm5vdCAlKiUgYygwLDEpDQpgYGANCg0KYGBge3J9DQpub3QgJSolIHQobm90KQ0KYGBgDQoNCg0KDQpgYGB7cn0NCmFuZCA8LSBtYXRyaXgoYygpKQ0KYGBgDQoNCg0KDQoxDQowDQoxDQowDQoNCjENCjANCjANCjENCg0KMA0KMQ0KMQ0KMA0KDQowDQoxDQowDQoxDQoNCg0KDQoNCmBgYHtyfQ0Kb25lMTYgPC0gbWF0cml4KDE6NF4yLCBucm93ID0gNCwgYnlyb3cgPSBUKQ0Kb25lMTYNCmBgYA0KDQpgYGB7cn0NCnQob25lMTYpDQpgYGANCg0KDQoNCg0K</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlJTQSBhbmQgU2hvciINCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KLS0tDQoNCg0KYGBge3J9DQpsaWJyYXJ5KHRpZHl2ZXJzZSkNCmxpYnJhcnkoZ21wKQ0KYGBgDQoNCmBgYHtyfQ0KMl4xMDI0DQpgYGANCg0KYGBge3J9DQoyXmFzLmJpZ3ooMTAyNCkNCmBgYA0KDQpgYGB7cn0NCnAgPC0gbmV4dHByaW1lKDJeYXMuYmlneigyNSkpDQpwDQpxIDwtIG5leHRwcmltZSgyXmFzLmJpZ3ooMjYpKQ0KcQ0KYGBgDQoNCg0KYGBge3J9DQpOIDwtIHAqcQ0KTg0KYGBgDQoNCg0KDQpgYGB7cn0NCnRlc3RfZ2NkIDwtIFZlY3Rvcml6ZShmdW5jdGlvbih4LCBOKSB7DQogIGlmIChnY2QoeCxOKSA9PSAxKQ0KICAgIFRSVUUNCiAgZWxzZQ0KICAgIEZBTFNFDQp9LCB2ZWN0b3JpemUuYXJncyA9ICJ4IikNCmBgYA0KDQoNCg0KYGBge3J9DQptYWtlX0dfTiA8LSBmdW5jdGlvbihOKSB7DQogIHJlcyA8LSBhcy5iaWd6KDE6KE4tMSkpDQogIG9rICA8LSB0ZXN0X2djZChyZXMsIE4pDQogIA0KICByZXNbb2tdDQp9DQpgYGANCg0KDQoNCmBgYHtyfQ0KbWFrZV9HX04oMTAwNSkNCmBgYA0KDQoNCg0K</div>
 
 
 
@@ -1896,7 +1975,7 @@ $(document).ready(function () {
 <!-- code folding -->
 <script>
 $(document).ready(function () {
-  window.initializeSourceEmbed("quantum_rev.Rmd");
+  window.initializeSourceEmbed("RSA_shor.Rmd");
   window.initializeCodeFolding("show" === "show");
 });
 </script>

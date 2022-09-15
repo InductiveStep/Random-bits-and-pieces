@@ -1,0 +1,62 @@
+---
+title: "RSA and Shor"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(gmp)
+```
+
+```{r}
+2^1024
+```
+
+```{r}
+2^as.bigz(1024)
+```
+
+```{r}
+p <- nextprime(2^as.bigz(25))
+p
+q <- nextprime(2^as.bigz(26))
+q
+```
+
+
+```{r}
+N <- p*q
+N
+```
+
+
+
+```{r}
+test_gcd <- Vectorize(function(x, N) {
+  if (gcd(x,N) == 1)
+    TRUE
+  else
+    FALSE
+}, vectorize.args = "x")
+```
+
+
+
+```{r}
+make_G_N <- function(N) {
+  res <- as.bigz(1:(N-1))
+  ok  <- test_gcd(res, N)
+  
+  res[ok]
+}
+```
+
+
+
+```{r}
+make_G_N(1005)
+```
+
+
+
