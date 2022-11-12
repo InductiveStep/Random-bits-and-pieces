@@ -10,6 +10,7 @@ output:
 
 **A solution:** transform to a hex string and shift the 0..f up to a..p so all the bytes are lowercase Latin characters.
 
+
 First, load up {tidyverse}:
 
 ```{r message=FALSE, warning=FALSE}
@@ -28,6 +29,7 @@ chars2hexstr <- function(t) {
 }
 ```
 
+Testing:
 
 ```{r}
 chars2hexstr("Hello")
@@ -40,12 +42,12 @@ Let's undo it:
 
 ```{r}
 hexstr2chars <- function(hexstr) {
-  bytevec <- substring(hexstr,
-                       seq(1, nchar(hexstr) - 1, 2),
-                       seq(2, nchar(hexstr), 2))
-  strtoi(bytevec, base = 16) |>
-    as.raw() |>
-    rawToChar()
+  substring(hexstr,
+            seq(1, nchar(hexstr) - 1, 2),
+            seq(2, nchar(hexstr), 2)) |>
+  strtoi(base = 16) |>
+  as.raw() |>
+  rawToChar()
 }
 ```
 
@@ -56,10 +58,7 @@ And a test:
 hexstr2chars("48656c6c6f")
 ```
 
-So far so good.
-
-
-Next, I want to shift 0..f up to a..p. I'm sure there's an easier way. Here's how I'm doing it: first, setup a mapping:
+Next, I want to shift 0..f up to a..p. I'm sure there's an easier way. Here's how I'm doing it. First, setup a mapping:
 
 ```{r}
 charmap <- data.frame(
@@ -68,21 +67,21 @@ charmap <- data.frame(
 charmap
 ```
 
-These two functions translate back and forth between 0..f (hex) and a..p (lethex):
+These two functions translate back and forth between 0..f (hex) and a..p (I'm going to call it a lethex), using a `strsplit` and `join`:
 
 ```{r}
 hex2lethex <- function(hstr) {
-  indat <- data.frame(hex = (hstr |> strsplit(""))[[1]])
-  outdat <- indat |>
-    left_join(charmap, by = "hex")
-  outdat$let |> paste(collapse = "")
+  data.frame(hex = (hstr |> strsplit(""))[[1]]) |>
+    left_join(charmap, by = "hex") |>
+    pull(let) |>
+    paste(collapse = "")
 }
 
 lethex2hex <- function(lethex) {
-  indat <- data.frame(let = (lethex |> strsplit(""))[[1]])
-  outdat <- indat |>
-    left_join(charmap, by = "let")
-  outdat$hex |> paste(collapse = "")
+  data.frame(let = (lethex |> strsplit(""))[[1]]) |>
+    left_join(charmap, by = "let") |>
+    pull(hex) |>
+    paste(collapse = "")
 }
 ```
 
@@ -126,12 +125,8 @@ str2hashtag("Hello")
 hashtag2str("eigfgmgmgp")
 ```
 
-Here's a test:
+Finally:
 
 ```{r eval=FALSE}
 hashtag2str("gihehehahddkcpcphhhhhhcohjgphfhehfgcgfcogdgpgncphhgbhegdgidphgdngefbhhdehhdjfhghfigdfb")
 ```
-
-
-
-

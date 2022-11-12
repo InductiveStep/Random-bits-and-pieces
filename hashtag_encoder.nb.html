@@ -1782,6 +1782,7 @@ a hashtag on Mastodon or another popular platform.</p>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+<p>Testing:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2hhcnMyaGV4c3RyKFwiSGVsbG9cIilcbmBgYCJ9 -->
@@ -1798,14 +1799,14 @@ table</a>, looks good. “H” = 0x48, “e” = 0x65, “l” = 0x6c, and “o�
 <p>Let’s undo it:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGV4c3RyMmNoYXJzIDwtIGZ1bmN0aW9uKGhleHN0cikge1xuICBieXRldmVjIDwtIHN1YnN0cmluZyhoZXhzdHIsXG4gICAgICAgICAgICAgICAgICAgICAgIHNlcSgxLCBuY2hhcihoZXhzdHIpIC0gMSwgMiksXG4gICAgICAgICAgICAgICAgICAgICAgIHNlcSgyLCBuY2hhcihoZXhzdHIpLCAyKSlcbiAgc3RydG9pKGJ5dGV2ZWMsIGJhc2UgPSAxNikgfD5cbiAgICBhcy5yYXcoKSB8PlxuICAgIHJhd1RvQ2hhcigpXG59XG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGV4c3RyMmNoYXJzIDwtIGZ1bmN0aW9uKGhleHN0cikge1xuICBzdWJzdHJpbmcoaGV4c3RyLFxuICAgICAgICAgICAgc2VxKDEsIG5jaGFyKGhleHN0cikgLSAxLCAyKSxcbiAgICAgICAgICAgIHNlcSgyLCBuY2hhcihoZXhzdHIpLCAyKSkgfD5cbiAgc3RydG9pKGJhc2UgPSAxNikgfD5cbiAgYXMucmF3KCkgfD5cbiAgcmF3VG9DaGFyKClcbn1cbmBgYCJ9 -->
 <pre class="r"><code>hexstr2chars &lt;- function(hexstr) {
-  bytevec &lt;- substring(hexstr,
-                       seq(1, nchar(hexstr) - 1, 2),
-                       seq(2, nchar(hexstr), 2))
-  strtoi(bytevec, base = 16) |&gt;
-    as.raw() |&gt;
-    rawToChar()
+  substring(hexstr,
+            seq(1, nchar(hexstr) - 1, 2),
+            seq(2, nchar(hexstr), 2)) |&gt;
+  strtoi(base = 16) |&gt;
+  as.raw() |&gt;
+  rawToChar()
 }</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
@@ -1821,9 +1822,8 @@ table</a>, looks good. “H” = 0x48, “e” = 0x65, “l” = 0x6c, and “o�
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>So far so good.</p>
 <p>Next, I want to shift 0..f up to a..p. I’m sure there’s an easier
-way. Here’s how I’m doing it: first, setup a mapping:</p>
+way. Here’s how I’m doing it. First, setup a mapping:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2hhcm1hcCA8LSBkYXRhLmZyYW1lKFxuICBoZXggPSBjKDA6OSwgbGV0dGVyc1sxOjZdKSxcbiAgbGV0ID0gbGV0dGVyc1sxOjE2XSlcbmNoYXJtYXBcbmBgYCJ9 -->
@@ -1842,22 +1842,23 @@ charmap</code></pre>
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>These two functions translate back and forth between 0..f (hex) and
-a..p (lethex):</p>
+a..p (I’m going to call it a lethex), using a <code>strsplit</code> and
+<code>join</code>:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGV4MmxldGhleCA8LSBmdW5jdGlvbihoc3RyKSB7XG4gIGluZGF0IDwtIGRhdGEuZnJhbWUoaGV4ID0gKGhzdHIgfD4gc3Ryc3BsaXQoXCJcIikpW1sxXV0pXG4gIG91dGRhdCA8LSBpbmRhdCB8PlxuICAgIGxlZnRfam9pbihjaGFybWFwLCBieSA9IFwiaGV4XCIpXG4gIG91dGRhdCRsZXQgfD4gcGFzdGUoY29sbGFwc2UgPSBcIlwiKVxufVxuXG5sZXRoZXgyaGV4IDwtIGZ1bmN0aW9uKGxldGhleCkge1xuICBpbmRhdCA8LSBkYXRhLmZyYW1lKGxldCA9IChsZXRoZXggfD4gc3Ryc3BsaXQoXCJcIikpW1sxXV0pXG4gIG91dGRhdCA8LSBpbmRhdCB8PlxuICAgIGxlZnRfam9pbihjaGFybWFwLCBieSA9IFwibGV0XCIpXG4gIG91dGRhdCRoZXggfD4gcGFzdGUoY29sbGFwc2UgPSBcIlwiKVxufVxuYGBgIn0= -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGV4MmxldGhleCA8LSBmdW5jdGlvbihoc3RyKSB7XG4gIGRhdGEuZnJhbWUoaGV4ID0gKGhzdHIgfD4gc3Ryc3BsaXQoXCJcIikpW1sxXV0pIHw+XG4gICAgbGVmdF9qb2luKGNoYXJtYXAsIGJ5ID0gXCJoZXhcIikgfD5cbiAgICBwdWxsKGxldCkgfD5cbiAgICBwYXN0ZShjb2xsYXBzZSA9IFwiXCIpXG59XG5cbmxldGhleDJoZXggPC0gZnVuY3Rpb24obGV0aGV4KSB7XG4gIGRhdGEuZnJhbWUobGV0ID0gKGxldGhleCB8PiBzdHJzcGxpdChcIlwiKSlbWzFdXSkgfD5cbiAgICBsZWZ0X2pvaW4oY2hhcm1hcCwgYnkgPSBcImxldFwiKSB8PlxuICAgIHB1bGwoaGV4KSB8PlxuICAgIHBhc3RlKGNvbGxhcHNlID0gXCJcIilcbn1cbmBgYCJ9 -->
 <pre class="r"><code>hex2lethex &lt;- function(hstr) {
-  indat &lt;- data.frame(hex = (hstr |&gt; strsplit(&quot;&quot;))[[1]])
-  outdat &lt;- indat |&gt;
-    left_join(charmap, by = &quot;hex&quot;)
-  outdat$let |&gt; paste(collapse = &quot;&quot;)
+  data.frame(hex = (hstr |&gt; strsplit(&quot;&quot;))[[1]]) |&gt;
+    left_join(charmap, by = &quot;hex&quot;) |&gt;
+    pull(let) |&gt;
+    paste(collapse = &quot;&quot;)
 }
 
 lethex2hex &lt;- function(lethex) {
-  indat &lt;- data.frame(let = (lethex |&gt; strsplit(&quot;&quot;))[[1]])
-  outdat &lt;- indat |&gt;
-    left_join(charmap, by = &quot;let&quot;)
-  outdat$hex |&gt; paste(collapse = &quot;&quot;)
+  data.frame(let = (lethex |&gt; strsplit(&quot;&quot;))[[1]]) |&gt;
+    left_join(charmap, by = &quot;let&quot;) |&gt;
+    pull(hex) |&gt;
+    paste(collapse = &quot;&quot;)
 }</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
@@ -1932,17 +1933,15 @@ hashtag2str &lt;- function(h) {
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Here’s a test:</p>
+<p>Finally:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiaGFzaHRhZzJzdHIoXCJnaWhlaGVoYWhkZGtjcGNwaGhoaGhoY29oamdwaGZoZWhmZ2NnZmNvZ2RncGduY3BoaGdiaGVnZGdpZHBoZ2RuZ2VmYmhoZGVoaGRqZmhnaGZpZ2RmYlwiKSJ9 -->
 <pre class="r"><code>hashtag2str(&quot;gihehehahddkcpcphhhhhhcohjgphfhehfgcgfcogdgpgncphhgbhegdgidphgdngefbhhdehhdjfhghfigdfb&quot;)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkVuY29kZSBieXRlcyBhcyBoYXNodGFncyINCmF1dGhvcjogIkBhbmRpQHRlY2gubGdidCINCm91dHB1dDogDQogIGh0bWxfbm90ZWJvb2s6IA0KICAgIGNvZGVfZm9sZGluZzogbm9uZQ0KLS0tDQoNCioqUHJvYmxlbToqKiB5b3Ugd2FudCB0byBlbmNvZGUgYXJiaXRyYXJ5IGJpbmFyeSBkYXRhIGFzIGEgaGFzaHRhZyBvbiBNYXN0b2RvbiBvciBhbm90aGVyIHBvcHVsYXIgcGxhdGZvcm0uDQoNCioqQSBzb2x1dGlvbjoqKiB0cmFuc2Zvcm0gdG8gYSBoZXggc3RyaW5nIGFuZCBzaGlmdCB0aGUgMC4uZiB1cCB0byBhLi5wIHNvIGFsbCB0aGUgYnl0ZXMgYXJlIGxvd2VyY2FzZSBMYXRpbiBjaGFyYWN0ZXJzLg0KDQpGaXJzdCwgbG9hZCB1cCB7dGlkeXZlcnNlfToNCg0KYGBge3IgbWVzc2FnZT1GQUxTRSwgd2FybmluZz1GQUxTRX0NCmxpYnJhcnkodGlkeXZlcnNlKQ0KYGBgDQoNCg0KSSB3YW50IHRvIHRyYW5zZm9ybSBhIHN0cmluZyBsaWtlICJIZWxsbyIgdG8gYSBoZXggc3RyaW5nOg0KDQpgYGB7cn0NCmNoYXJzMmhleHN0ciA8LSBmdW5jdGlvbih0KSB7DQogIHQgfD4NCiAgICBjaGFyVG9SYXcoKSB8Pg0KICAgIGFzLmNoYXJhY3RlcigpIHw+DQogICAgcGFzdGUoY29sbGFwc2UgPSAiIikNCn0NCmBgYA0KDQoNCmBgYHtyfQ0KY2hhcnMyaGV4c3RyKCJIZWxsbyIpDQpgYGANCg0KQ29uc3VsdGluZyBhbiBbQVNDSUkgdGFibGVdKGh0dHBzOi8vZW4ud2lraXBlZGlhLm9yZy93aWtpL0FTQ0lJI1ByaW50YWJsZV9jaGFyYWN0ZXJzKSwgbG9va3MgZ29vZC4gIkgiID0gMHg0OCwgImUiID0gMHg2NSwgImwiID0gMHg2YywgYW5kICJvIiA9IDB4NmYuDQoNCg0KTGV0J3MgdW5kbyBpdDoNCg0KYGBge3J9DQpoZXhzdHIyY2hhcnMgPC0gZnVuY3Rpb24oaGV4c3RyKSB7DQogIGJ5dGV2ZWMgPC0gc3Vic3RyaW5nKGhleHN0ciwNCiAgICAgICAgICAgICAgICAgICAgICAgc2VxKDEsIG5jaGFyKGhleHN0cikgLSAxLCAyKSwNCiAgICAgICAgICAgICAgICAgICAgICAgc2VxKDIsIG5jaGFyKGhleHN0ciksIDIpKQ0KICBzdHJ0b2koYnl0ZXZlYywgYmFzZSA9IDE2KSB8Pg0KICAgIGFzLnJhdygpIHw+DQogICAgcmF3VG9DaGFyKCkNCn0NCmBgYA0KDQoNCkFuZCBhIHRlc3Q6DQoNCmBgYHtyfQ0KaGV4c3RyMmNoYXJzKCI0ODY1NmM2YzZmIikNCmBgYA0KDQpTbyBmYXIgc28gZ29vZC4NCg0KDQpOZXh0LCBJIHdhbnQgdG8gc2hpZnQgMC4uZiB1cCB0byBhLi5wLiBJJ20gc3VyZSB0aGVyZSdzIGFuIGVhc2llciB3YXkuIEhlcmUncyBob3cgSSdtIGRvaW5nIGl0OiBmaXJzdCwgc2V0dXAgYSBtYXBwaW5nOg0KDQpgYGB7cn0NCmNoYXJtYXAgPC0gZGF0YS5mcmFtZSgNCiAgaGV4ID0gYygwOjksIGxldHRlcnNbMTo2XSksDQogIGxldCA9IGxldHRlcnNbMToxNl0pDQpjaGFybWFwDQpgYGANCg0KVGhlc2UgdHdvIGZ1bmN0aW9ucyB0cmFuc2xhdGUgYmFjayBhbmQgZm9ydGggYmV0d2VlbiAwLi5mIChoZXgpIGFuZCBhLi5wIChsZXRoZXgpOg0KDQpgYGB7cn0NCmhleDJsZXRoZXggPC0gZnVuY3Rpb24oaHN0cikgew0KICBpbmRhdCA8LSBkYXRhLmZyYW1lKGhleCA9IChoc3RyIHw+IHN0cnNwbGl0KCIiKSlbWzFdXSkNCiAgb3V0ZGF0IDwtIGluZGF0IHw+DQogICAgbGVmdF9qb2luKGNoYXJtYXAsIGJ5ID0gImhleCIpDQogIG91dGRhdCRsZXQgfD4gcGFzdGUoY29sbGFwc2UgPSAiIikNCn0NCg0KbGV0aGV4MmhleCA8LSBmdW5jdGlvbihsZXRoZXgpIHsNCiAgaW5kYXQgPC0gZGF0YS5mcmFtZShsZXQgPSAobGV0aGV4IHw+IHN0cnNwbGl0KCIiKSlbWzFdXSkNCiAgb3V0ZGF0IDwtIGluZGF0IHw+DQogICAgbGVmdF9qb2luKGNoYXJtYXAsIGJ5ID0gImxldCIpDQogIG91dGRhdCRoZXggfD4gcGFzdGUoY29sbGFwc2UgPSAiIikNCn0NCmBgYA0KDQpUcnkgaXQgd2l0aCAiSGVsbG8iLiBIZXJlJ3MgdGhlIGhleCBzdHJpbmc6DQoNCmBgYHtyfQ0KaGVsbG9faGV4IDwtIGNoYXJzMmhleHN0cigiSGVsbG8iKQ0KaGVsbG9faGV4DQpgYGANCk5vdyBhcyBhIGxldGhleDoNCg0KYGBge3J9DQpoZWxsb19sZXRoZXggPC0gaGVsbG9faGV4IHw+IGhleDJsZXRoZXgoKQ0KaGVsbG9fbGV0aGV4DQpgYGANCg0KQW5kIGJhY2sgYWdhaW46DQoNCmBgYHtyfQ0KaGVsbG9fbGV0aGV4IHw+IGxldGhleDJoZXgoKQ0KYGBgDQoNCkZpbmFsbHksIGEgY291cGxlIG9mIHdyYXBwZXJzLCB3aGljaCB0YWtlIGEgc3RyaW5nIHRvIGEgbGV0aGV4IHN0cmluZyBhbmQgYmFjayBhZ2FpbjoNCg0KYGBge3J9DQpzdHIyaGFzaHRhZyA8LSBmdW5jdGlvbihzKSB7DQogIHMgfD4gY2hhcnMyaGV4c3RyKCkgfD4gaGV4MmxldGhleCgpDQp9DQoNCmhhc2h0YWcyc3RyIDwtIGZ1bmN0aW9uKGgpIHsNCiAgaCB8PiBsZXRoZXgyaGV4KCkgfD4gaGV4c3RyMmNoYXJzKCkNCn0NCmBgYA0KDQoNCmBgYHtyfQ0Kc3RyMmhhc2h0YWcoIkhlbGxvIikNCmBgYA0KDQpgYGB7cn0NCmhhc2h0YWcyc3RyKCJlaWdmZ21nbWdwIikNCmBgYA0KDQpIZXJlJ3MgYSB0ZXN0Og0KDQpgYGB7ciBldmFsPUZBTFNFfQ0KaGFzaHRhZzJzdHIoImdpaGVoZWhhaGRka2NwY3BoaGhoaGhjb2hqZ3BoZmhlaGZnY2dmY29nZGdwZ25jcGhoZ2JoZWdkZ2lkcGhnZG5nZWZiaGhkZWhoZGpmaGdoZmlnZGZiIikNCmBgYA0KDQoNCg0KDQo=</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkVuY29kZSBieXRlcyBhcyBoYXNodGFncyINCmF1dGhvcjogIkBhbmRpQHRlY2gubGdidCINCm91dHB1dDogDQogIGh0bWxfbm90ZWJvb2s6IA0KICAgIGNvZGVfZm9sZGluZzogbm9uZQ0KLS0tDQoNCioqUHJvYmxlbToqKiB5b3Ugd2FudCB0byBlbmNvZGUgYXJiaXRyYXJ5IGJpbmFyeSBkYXRhIGFzIGEgaGFzaHRhZyBvbiBNYXN0b2RvbiBvciBhbm90aGVyIHBvcHVsYXIgcGxhdGZvcm0uDQoNCioqQSBzb2x1dGlvbjoqKiB0cmFuc2Zvcm0gdG8gYSBoZXggc3RyaW5nIGFuZCBzaGlmdCB0aGUgMC4uZiB1cCB0byBhLi5wIHNvIGFsbCB0aGUgYnl0ZXMgYXJlIGxvd2VyY2FzZSBMYXRpbiBjaGFyYWN0ZXJzLg0KDQoNCkZpcnN0LCBsb2FkIHVwIHt0aWR5dmVyc2V9Og0KDQpgYGB7ciBtZXNzYWdlPUZBTFNFLCB3YXJuaW5nPUZBTFNFfQ0KbGlicmFyeSh0aWR5dmVyc2UpDQpgYGANCg0KDQpJIHdhbnQgdG8gdHJhbnNmb3JtIGEgc3RyaW5nIGxpa2UgIkhlbGxvIiB0byBhIGhleCBzdHJpbmc6DQoNCmBgYHtyfQ0KY2hhcnMyaGV4c3RyIDwtIGZ1bmN0aW9uKHQpIHsNCiAgdCB8Pg0KICAgIGNoYXJUb1JhdygpIHw+DQogICAgYXMuY2hhcmFjdGVyKCkgfD4NCiAgICBwYXN0ZShjb2xsYXBzZSA9ICIiKQ0KfQ0KYGBgDQoNClRlc3Rpbmc6DQoNCmBgYHtyfQ0KY2hhcnMyaGV4c3RyKCJIZWxsbyIpDQpgYGANCg0KQ29uc3VsdGluZyBhbiBbQVNDSUkgdGFibGVdKGh0dHBzOi8vZW4ud2lraXBlZGlhLm9yZy93aWtpL0FTQ0lJI1ByaW50YWJsZV9jaGFyYWN0ZXJzKSwgbG9va3MgZ29vZC4gIkgiID0gMHg0OCwgImUiID0gMHg2NSwgImwiID0gMHg2YywgYW5kICJvIiA9IDB4NmYuDQoNCg0KTGV0J3MgdW5kbyBpdDoNCg0KYGBge3J9DQpoZXhzdHIyY2hhcnMgPC0gZnVuY3Rpb24oaGV4c3RyKSB7DQogIHN1YnN0cmluZyhoZXhzdHIsDQogICAgICAgICAgICBzZXEoMSwgbmNoYXIoaGV4c3RyKSAtIDEsIDIpLA0KICAgICAgICAgICAgc2VxKDIsIG5jaGFyKGhleHN0ciksIDIpKSB8Pg0KICBzdHJ0b2koYmFzZSA9IDE2KSB8Pg0KICBhcy5yYXcoKSB8Pg0KICByYXdUb0NoYXIoKQ0KfQ0KYGBgDQoNCg0KQW5kIGEgdGVzdDoNCg0KYGBge3J9DQpoZXhzdHIyY2hhcnMoIjQ4NjU2YzZjNmYiKQ0KYGBgDQoNCk5leHQsIEkgd2FudCB0byBzaGlmdCAwLi5mIHVwIHRvIGEuLnAuIEknbSBzdXJlIHRoZXJlJ3MgYW4gZWFzaWVyIHdheS4gSGVyZSdzIGhvdyBJJ20gZG9pbmcgaXQuIEZpcnN0LCBzZXR1cCBhIG1hcHBpbmc6DQoNCmBgYHtyfQ0KY2hhcm1hcCA8LSBkYXRhLmZyYW1lKA0KICBoZXggPSBjKDA6OSwgbGV0dGVyc1sxOjZdKSwNCiAgbGV0ID0gbGV0dGVyc1sxOjE2XSkNCmNoYXJtYXANCmBgYA0KDQpUaGVzZSB0d28gZnVuY3Rpb25zIHRyYW5zbGF0ZSBiYWNrIGFuZCBmb3J0aCBiZXR3ZWVuIDAuLmYgKGhleCkgYW5kIGEuLnAgKEknbSBnb2luZyB0byBjYWxsIGl0IGEgbGV0aGV4KSwgdXNpbmcgYSBgc3Ryc3BsaXRgIGFuZCBgam9pbmA6DQoNCmBgYHtyfQ0KaGV4MmxldGhleCA8LSBmdW5jdGlvbihoc3RyKSB7DQogIGRhdGEuZnJhbWUoaGV4ID0gKGhzdHIgfD4gc3Ryc3BsaXQoIiIpKVtbMV1dKSB8Pg0KICAgIGxlZnRfam9pbihjaGFybWFwLCBieSA9ICJoZXgiKSB8Pg0KICAgIHB1bGwobGV0KSB8Pg0KICAgIHBhc3RlKGNvbGxhcHNlID0gIiIpDQp9DQoNCmxldGhleDJoZXggPC0gZnVuY3Rpb24obGV0aGV4KSB7DQogIGRhdGEuZnJhbWUobGV0ID0gKGxldGhleCB8PiBzdHJzcGxpdCgiIikpW1sxXV0pIHw+DQogICAgbGVmdF9qb2luKGNoYXJtYXAsIGJ5ID0gImxldCIpIHw+DQogICAgcHVsbChoZXgpIHw+DQogICAgcGFzdGUoY29sbGFwc2UgPSAiIikNCn0NCmBgYA0KDQpUcnkgaXQgd2l0aCAiSGVsbG8iLiBIZXJlJ3MgdGhlIGhleCBzdHJpbmc6DQoNCmBgYHtyfQ0KaGVsbG9faGV4IDwtIGNoYXJzMmhleHN0cigiSGVsbG8iKQ0KaGVsbG9faGV4DQpgYGANCk5vdyBhcyBhIGxldGhleDoNCg0KYGBge3J9DQpoZWxsb19sZXRoZXggPC0gaGVsbG9faGV4IHw+IGhleDJsZXRoZXgoKQ0KaGVsbG9fbGV0aGV4DQpgYGANCg0KQW5kIGJhY2sgYWdhaW46DQoNCmBgYHtyfQ0KaGVsbG9fbGV0aGV4IHw+IGxldGhleDJoZXgoKQ0KYGBgDQoNCkZpbmFsbHksIGEgY291cGxlIG9mIHdyYXBwZXJzLCB3aGljaCB0YWtlIGEgc3RyaW5nIHRvIGEgbGV0aGV4IHN0cmluZyBhbmQgYmFjayBhZ2FpbjoNCg0KYGBge3J9DQpzdHIyaGFzaHRhZyA8LSBmdW5jdGlvbihzKSB7DQogIHMgfD4gY2hhcnMyaGV4c3RyKCkgfD4gaGV4MmxldGhleCgpDQp9DQoNCmhhc2h0YWcyc3RyIDwtIGZ1bmN0aW9uKGgpIHsNCiAgaCB8PiBsZXRoZXgyaGV4KCkgfD4gaGV4c3RyMmNoYXJzKCkNCn0NCmBgYA0KDQoNCmBgYHtyfQ0Kc3RyMmhhc2h0YWcoIkhlbGxvIikNCmBgYA0KDQpgYGB7cn0NCmhhc2h0YWcyc3RyKCJlaWdmZ21nbWdwIikNCmBgYA0KDQpGaW5hbGx5Og0KDQpgYGB7ciBldmFsPUZBTFNFfQ0KaGFzaHRhZzJzdHIoImdpaGVoZWhhaGRka2NwY3BoaGhoaGhjb2hqZ3BoZmhlaGZnY2dmY29nZGdwZ25jcGhoZ2JoZWdkZ2lkcGhnZG5nZWZiaGhkZWhoZGpmaGdoZmlnZGZiIikNCmBgYA0K</div>
 
 
 
