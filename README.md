@@ -11,3 +11,5 @@ These are incomplete code fragments:
 [PHE Fingertips](https://inductivestep.github.io/Random-bits-and-pieces/fingertips.nb.html)
 
 [IPW and CEM](https://inductivestep.github.io/Random-bits-and-pieces/kidsmoking.nb.html)
+
+[Encoding binary data in hashtags](https://inductivestep.github.io/Random-bits-and-pieces/hashtag_encoder.nb.html)
