@@ -12,4 +12,4 @@ These are incomplete code fragments:
 
 [IPW and CEM](https://inductivestep.github.io/Random-bits-and-pieces/kidsmoking.nb.html)
 
-[Encoding binary data in hashtags](https://inductivestep.github.io/hashtag_encoder.nb.html)
+[Encoding binary data in hashtags](https://inductivestep.github.io/Random-bits-and-pieces/hashtag_encoder.nb.html)
