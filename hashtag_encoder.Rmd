@@ -1,0 +1,137 @@
+---
+title: "Encode bytes as hashtags"
+author: "@andi@tech.lgbt"
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+**Problem:** you want to encode arbitrary binary data as a hashtag on Mastodon or another popular platform.
+
+**A solution:** transform to a hex string and shift the 0..f up to a..p so all the bytes are lowercase Latin characters.
+
+First, load up {tidyverse}:
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+
+I want to transform a string like "Hello" to a hex string:
+
+```{r}
+chars2hexstr <- function(t) {
+  t |>
+    charToRaw() |>
+    as.character() |>
+    paste(collapse = "")
+}
+```
+
+
+```{r}
+chars2hexstr("Hello")
+```
+
+Consulting an [ASCII table](https://en.wikipedia.org/wiki/ASCII#Printable_characters), looks good. "H" = 0x48, "e" = 0x65, "l" = 0x6c, and "o" = 0x6f.
+
+
+Let's undo it:
+
+```{r}
+hexstr2chars <- function(hexstr) {
+  bytevec <- substring(hexstr,
+                       seq(1, nchar(hexstr) - 1, 2),
+                       seq(2, nchar(hexstr), 2))
+  strtoi(bytevec, base = 16) |>
+    as.raw() |>
+    rawToChar()
+}
+```
+
+
+And a test:
+
+```{r}
+hexstr2chars("48656c6c6f")
+```
+
+So far so good.
+
+
+Next, I want to shift 0..f up to a..p. I'm sure there's an easier way. Here's how I'm doing it: first, setup a mapping:
+
+```{r}
+charmap <- data.frame(
+  hex = c(0:9, letters[1:6]),
+  let = letters[1:16])
+charmap
+```
+
+These two functions translate back and forth between 0..f (hex) and a..p (lethex):
+
+```{r}
+hex2lethex <- function(hstr) {
+  indat <- data.frame(hex = (hstr |> strsplit(""))[[1]])
+  outdat <- indat |>
+    left_join(charmap, by = "hex")
+  outdat$let |> paste(collapse = "")
+}
+
+lethex2hex <- function(lethex) {
+  indat <- data.frame(let = (lethex |> strsplit(""))[[1]])
+  outdat <- indat |>
+    left_join(charmap, by = "let")
+  outdat$hex |> paste(collapse = "")
+}
+```
+
+Try it with "Hello". Here's the hex string:
+
+```{r}
+hello_hex <- chars2hexstr("Hello")
+hello_hex
+```
+Now as a lethex:
+
+```{r}
+hello_lethex <- hello_hex |> hex2lethex()
+hello_lethex
+```
+
+And back again:
+
+```{r}
+hello_lethex |> lethex2hex()
+```
+
+Finally, a couple of wrappers, which take a string to a lethex string and back again:
+
+```{r}
+str2hashtag <- function(s) {
+  s |> chars2hexstr() |> hex2lethex()
+}
+
+hashtag2str <- function(h) {
+  h |> lethex2hex() |> hexstr2chars()
+}
+```
+
+
+```{r}
+str2hashtag("Hello")
+```
+
+```{r}
+hashtag2str("eigfgmgmgp")
+```
+
+Here's a test:
+
+```{r eval=FALSE}
+hashtag2str("gihehehahddkcpcphhhhhhcohjgphfhehfgcgfcogdgpgncphhgbhegdgidphgdngefbhhdehhdjfhghfigdfb")
+```
+
+
+
+

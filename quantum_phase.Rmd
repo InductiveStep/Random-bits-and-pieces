@@ -1,0 +1,88 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Example based on https://quantum-computing.ibm.com/composer/docs/iqx/guide/introducing-qubit-phase
+
+
+```{r}
+phi <- .1337*pi
+```
+
+
+```{r}
+P <- function(phi) {
+  rbind(c(1,0),
+        c(0,exp(1i*phi)))
+}
+
+H <- 1/sqrt(2) * (rbind(c(1,1),
+                        c(1,-1)))
+
+S_dag <- rbind(c(1,0),
+               c(0,-1i))
+```
+
+
+
+
+```{r}
+state_x <- H %*% P(phi) %*% H %*% c(1,0)
+state_x
+```
+
+```{r}
+state_y <- H %*% S_dag %*% P(phi) %*% H %*% c(1,0)
+state_y
+```
+
+
+
+
+```{r}
+res_x <- Mod(state_x)^2
+res_y <- Mod(state_y)^2
+```
+
+```{r}
+res_x
+res_y
+```
+
+
+```{r}
+x <- res_x[1] - res_x[2]
+y <- res_y[1] - res_y[2]
+```
+
+```{r}
+x
+y
+```
+
+
+```{r}
+atan2(y, x)/pi
+```
+
+```{r}
+asin(x)/pi
+```
+
+```{r}
+asin(y)/pi
+```
+
+
+Let's try again with a more arbitrary state.
+
+
+
+
+
+
+
+
+
+

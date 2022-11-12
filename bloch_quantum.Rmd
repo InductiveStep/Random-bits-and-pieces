@@ -1,0 +1,92 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(qsimulatR)
+```
+
+```{r}
+q1 <- qstate(nbits = 1, coefs = c(.5*(1 + 1i), .5 + .5i))
+```
+
+```{r}
+q1
+```
+
+
+```{r}
+abs(q1@coefs)^2
+```
+
+```{r}
+?abs
+```
+
+
+
+```{r}
+abs(.5 + .5i)^2
+```
+
+```{r}
+sqrt(.5^2 + .5^2)^2
+```
+
+
+```{r}
+library(rgl)
+open3d()
+spheres3d(x = 1, y = 1, z = 1, radius = 10)
+axes3d()   
+```
+
+
+```{r}
+theta <- .25*pi
+phi   <- 6*pi/12
+alpha <- cos(theta/2)
+beta <- sin(theta/2) * exp(1i * phi)
+q_bloch <- qstate(nbits = 1, coefs = c(alpha, beta))
+
+cat("Parameters: \n")
+c(theta = theta, phi = phi, alpha = alpha, beta = beta) |>
+  round(2)
+
+cat("\nQubit: \n")
+q_bloch
+
+cat("\nProbabilities: \n")
+(abs(q_bloch@coefs)^2) |> round(2)
+```
+
+
+```{r}
+abs(q1@coefs)^2
+```
+
+
+```{r}
+cos(pi/2)
+```
+
+
+```{r}
+theta = .5
+phi = (1 / 4) * 2 * pi
+psi <- c(a = cospi(theta / 2) |> as.complex(),
+         b = exp(phi * 1i) * sinpi(theta / 2))
+```
+
+
+```{r}
+Arg(psi) / (2*pi)
+```
+
+```{r}
+Mod(psi)^2
+```
+
+
+
