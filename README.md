@@ -13,3 +13,8 @@ These are incomplete code fragments:
 [IPW and CEM](https://inductivestep.github.io/Random-bits-and-pieces/kidsmoking.nb.html)
 
 [Encoding binary data in hashtags](https://inductivestep.github.io/Random-bits-and-pieces/hashtag_encoder.nb.html)
+
+[{rtoots} playing: correlations between numbers of followers from a server and the total number of users on that server](https://inductivestep.github.io/Random-bits-and-pieces/mastodon_followers_by_server.nb.html)
+
+
+
