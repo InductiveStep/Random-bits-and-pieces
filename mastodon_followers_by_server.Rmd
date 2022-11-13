@@ -1,0 +1,164 @@
+---
+title: "Playing with {rtoot}"
+author: "@andi@tech.lgbt"
+date: 13 Nov 2022
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+I want to know if there's a positive correlation between the total number of users on servers and how many followers I have from those servers.
+
+Include the packages I want...
+
+```{r}
+library(rtoot)
+library(stringr)
+library(tidyverse)
+```
+
+
+Get {rtoot} authorised to talk to my server:
+
+```{r}
+auth_setup(instance = "tech.lgbt", type ="user")
+```
+
+I'll need my ID: who am I?
+
+```{r}
+acc <- search_accounts("@Andi@tech.lgbt")
+acc |>
+  select(id, acct, display_name) |>
+  head(1)
+```
+
+This is me!
+
+```{r}
+whoami <- "109273348690338129"
+```
+
+
+There's a handy function in {rtoot} for getting all followers; however, this doesn't currently support auto-pagination. After [reading the friendly manual](https://github.com/schochastics/rtoot/wiki/Pagination), here's a workaround:
+
+```{r}
+really_get_all_followers <- function(id, sure = "No!") {
+  stopifnot(sure == "Yes, I know what I am doing")
+  
+  followers <- c()
+  still_working <- TRUE
+  max_id <- NULL
+  
+  while (still_working) {
+    next_lot <- get_account_followers(id,
+                                      max_id = max_id)
+    followers <- bind_rows(followers, next_lot)
+  
+    attrs <- attr(next_lot, "headers")
+    if ("max_id" %in% names(attrs))
+      max_id <- attrs$max_id
+    else
+      still_working <- FALSE
+  }
+  
+  followers
+}
+```
+
+
+Get my followers:
+
+```{r}
+my_followers <- really_get_all_followers(
+  whoami,
+  sure = "Yes, I know what I am doing"
+)
+```
+
+
+This number is correct: it worked!
+
+```{r}
+nrow(my_followers)
+```
+
+
+What server are they from?
+
+```{r}
+get_servers <- function(followers) {
+  servers <- followers$acct |> str_split_fixed("@", 2)
+  servers[,2]
+}
+```
+
+
+```{r}
+followers_servers <- data.frame(server = get_servers(my_followers)) |>
+  mutate(server = ifelse(server == "", "tech.lgbt", server))
+```
+
+Here are the counts:
+
+```{r}
+server_count <- followers_servers |>
+  group_by(server) |>
+  summarise(n = n()) |>
+  arrange(desc(n))
+
+server_count
+```
+
+Check everything adds up:
+
+```{r}
+server_count$n |> sum()
+```
+
+So far so good.
+
+Next up, how many users are there on each of those servers? Note the exception handling...
+
+```{r}
+get_user_count <- Vectorize(function(server) {
+  cat("Trying: ")
+  cat(server)
+  cat("\n")
+  res <- NA
+  
+  # This will catch problems like missing servers
+  tryCatch(
+    res <- get_instance_general(server)$stats$user_count,
+    error = function(e) print(e)
+  )
+  res
+})
+```
+
+```{r}
+server_count$server_user_n <- get_user_count(server_count$server)
+```
+
+
+Finally, a graph:
+
+```{r}
+server_count |>
+  na.omit() |>
+  mutate(home = ifelse(server == "tech.lgbt",
+                                 "Yes",
+                                 "No"),
+         `My home server` = factor(home,
+                                   c("Yes", "No"))) |>
+  ggplot(aes(y = log(n, 10),
+             x = log(server_user_n, 10),
+             colour = `My home server`)) +
+  geom_point() +
+  scale_colour_manual(values=c("purple", "black")) +
+  ylab(expression(log[10]~(followers))) +
+  xlab(expression(log[10]~(total~server~users))) +
+  labs(title = "Follower count by server")
+```
+
+
