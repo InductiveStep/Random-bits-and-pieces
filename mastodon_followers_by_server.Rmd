@@ -7,7 +7,7 @@ output:
     code_folding: none
 ---
 
-I want to know if there's a positive correlation between the total number of users on servers and how many followers I have from those servers.
+I want to know if there's a positive correlation between the total number of users on a server and how many followers I have from that server.
 
 Include the packages I want...
 
@@ -141,7 +141,7 @@ server_count$server_user_n <- get_user_count(server_count$server)
 ```
 
 
-Finally, a graph:
+A graph:
 
 ```{r}
 server_count |>
@@ -161,4 +161,9 @@ server_count |>
   labs(title = "Follower count by server")
 ```
 
+There is indeed a correlation:
+
+```{r}
+cor.test(~ n + server_user_n, data = server_count, method = "kendall")
+```
 
