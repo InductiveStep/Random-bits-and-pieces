@@ -9,7 +9,7 @@ output:
 
 I want to know if there's a positive correlation between the total number of users on a server and how many followers I have from that server.
 
-Include the packages I want...
+Include some packages...
 
 ```{r}
 library(rtoot)
@@ -33,14 +33,14 @@ acc |>
   head(1)
 ```
 
-This is me!
+It me!
 
 ```{r}
 whoami <- "109273348690338129"
 ```
 
 
-There's a handy function in {rtoot} for getting all followers; however, this doesn't currently support auto-pagination. After [reading the friendly manual](https://github.com/schochastics/rtoot/wiki/Pagination), here's a workaround:
+There's a handy function in {rtoot} for getting all followers; however, it doesn't currently support auto-pagination. After [reading the friendly manual](https://github.com/schochastics/rtoot/wiki/Pagination), here's a workaround:
 
 ```{r}
 really_get_all_followers <- function(id, sure = "No!") {
@@ -84,7 +84,7 @@ nrow(my_followers)
 ```
 
 
-What server are they from?
+What servers are they from?
 
 ```{r}
 get_servers <- function(followers) {
