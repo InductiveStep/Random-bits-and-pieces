@@ -20,7 +20,7 @@ library(tidyverse)
 
 Get {rtoot} authorised to talk to my server:
 
-```{r}
+```{r eval=FALSE}
 auth_setup(instance = "tech.lgbt", type ="user")
 ```
 
@@ -123,15 +123,19 @@ Next up, how many users are there on each of those servers? Note the exception h
 
 ```{r}
 get_user_count <- Vectorize(function(server) {
-  cat("Trying: ")
-  cat(server)
-  cat("\n")
   res <- NA
   
   # This will catch problems like missing servers
   tryCatch(
     res <- get_instance_general(server)$stats$user_count,
-    error = function(e) print(e)
+    error = function(e) {
+        cat("***")
+        cat(server)
+        cat("***")
+        cat("\n")
+        print(e)
+        cat("\n")
+      }
   )
   res
 })
@@ -139,6 +143,7 @@ get_user_count <- Vectorize(function(server) {
 
 ```{r}
 server_count$server_user_n <- get_user_count(server_count$server)
+server_count
 ```
 
 
@@ -148,19 +153,20 @@ A graph:
 server_count |>
   na.omit() |>
   mutate(home = ifelse(server == "tech.lgbt",
-                                 "Yes",
-                                 "No"),
-         `My home server` = factor(home,
-                                   c("Yes", "No"))) |>
+                                 "My home server",
+                                 "Elsewhere"),
+         home = factor(home,
+                       c("My home server", "Elsewhere"))) |>
   ggplot(aes(y = log(n, 10),
              x = log(server_user_n, 10),
-             colour = `My home server`)) +
+             colour = home)) +
   geom_point() +
-  scale_colour_manual(values = c("magenta", "darkgrey")) +
-  theme_bw() +
-  ylab(expression(log[10]~(followers))) +
-  xlab(expression(log[10]~(total~server~users))) +
-  labs(title = "Follower count by server")
+  scale_colour_manual(values = c("magenta", "black")) +
+  #theme_bw() +
+  labs(y = expression(log[10]~(followers)),
+       x = expression(log[10]~(total~server~users)),
+       title = "Follower count by server",
+       colour = "")
 ```
 
 There is indeed a correlation:
