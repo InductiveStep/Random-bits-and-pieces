@@ -95,7 +95,8 @@ get_servers <- function(followers) {
 
 
 ```{r}
-followers_servers <- data.frame(server = get_servers(my_followers)) |>
+followers_servers <- my_followers |>
+  mutate(server = get_servers(my_followers)) |>
   mutate(server = ifelse(server == "", "tech.lgbt", server))
 ```
 
