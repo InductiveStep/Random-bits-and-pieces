@@ -156,7 +156,8 @@ server_count |>
              x = log(server_user_n, 10),
              colour = `My home server`)) +
   geom_point() +
-  scale_colour_manual(values=c("purple", "black")) +
+  scale_colour_manual(values = c("magenta", "darkgrey")) +
+  theme_bw() +
   ylab(expression(log[10]~(followers))) +
   xlab(expression(log[10]~(total~server~users))) +
   labs(title = "Follower count by server")
