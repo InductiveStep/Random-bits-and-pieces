@@ -7,7 +7,7 @@ output:
     code_folding: none
 ---
 
-I want to know if there's a positive correlation between the total number of users on a server and how many followers I have from that server.
+I was curious if there's a positive correlation between the total number of users on a server and how many followers I have from that server.
 
 Include some packages...
 
@@ -146,8 +146,26 @@ server_count$server_user_n <- get_user_count(server_count$server)
 server_count
 ```
 
+A couple of histograms:
 
-A graph:
+```{r}
+server_count |>
+  select(n, server_user_n) |>
+  na.omit()  |>
+  pivot_longer(cols = everything(),
+               names_to = "key",
+               values_to = "value") |>
+  mutate(nice_name = case_when(key == "n" ~ "Followers",
+                               key == "server_user_n" ~ "Users on server")) |>
+  ggplot(aes(value)) +
+    facet_wrap(~ nice_name, scales = "free") +
+    geom_histogram(bins = 40) +
+    labs(x = "Users", y = "Freq")
+```
+
+
+
+A scatterplot:
 
 ```{r}
 server_count |>
@@ -174,4 +192,7 @@ There is indeed a correlation:
 ```{r}
 cor.test(~ n + server_user_n, data = server_count, method = "kendall")
 ```
+
+Last run (or at least knitted) `r date()`.
+
 
