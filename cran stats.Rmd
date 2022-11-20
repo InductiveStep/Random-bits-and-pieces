@@ -15,28 +15,20 @@ library(lubridate)
 ```
 
 
-`cran_stats` gives us downloads per month, so they will be incomplete for the current month. I'll exclude the current month to account for this, using the following variable:
+`cran_stats` gives us downloads per month, so they will be incomplete for the current month. I'll exclude the current month to account for this.
+
+Here's a plot function, factored out of a previous copy and paste mess:
 
 ```{r}
-first_of_this_month <- floor_date(today(), unit = "month")
-first_of_this_month
-```
-
-(Some) mixed models and SEM packages:
-
-```{r}
-pack_stats <-
-  cran_stats(c("lme4", "nlme", "sem", "lavaan", "blme", "brms", "rstanarm"))
-```
-
-
-```{r dpi = 300}
-plot_mlm_sem <- pack_stats %>%
-  filter(start < first_of_this_month) %>%
+plot_em <- function(dl_dat) {
+  first_of_this_month <- floor_date(today(), unit = "month")
+  
+  dl_dat |>
+  filter(start < first_of_this_month) |>
   mutate(label = if_else(start == max(start),
                          as.character(package),
                          NA_character_)
-         ) %>%
+         ) |>
   ggplot(aes(
     x = start,
     y = downloads,
@@ -48,14 +40,29 @@ plot_mlm_sem <- pack_stats %>%
   labs(x = "Date", y = "Downloads", colour = "Package") +
   geom_label_repel(na.rm = TRUE, segment.colour = NA) +
   theme(legend.position = "none") +
-  scale_x_date(expand = expansion(mult = 0.2))
-plot_mlm_sem
+  scale_x_date(expand = expansion(mult = 0.2)) +
+  scale_y_continuous(labels = scales::comma)
+}
+```
+
+
+
+(Some) mixed models and SEM packages:
+
+```{r}
+pack_stats <-
+  cran_stats(c("lme4", "nlme", "sem", "lavaan", "blme", "brms", "rstanarm"))
+```
+
+
+```{r dpi = 300}
+plot_em(pack_stats)
 ```
 
 Same again the log scale:
 
 ```{r}
-plot_mlm_sem +
+plot_em(pack_stats) +
 scale_y_continuous(labels = scales::comma, trans = "log10")
 ```
 
@@ -77,30 +84,36 @@ match_packages <-
 
 
 ```{r}
-matching_plot <- match_packages %>%
-  filter(start < first_of_this_month) %>%
-  mutate(label = if_else(start == max(start),
-                         as.character(package),
-                         "")) %>%
-  ggplot(aes(
-    x = start,
-    y = downloads,
-    colour = package,
-    label = label
-  )) +
-  geom_smooth(se = FALSE) +
-  geom_point() +
-  scale_y_continuous(labels = scales::comma) +
-  labs(x = "Date", y = "Downloads", colour = "Package") +
-  geom_label_repel(segment.colour = NA, point.size = NA, nudge_x = 200, direction = "y") +
-  theme(legend.position = "none") +
-  scale_x_date(expand = expansion(mult = 0.1))
-matching_plot
+plot_em(match_packages)
 ```
 
 
 ```{r}
-matching_plot +
+plot_em(match_packages) +
 scale_y_continuous(labels = scales::comma, trans = "log10")
 ```
+
+
+These packages are all installed as part of the tidyverse, but can also be installed individually.
+
+
+```{r}
+core_tidyverse_stats <-
+  cran_stats(c(
+    "ggplot2",
+    "dplyr",
+    "tidyr",
+    "readr",
+    "purrr",
+    "tibble",
+    "stringr",
+    "forcats"
+  ))
+```
+
+```{r}
+plot_em(core_tidyverse_stats)
+```
+
+
 
