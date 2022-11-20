@@ -1,0 +1,32 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+All one chunk for ease of pasting into the dead elephant.
+
+
+```{r}
+library(tidyverse)
+
+unsorted <- (pi * 1e8) |>
+  round() |>
+  as.character() |>
+  (\(x) strsplit(x, split = "")[[1]])() |>
+  as.numeric()
+
+bogosort <- function(x) {
+  res <- sample(x)
+  while(is.unsorted(res))
+    res <- sample(x)
+  res
+}
+
+bench::mark(
+  sort(unsorted, method = "quick"),
+  sort(unsorted, method = "radix"),
+  bogosort(unsorted)
+) |> mutate(expression = c("quick", "radix", "bogo")) |>
+     select(expression, median, mem_alloc)
+```
+

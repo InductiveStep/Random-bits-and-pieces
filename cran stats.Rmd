@@ -1,14 +1,28 @@
 ---
 title: "CRAN package popularity"
-output: html_notebook
+author: "@Andi@tech.lgbt"
+output: 
+  html_notebook: 
+    code_folding: none
 ---
+
 
 ```{r}
 library(tidyverse)
 library(dlstats)
 library(ggrepel)
+library(lubridate)
 ```
 
+
+`cran_stats` gives us downloads per month, so they will be incomplete for the current month. I'll exclude the current month to account for this, using the following variable:
+
+```{r}
+first_of_this_month <- floor_date(today(), unit = "month")
+first_of_this_month
+```
+
+(Some) mixed models and SEM packages:
 
 ```{r}
 pack_stats <-
@@ -18,7 +32,7 @@ pack_stats <-
 
 ```{r dpi = 300}
 pack_stats %>%
-  filter(start < as.Date("2021-01-01")) %>%
+  filter(start < first_of_this_month) %>%
   mutate(label = if_else(start == max(start),
                          as.character(package),
                          NA_character_)
@@ -34,10 +48,12 @@ pack_stats %>%
   scale_y_continuous(labels = scales::comma) +
   labs(x = "Date", y = "Downloads", colour = "Package") +
   geom_label_repel(na.rm = TRUE, segment.colour = NA) +
-  theme(legend.position = "none")
+  theme(legend.position = "none") +
+  scale_x_date(expand = expansion(mult = 0.2))
 ```
 
 
+Packages for matching and propensity score weighting:
 
 ```{r}
 match_packages <-
@@ -53,7 +69,7 @@ match_packages <-
 
 ```{r}
 match_packages %>%
-  filter(start <= as.Date("2021-03-01")) %>%
+  filter(start < first_of_this_month) %>%
   mutate(label = if_else(start == max(start),
                          as.character(package),
                          "")) %>%
