@@ -26,7 +26,7 @@ first_of_this_month
 
 ```{r}
 pack_stats <-
-  cran_stats(c("lme4", "nlme", "sem", "lavaan", "blme"))
+  cran_stats(c("lme4", "nlme", "sem", "lavaan", "blme", "brms"))
 ```
 
 
