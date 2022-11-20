@@ -26,12 +26,12 @@ first_of_this_month
 
 ```{r}
 pack_stats <-
-  cran_stats(c("lme4", "nlme", "sem", "lavaan", "blme", "brms"))
+  cran_stats(c("lme4", "nlme", "sem", "lavaan", "blme", "brms", "rstanarm"))
 ```
 
 
 ```{r dpi = 300}
-pack_stats %>%
+plot_mlm_sem <- pack_stats %>%
   filter(start < first_of_this_month) %>%
   mutate(label = if_else(start == max(start),
                          as.character(package),
@@ -45,12 +45,21 @@ pack_stats %>%
   )) +
   geom_smooth(se = FALSE) +
   geom_point() +
-  scale_y_continuous(labels = scales::comma) +
   labs(x = "Date", y = "Downloads", colour = "Package") +
   geom_label_repel(na.rm = TRUE, segment.colour = NA) +
   theme(legend.position = "none") +
   scale_x_date(expand = expansion(mult = 0.2))
+plot_mlm_sem
 ```
+
+Same again the log scale:
+
+```{r}
+plot_mlm_sem +
+scale_y_continuous(labels = scales::comma, trans = "log10")
+```
+
+
 
 
 Packages for matching and propensity score weighting:
@@ -68,7 +77,7 @@ match_packages <-
 
 
 ```{r}
-match_packages %>%
+matching_plot <- match_packages %>%
   filter(start < first_of_this_month) %>%
   mutate(label = if_else(start == max(start),
                          as.character(package),
@@ -86,7 +95,12 @@ match_packages %>%
   geom_label_repel(segment.colour = NA, point.size = NA, nudge_x = 200, direction = "y") +
   theme(legend.position = "none") +
   scale_x_date(expand = expansion(mult = 0.1))
+matching_plot
 ```
 
 
+```{r}
+matching_plot +
+scale_y_continuous(labels = scales::comma, trans = "log10")
+```
 
