@@ -1,0 +1,145 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+```
+
+
+```{r}
+dat <- expand.grid(i = 1:1000,
+                   group = 0:1,
+                   time = 0:1) |>
+  mutate(
+    i = 1:n(),
+    gender = rbinom(n(), 1, .2 + .5 * group + .2 * time * group),
+    happy = 30 + gender * 60 + rnorm(n(),0,5)
+  )
+
+dat
+```
+
+
+```{r}
+dat |>
+  tabyl(gender, time)
+```
+
+
+
+
+```{r}
+addATTs <- function(treat_dat, control_dat, formula) {
+  bound_dat <- bind_rows(treat_dat |> mutate(.treat = 1),
+                         control_dat |> mutate(.treat = 0))
+  ps_mod <- glm(formula, family = binomial, data = bound_dat)
+  print(summary(ps_mod))
+  bound_dat$ps <- predict(ps_mod, type = "response")
+  bound_dat |>
+    filter(.treat == 0) |>
+    select(-.treat) |>
+    mutate(att_wt = 1/(1-ps))
+}
+```
+
+
+```{r}
+chop_treat        <- subset(dat, group == 1 & time == 0)
+chop_base_control <- subset(dat, group == 0 & time == 0)
+chop_end_treat    <- subset(dat, group == 1 & time == 1)
+chop_end_control  <- subset(dat, group == 0 & time == 1)
+
+wt_treat        <- chop_treat |> mutate(att_wt = 1)
+wt_base_control <-
+  addATTs(chop_treat, chop_base_control, .treat ~ gender)
+wt_end_treat    <-
+  addATTs(chop_treat, chop_end_treat, .treat ~ gender)
+wt_end_control  <-
+  addATTs(chop_treat, chop_end_control, .treat ~ gender)
+
+all_dat <- bind_rows(wt_treat,
+                     wt_base_control,
+                     wt_end_treat,
+                     wt_end_control)
+```
+
+
+
+```{r}
+library(survey)
+library(srvyr)
+```
+
+
+```{r}
+dat_des <- all_dat %>%
+  as_survey(weights = att_wt)
+dat_des 
+```
+
+
+
+```{r}
+all_dat |>
+  ggplot(aes(x = att_wt)) +
+  geom_histogram(bins = 60)
+```
+
+
+```{r}
+rbind(
+  lm       = lm(happy ~ time * group, data = all_dat) |> coef(),
+  weighted = svyglm(happy ~ time * group, design = dat_des) |> coef()
+)
+rbind(
+  `lm adj` = lm(happy ~ time * group + gender, data = all_dat) |> coef(),
+  `A-ATT`  = svyglm(happy ~ time * group + gender, design = dat_des) |> coef()
+)
+```
+
+
+```{r}
+dat_des |>
+  srvyr::group_by(time, group) |>
+  summarise(mean = survey_mean(happy), n = n())
+```
+
+
+
+```{r}
+dat_des |>
+  srvyr::group_by(group, time) |>
+  summarise(prop_gender = survey_prop(gender == 1, vartype = "se"), n = n())
+```
+
+
+
+```{r}
+dat |>
+  group_by(time, group) |>
+  summarise(mean = mean(gender), n = n())
+```
+
+
+
+
+```{r}
+svyglm(happy ~ time * group, design = dat_des) |> summary()
+```
+
+
+```{r}
+lm(happy ~ time * group, data = dat) |> summary()
+```
+
+
+
+```{r}
+svyglm(happy ~ time * group + gender, design = dat_des) |> summary()
+```
+
+
+
