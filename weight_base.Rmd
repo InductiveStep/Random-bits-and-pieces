@@ -10,13 +10,13 @@ library(janitor)
 
 
 ```{r}
-dat <- expand.grid(i = 1:1000,
+dat <- expand.grid(i = 1:10000,
                    group = 0:1,
                    time = 0:1) |>
   mutate(
     i = 1:n(),
     gender = rbinom(n(), 1, .2 + .5 * group + .2 * time * group),
-    happy = 30 + gender * 60 + rnorm(n(),0,5)
+    happy = 30 + gender * 40 + rnorm(n(), 0, 10)
   )
 
 dat
@@ -37,11 +37,12 @@ addATTs <- function(treat_dat, control_dat, formula) {
                          control_dat |> mutate(.treat = 0))
   ps_mod <- glm(formula, family = binomial, data = bound_dat)
   print(summary(ps_mod))
-  bound_dat$ps <- predict(ps_mod, type = "response")
+  bound_dat$ps <- fitted(ps_mod)
   bound_dat |>
     filter(.treat == 0) |>
     select(-.treat) |>
-    mutate(att_wt = 1/(1-ps))
+    mutate(att_wt = 1/(1-ps),
+           att_rwt = n()*(att_wt/sum(att_wt)))
 }
 ```
 
@@ -52,7 +53,8 @@ chop_base_control <- subset(dat, group == 0 & time == 0)
 chop_end_treat    <- subset(dat, group == 1 & time == 1)
 chop_end_control  <- subset(dat, group == 0 & time == 1)
 
-wt_treat        <- chop_treat |> mutate(att_wt = 1)
+wt_treat        <- chop_treat |> mutate(att_wt = 1,
+                                        att_rwt = 1)
 wt_base_control <-
   addATTs(chop_treat, chop_base_control, .treat ~ gender)
 wt_end_treat    <-
@@ -74,9 +76,10 @@ library(srvyr)
 ```
 
 
+
 ```{r}
 dat_des <- all_dat %>%
-  as_survey(weights = att_wt)
+  as_survey(weights = att_rwt)
 dat_des 
 ```
 
@@ -104,42 +107,14 @@ rbind(
 ```{r}
 dat_des |>
   srvyr::group_by(time, group) |>
-  summarise(mean = survey_mean(happy), n = n())
-```
-
-
-
-```{r}
-dat_des |>
-  srvyr::group_by(group, time) |>
-  summarise(prop_gender = survey_prop(gender == 1, vartype = "se"), n = n())
-```
-
-
-
-```{r}
-dat |>
-  group_by(time, group) |>
-  summarise(mean = mean(gender), n = n())
+  summarise(svy_mean = survey_mean(happy), mean = mean(happy))
 ```
 
 
 
 
-```{r}
-svyglm(happy ~ time * group, design = dat_des) |> summary()
-```
 
 
-```{r}
-lm(happy ~ time * group, data = dat) |> summary()
-```
-
-
-
-```{r}
-svyglm(happy ~ time * group + gender, design = dat_des) |> summary()
-```
 
 
 
