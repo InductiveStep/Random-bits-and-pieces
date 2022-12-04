@@ -16,5 +16,7 @@ These are incomplete code fragments:
 
 [{rtoots} playing: correlations between numbers of followers from a server and the total number of users on that server](https://inductivestep.github.io/Random-bits-and-pieces/mastodon_followers_by_server.nb.html)
 
+[FIFA 2022 predictions](https://inductivestep.github.io/Random-bits-and-pieces/fifa2022.nb.html)
+
 
 

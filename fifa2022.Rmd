@@ -1,0 +1,95 @@
+---
+title: "FIFA predictions"
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+
+
+```{r}
+library(tidyverse)
+library(lme4)
+```
+
+Predictions as of `r date()`.
+
+```{r}
+dat <- read.csv("https://fixturedownload.com/download/fifa-world-cup-2022-UTC.csv")
+dat
+```
+
+```{r}
+scores <- str_split_fixed(dat$Result, " - ", 2) |>
+  as_tibble() |>
+  rename(Home.Score = V1,
+         Away.Score = V2) |>
+  mutate_all(as.numeric)
+
+dat2 <- bind_cols(dat, scores)
+dat2
+```
+
+```{r}
+dat_long <- dat2 |>
+  rename(
+    Team.Home = Home.Team,
+    Team.Away = Away.Team,
+    Score.Home = Home.Score,
+    Score.Away = Away.Score
+  ) |>
+  pivot_longer(
+    cols = c("Score.Home", "Score.Away"),
+    names_prefix = "Score.",
+    names_to = "Where",
+    values_to = "Score"
+  ) |>
+  mutate(
+    Team      = case_when(Where == "Home" ~ Team.Home,
+                          Where == "Away" ~ Team.Away),
+    OtherTeam = case_when(Where == "Home" ~ Team.Away,
+                          Where == "Away" ~ Team.Home),
+    Team      = ifelse(Team == "To be announced", NA, Team),
+    OtherTeam = ifelse(OtherTeam == "To be announced", NA, OtherTeam),
+  ) |>
+  select(-Result)
+dat_long
+```
+
+```{r}
+dat_fit <- dat_long |>
+  filter(!is.na(Score))
+```
+
+
+```{r}
+mod <- lmer(Score ~ 0 + Team + (1|OtherTeam) + (1|Match.Number), data = dat_fit)
+mod
+```
+
+```{r}
+drop1(mod, test = "Chisq")
+```
+
+
+
+```{r}
+fixef(mod) |> sort()
+```
+
+
+```{r}
+dat_pred <- dat_long |>
+  filter(is.na(Score) & !is.na(Team))
+dat_pred
+```
+
+```{r}
+dat_pred$Score <- predict(mod, newdat = dat_pred, allow.new.levels = T)
+```
+
+```{r}
+dat_pred |>
+  select(Match.Number, Date, Team, Score)
+```
+
