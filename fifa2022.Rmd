@@ -91,8 +91,16 @@ dat_pred$Score <- predict(mod, newdat = dat_pred, allow.new.levels = T) |>
   round(1)
 ```
 
+
 ```{r}
 dat_pred |>
-  select(Match.Number, Date, Team, Score)
+  select(Match.Number, Date, Team, Where, Score) |>
+  pivot_wider(names_from = Where, values_from = c(Team,Score)) |>
+  na.omit() |>
+  mutate(Score = paste0(Team_Home, " ", Score_Home, " - ", Score_Away, " ", Team_Away)) |>
+  select(Score)
 ```
+
+
+
 
