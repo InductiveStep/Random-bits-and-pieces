@@ -84,8 +84,11 @@ dat_pred <- dat_long |>
 dat_pred
 ```
 
+## Predictions
+
 ```{r}
-dat_pred$Score <- predict(mod, newdat = dat_pred, allow.new.levels = T)
+dat_pred$Score <- predict(mod, newdat = dat_pred, allow.new.levels = T) |>
+  round(1)
 ```
 
 ```{r}
