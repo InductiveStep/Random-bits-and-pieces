@@ -21,7 +21,7 @@ dat
 
 ```{r}
 scores <- str_split_fixed(dat$Result, " - ", 2) |>
-  as_tibble() |>
+  as.data.frame() |>
   rename(Home.Score = V1,
          Away.Score = V2) |>
   mutate_all(as.numeric)
@@ -63,19 +63,15 @@ dat_fit <- dat_long |>
 
 
 ```{r}
-mod <- lmer(Score ~ 0 + Team + (1|OtherTeam) + (1|Match.Number), data = dat_fit)
-mod
+mod <- glmer.nb(Score ~ 0 + Team + (1|OtherTeam),
+        data = dat_fit,
+        verbose=TRUE)
 ```
 
 ```{r}
-drop1(mod, test = "Chisq")
+summary(mod)
 ```
 
-
-
-```{r}
-fixef(mod) |> sort()
-```
 
 
 ```{r}
@@ -87,17 +83,22 @@ dat_pred
 ## Predictions
 
 ```{r}
-dat_pred$Score <- predict(mod, newdat = dat_pred, allow.new.levels = T) |>
+dat_pred$Score <-
+  predict(mod,
+          newdat = dat_pred,
+          allow.new.levels = FALSE,
+          type = "response") |>
   round(1)
 ```
 
 
-```{r}
+```{r paged.print=FALSE}
 dat_pred |>
   select(Match.Number, Date, Team, Where, Score) |>
   pivot_wider(names_from = Where, values_from = c(Team,Score)) |>
   na.omit() |>
-  mutate(Score = paste0(Team_Home, " ", Score_Home, " - ", Score_Away, " ", Team_Away)) |>
+  mutate(Score = paste0(Team_Home, " ", Score_Home, " - ",
+                        Score_Away, " ", Team_Away)) |>
   select(Score)
 ```
 
