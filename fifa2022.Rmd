@@ -1,5 +1,6 @@
 ---
 title: "FIFA predictions"
+author: AndiF
 output: 
   html_notebook: 
     code_folding: none
@@ -63,10 +64,18 @@ dat_fit <- dat_long |>
 
 
 ```{r}
-mod <- glmer.nb(Score ~ 0 + Team + (1|OtherTeam),
+mod <- glmer(Score ~ 0 + Team + (1|OtherTeam),
         data = dat_fit,
-        verbose=TRUE)
+        verbose=TRUE,
+        family = poisson)
 ```
+
+```{r}
+drop1(mod, test = "Chi")
+```
+
+LOL -- it's not a very good model, but it's a large number of teams for a relatively small number of matches so probably why.
+
 
 ```{r}
 summary(mod)
@@ -86,7 +95,7 @@ dat_pred
 dat_pred$Score <-
   predict(mod,
           newdat = dat_pred,
-          allow.new.levels = FALSE,
+          re.form = ~ 0,
           type = "response") |>
   round(1)
 ```
@@ -95,7 +104,7 @@ dat_pred$Score <-
 ```{r paged.print=FALSE}
 dat_pred |>
   select(Match.Number, Date, Team, Where, Score) |>
-  pivot_wider(names_from = Where, values_from = c(Team,Score)) |>
+  pivot_wider(names_from = Where, values_from = c(Team, Score)) |>
   na.omit() |>
   mutate(Score = paste0(Team_Home, " ", Score_Home, " - ",
                         Score_Away, " ", Team_Away)) |>
