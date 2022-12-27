@@ -6,7 +6,7 @@ output:
     code_folding: none
 ---
 
-Just learned about the {rhymer} package and thought, I know what the world needs, a quick way to mutilate any poem by replacing marked words with another word that rhymes with it.
+Just learned about the {rhymer} package and thought, I know what the world needs, a quick way to mutilate any poem by replacing marked words with words that rhyme with them.
 
 
 ```{r}
@@ -16,8 +16,7 @@ library(tidytext)
 ```
 
 
-Number the verses (and title):
-
+Number the verses (and title) -- for ease of printing later:
 
 ```{r}
 verse_nums <- function(raw_text) {
@@ -92,7 +91,7 @@ rhymed_words <- function(in_words, search_limit, verbose = FALSE) {
 ```
 
 
-The main workhorse:
+This mutilates the poem and glues it together again. The sequence of `gsub`s makes me think there's an easier way to undo the tokenisation.
 
 ```{r}
 mutilate_poem <- function(raw_text, search_limit) {
@@ -179,5 +178,31 @@ it’s always ourselves we find in the @sea"
 ```{r}
 maggie_et_al |> mutilate_poem(5) |> print_poem()
 ```
+
+Sometimes it works better than others...
+
+```{r}
+"This Be The @Verse
+
+They @fuck you up, your @mum and @dad.   
+    They may not @mean to, but they @do.   
+They @fill you with the @faults they had
+    And add some extra, just for you.
+
+But they were @fucked up in their turn
+    By fools in old-style @hats and @coats,   
+Who half the time were @soppy @stern
+    And half at one another’s @throats.
+
+Man @hands on misery to man.
+    It @deepens like a coastal @shelf.
+Get out as early as you can,
+    And don’t have any @kids yourself." |>
+  mutilate_poem(20) |>
+  print_poem()
+```
+
+
+
 
 
