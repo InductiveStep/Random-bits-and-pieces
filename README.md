@@ -18,5 +18,4 @@ These are incomplete code fragments:
 
 [FIFA 2022 predictions](https://inductivestep.github.io/Random-bits-and-pieces/fifa2022.nb.html)
 
-
-
+[Mutilate poems](https://inductivestep.github.io/Random-bits-and-pieces/poetry_rhymer.nb.html)

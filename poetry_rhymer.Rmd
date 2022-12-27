@@ -1,0 +1,183 @@
+---
+title: "This Be The Fun With {rhymer}"
+author: "@Andi@tech.lgbt"
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+Just learned about the {rhymer} package and thought, I know what the world needs, a quick way to mutilate any poem by replacing marked words with another word that rhymes with it.
+
+
+```{r}
+library(rhymer)
+library(tidyverse)
+library(tidytext)
+```
+
+
+Number the verses (and title):
+
+
+```{r}
+verse_nums <- function(raw_text) {
+  is_line <- strsplit(raw_text, "\n")[[1]] != ""
+  verse_num <- rep(NA, length(is_line))
+  
+  this_verse <- 1
+  for (i in seq_along(verse_num)) {
+    if (is_line[i])
+      verse_num[i] <- this_verse
+    else
+      this_verse <- this_verse + 1
+  }
+  
+  na.omit(verse_num) |> as.vector()
+}
+```
+
+
+Tokenize:
+
+```{r}
+verse_tokens <- function(raw_text) {
+  tibble(str = raw_text) |>
+    unnest_lines(input    = str,
+                 output   = line,
+                 to_lower = FALSE) |>
+    mutate(line_i = 1:n(),
+           verse_i = verse_nums(raw_text)) |>
+    unnest_tokens(
+      input       = line,
+      output      = word,
+      to_lower    = FALSE,
+      strip_punct = FALSE
+    )
+}
+```
+
+
+The following function wanders off and finds rhymes for the @-ed words:
+
+```{r}
+rhymed_words <- function(in_words, search_limit, verbose = FALSE) {
+  rhyme_em <- which(in_words == "@") + 1
+  stopifnot(length(rhyme_em) > 0)
+  stopifnot(max(rhyme_em) <= length(in_words))
+  
+  res <- in_words
+  
+  for (i in rhyme_em) {
+    this_input  <- in_words[i]
+    this_rhymes <- get_rhyme(str_to_lower(this_input),
+                             limit = search_limit)
+    
+    stopifnot(nrow(this_rhymes) > 0)
+    this_output <- sample(this_rhymes$word, 1)
+    
+    res[i] <- case_when(
+      this_input == str_to_lower(this_input) ~ this_output,
+      this_input == str_to_title(this_input) ~ str_to_title(this_output)
+    )
+    if (verbose) {
+      cat(this_input)
+      cat(" -> ")
+      cat(res[i])
+      cat("\n")
+    }
+  }
+  
+  res
+}
+```
+
+
+The main workhorse:
+
+```{r}
+mutilate_poem <- function(raw_text, search_limit) {
+  verse_tokens(raw_text) |>
+  mutate(substituted_word = rhymed_words(word, search_limit = search_limit)) |>
+  filter(substituted_word != "@")  |>
+  group_by(verse_i, line_i) |>
+  summarise(text = str_c(substituted_word, collapse = " "), .groups = "drop") |>
+  mutate(text = gsub("\\s\\.", ".", text)) |>
+  mutate(text = gsub("\\(\\s", "\\(", text)) |>
+  mutate(text = gsub("\\s\\)", "\\)", text)) |>
+  mutate(text = gsub("\\s,", ",", text)) |>
+  mutate(text = gsub("\\s;", ";", text)) |>
+  mutate(text = gsub("\\s:", ":", text)) |>
+  mutate(text = gsub("\\s\\-\\s", "-", text))
+}
+```
+
+Print:
+
+```{r}
+print_poem <- function(lines) {
+  this_verse <- 1
+  for (r in 1:nrow(lines)) {
+    if (lines[r, ]$verse_i != this_verse) {
+      this_verse <- lines[r, ]$verse_i
+      cat("\n")
+    }
+    cat(lines[r, ]$text)
+    cat("\n")
+  }
+}
+```
+
+
+```{r}
+this_be_the_verse <- "This Be The @Verse
+
+They @fuck you up, your @mum and @dad.   
+    They may not mean to, but they do.   
+They fill you with the @faults they had
+    And add some extra, just for @you.
+
+But they were @fucked up in their turn
+    By fools in old-style @hats and @coats,   
+Who half the time were soppy @stern
+    And half at one another’s @throats.
+
+Man hands on misery to man.
+    It deepens like a coastal @shelf.
+Get out as early as you can,
+    And don’t have any @kids yourself."
+```
+
+
+```{r}
+this_be_the_verse |>
+  mutilate_poem(5) |>
+  print_poem()
+```
+
+
+```{r}
+maggie_et_al <- "maggie and milly and molly and may
+went down to the @beach(to @play one day)
+
+and maggie discovered a @shell that sang
+so sweetly she couldn’t remember her @troubles,and
+
+milly befriended a @stranded @star
+whose rays five languid fingers were;
+
+and molly was chased by a @horrible @thing
+which raced sideways while @blowing bubbles: and
+
+may came home with a smooth round @stone
+as small as a world and as large as @alone.
+
+For whatever we lose(like a @you or a @me)
+it’s always ourselves we find in the @sea"
+```
+
+
+```{r}
+maggie_et_al |> mutilate_poem(5) |> print_poem()
+```
+
+
