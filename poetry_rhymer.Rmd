@@ -61,8 +61,8 @@ The following function wanders off and finds rhymes for the @-ed words:
 ```{r}
 rhymed_words <- function(in_words, search_limit, verbose = FALSE) {
   rhyme_em <- which(in_words == "@") + 1
-  stopifnot(length(rhyme_em) > 0)
-  stopifnot(max(rhyme_em) <= length(in_words))
+  #stopifnot(length(rhyme_em) > 0)
+  #stopifnot(max(rhyme_em) <= length(in_words))
   
   res <- in_words
   
@@ -179,25 +179,25 @@ it’s always ourselves we find in the @sea"
 maggie_et_al |> mutilate_poem(5) |> print_poem()
 ```
 
-Sometimes it works better than others...
+Sometimes it works better than others... The trick seems to be to feed it back into itself, keeping words that work...
 
 ```{r}
-"This Be The @Verse
+"This Be The Worse
 
-They @fuck you up, your @mum and @dad.   
-    They may not @mean to, but they @do.   
-They @fill you with the @faults they had
-    And add some extra, just for you.
+They duck you up, your bum and dyad.
+They may not mean to, but they do.
+They fill you with the schmaltz they had
+And add some extra, just for two.
 
-But they were @fucked up in their turn
-    By fools in old-style @hats and @coats,   
-Who half the time were @soppy @stern
-    And half at one another’s @throats.
+But they were construct up in their turn
+By fools in old-style cats and anecdotes,
+Who half the time were soppy sunburn
+And half at one another’s quotes.
 
-Man @hands on misery to man.
-    It @deepens like a coastal @shelf.
+Man hands on misery to man.
+It deepens like a coastal elf.
 Get out as early as you can,
-    And don’t have any @kids yourself." |>
+And don’t have any eyelids yourself." |>
   mutilate_poem(20) |>
   print_poem()
 ```
