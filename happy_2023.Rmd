@@ -1,6 +1,8 @@
 ---
 title: "Happy 2023"
-output: html_notebook
+output: 
+  html_notebook: 
+    code_folding: none
 ---
 
 ```{r}
@@ -37,3 +39,57 @@ res |>
   paste(collapse = ", ")
 ```
 
+
+
+Added bonus, candidate for [A358693](https://oeis.org/A358693).
+
+
+
+```{r}
+library(gmp)
+```
+
+
+```{r}
+is_prime <- Vectorize(function(n) {
+  factors <- factorize(n)
+  length(factors) == 1 && factors[1] == n
+})
+```
+
+
+
+```{r paged.print=FALSE}
+res <- tibble(n = 1:15000) |>
+  mutate(div = n/digitsum(n),
+         is_square = floor(sqrt(div))^2 == div,
+         sqrt_prime = is_prime(sqrt(div)),
+         prop = is_square & sqrt_prime) |>
+  filter(prop) |>
+  mutate(i = 1:n(),
+         `a(n)` = n,
+         sqrt_div = sqrt(div)) |>
+  select(i, `a(n)`, sqrt_div)
+
+res |> print(n = Inf)
+```
+
+
+
+Someone else's nums:
+
+```{r}
+others <- c(12, 24, 36, 48, 81, 150, 225, 375, 441, 735, 882, 1014, 1452, 1521, 1815, 2023, 2028, 2178, 2312, 2535, 2601, 3549, 3610, 4046, 4332, 4335, 4624, 4913, 5054, 5415, 5491, 5780, 6069, 6137, 6358, 6647, 6936, 7581, 7942, 8664, 8959, 9386, 9522, 9747, 10092, 11532, 12321, 12615, 12696)
+```
+
+
+```{r}
+mine <- res |> pull("a(n)") |> head(length(others))
+mine
+```
+
+
+
+```{r}
+all(others == mine)
+```
