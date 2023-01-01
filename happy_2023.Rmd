@@ -1,0 +1,39 @@
+---
+title: "Happy 2023"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+digit <- function(n, i)
+  (n %% 10^(i+1) - n %% 10^i) / 10^i
+```
+
+```{r}
+digitsum <- Vectorize(function(n) {
+  digit(n, 0:floor(log10(n))) |> sum()
+})
+```
+
+```{r paged.print=FALSE}
+res <- tibble(n = 1:2500) |>
+  mutate(div = n/digitsum(n),
+         is_square = floor(sqrt(div))^2 == div) |>
+  filter(is_square) |>
+  mutate(i = 1:n(),
+         `a(n)` = n) |>
+  select(i, `a(n)`)
+
+res |> print(n = Inf)
+```
+
+```{r}
+res |>
+  filter(`a(n)` >= 2023) |>
+  pull(`a(n)`) |>
+  paste(collapse = ", ")
+```
+
