@@ -19,3 +19,5 @@ These are incomplete code fragments:
 [FIFA 2022 predictions](https://inductivestep.github.io/Random-bits-and-pieces/fifa2022.nb.html)
 
 [Mutilate poems](https://inductivestep.github.io/Random-bits-and-pieces/poetry_rhymer.nb.html)
+
+[Sex and gender in the 2021 Census](https://inductivestep.github.io/Random-bits-and-pieces/census.html)
