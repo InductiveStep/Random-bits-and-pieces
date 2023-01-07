@@ -1,12 +1,15 @@
 ---
 title: "Associations between gender and sexuality in the England and Wales 2021 Census"
 author: "@Andi@lgbt.tech"
+date: 7 Jan 2023
 output:
   html_document: 
     theme: yeti
 ---
 
-I really want to know whether your gender predicts your sexuality. ONS hasn't released the relevant crosstabs yet, so here's an approximation using variation in population counts across (lower-tier) local authorities. Beware the [ecological fallacy](https://en.wikipedia.org/wiki/Ecological_fallacy#Individual_and_aggregate_correlations), e.g., this might show that areas with more people of a particular sexuality also have more people of a particular gender, but not necessarily that they are the same people.
+ONS recently [released data](https://www.ons.gov.uk/releases/sexualorientationandgenderidentitycensus2021inenglandandwales) about sexual orientation and gender identity from Census 2021 in England and Wales
+
+I'd like to know whether your gender predicts your sexuality. ONS hasn't released the relevant crosstabs yet, so here's an approximation using variation in population counts across (lower-tier) local authorities. Beware the [ecological fallacy](https://en.wikipedia.org/wiki/Ecological_fallacy#Individual_and_aggregate_correlations), e.g., this might show that areas with more people of a particular sexuality also have more people of a particular gender, but not necessarily that they are the same people.
 
 
 ```{r message=FALSE}
