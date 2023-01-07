@@ -1,0 +1,186 @@
+---
+title: "Associations between gender and sexuality in the England and Wales 2021 Census"
+author: "@Andi@lgbt.tech"
+output:
+  html_document: 
+    theme: yeti
+---
+
+I really want to know whether your gender predicts your sexuality. ONS hasn't released the relevant crosstabs yet, so here's an approximation using variation in population counts across (lower-tier) local authorities. Beware the [ecological fallacy](https://en.wikipedia.org/wiki/Ecological_fallacy#Individual_and_aggregate_correlations), e.g., this might show that areas with more people of a particular sexuality also have more people of a particular gender, but not necessarily that they are the same people.
+
+
+```{r message=FALSE}
+library(tidyverse)
+library(car)
+```
+
+## Read in the data
+
+```{r}
+sexuality <- read.csv("census2021sexuality.csv") |>
+  rename(LA_code = Lower.Tier.Local.Authorities.Code,  
+         LA_name = Lower.Tier.Local.Authorities,        
+         sexuality_code = Sexual.orientation..9.categories..Code,
+         sexuality = Sexual.orientation..9.categories.,
+         n = Observation)
+```
+
+```{r}
+head(sexuality)
+```
+
+```{r}
+gender <- read.csv("census2021gender.csv") |>
+  rename(LA_code = Lower.Tier.Local.Authorities.Code,  
+         LA_name = Lower.Tier.Local.Authorities,        
+         gender_code = Gender.identity..8.categories..Code,
+         gender = Gender.identity..8.categories.,
+         n = Observation)
+```
+
+```{r}
+head(gender)
+```
+
+## Calculate per-milles
+
+
+```{r}
+sex_wide <- sexuality |>
+  group_by(LA_code, LA_name) |>
+  mutate(perc = n * 1000 / sum(n)) |>
+  pivot_wider(
+    id_cols = c(LA_code, LA_name),
+    names_from = sexuality,
+    values_from = perc
+  )
+```
+
+```{r}
+gender_wide <- gender |>
+  group_by(LA_code, LA_name) |>
+  mutate(perc = n * 1000 / sum(n)) |>
+  pivot_wider(
+    id_cols = c(LA_code, LA_name),
+    names_from = gender,
+    values_from = perc
+  )
+```
+
+## Glue together
+
+```{r}
+sex_gender <- full_join(sex_wide, gender_wide, by = c("LA_code", "LA_name")) |>
+  ungroup()
+```
+
+```{r}
+head(sex_gender)
+```
+
+```{r}
+names(sex_gender)
+```
+
+## OLS
+
+```{r}
+lm(
+  `Non-binary` ~ `Straight or Heterosexual` +
+    `Gay or Lesbian` +
+    `Bisexual` + `Pansexual` + Queer + Asexual,
+  data = sex_gender) |>
+  confint() |> round(2)
+```
+
+LAs with more queer and asexual people have more nonbinary people.
+
+```{r}
+lm(
+  `Trans man` ~ `Straight or Heterosexual` +
+    `Gay or Lesbian` +
+    `Bisexual` + `Pansexual` + Queer + Asexual,
+  data = sex_gender) |>
+  confint() |> round(2)
+```
+
+Areas with more pansexual people and fewer queer and asexual people have more trans men.
+
+```{r}
+lm(
+  `Trans woman` ~ `Straight or Heterosexual` +
+    `Gay or Lesbian` +
+    `Bisexual` + `Pansexual` + Queer + Asexual,
+  data = sex_gender) |>
+  confint() |> round(2)
+```
+
+Areas with more pansexual people and fewer queer and asexual people also have more trans women.
+
+
+
+## A picture
+
+Let's try to get this in one diagram.
+
+
+```{r message=FALSE}
+library(MPsychoR)
+library(qgraph)
+```
+
+
+```{r}
+forcors <- sex_gender |>
+  select(`Straight or Heterosexual`:`All other gender identities`) |>
+  select(-c(ends_with(".x"), ends_with(".y"))) |>
+  rename(
+    Het = "Straight or Heterosexual",
+    GL  = "Gay or Lesbian",
+    Bi  = "Bisexual",
+    Pan = "Pansexual",
+    Ace = "Asexual",
+    Q   = "Queer",
+    Osx = "All other sexual orientations",
+    Cis = "Gender identity the same as sex registered at birth",
+    NCI = "Gender identity different from sex registered at birth but no specific identity given",
+    TM  = "Trans man",
+    TW  = "Trans woman",
+    NBi = "Non-binary",
+    Ogn = "All other gender identities"
+  ) |>
+  select(-c(Osx,NCI,Ogn))
+```
+
+```{r}
+names(forcors)
+```
+
+```{r}
+cors <- cor(forcors)
+```
+
+
+```{r dpi=600}
+qgraph(
+  cors,
+  palette = "ggplot2",
+  layout = "spring",
+  graph = "glasso",
+  sampleSize = nrow(sex_gender),
+  threshold = TRUE
+)
+```
+
+* Het = Straight or Heterosexual
+* GL  = Gay or Lesbian
+* Bi  = Bisexual
+* Pan = Pansexual
+* Ace = Asexual
+* Q   = Queer
+* Cis = Gender identity the same as sex registered at birth
+* TM  = Trans man
+* TW  = Trans woman
+* NBi = Non-binary
+
+
