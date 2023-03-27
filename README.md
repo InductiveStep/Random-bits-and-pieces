@@ -21,3 +21,8 @@ These are incomplete code fragments:
 [Mutilate poems](https://inductivestep.github.io/Random-bits-and-pieces/poetry_rhymer.nb.html)
 
 [Sex and gender in the 2021 Census](https://inductivestep.github.io/Random-bits-and-pieces/census.html)
+
+[Matching with replacement](https://inductivestep.github.io/Random-bits-and-pieces/match_replacement.nb.html)
+
+
+
