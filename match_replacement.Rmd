@@ -57,8 +57,6 @@ m1
 summary(m1)
 ```
 
-
-
 ```{r}
 m1mat <- get_matches(m1)
 head(m1mat)
@@ -68,13 +66,9 @@ head(m1mat)
 nrow(lalonde)
 ```
 
-
 ```{r}
 nrow(m1mat)
 ```
-
-
-
 
 ```{r}
 m1fit <- lm(re78 ~ treat * (age + educ + race + married + nodegree + 
@@ -98,7 +92,7 @@ avg_comparisons(m1fit,
 
 ## Try homemade kernel matching
 
-First get the propensity scores
+First, get the propensity scores:
 
 
 ```{r}
@@ -127,7 +121,7 @@ epan <- function(x) {
 curve(epan(x), -4, 4)
 ```
 
-I'll want to rescale variables on an arbitary range to [-1, 1]
+I'll want to rescale variables on an arbitrary range to [-1, 1]
 
 ```{r}
 rescale <- function(x, in_min, in_max, out_min, out_max) {
@@ -219,5 +213,3 @@ avg_comparisons(outfit,
 ```
 
 Looks vaguely sensible, e.g., the SE isn't minuscule.
-
-
