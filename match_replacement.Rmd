@@ -1,0 +1,223 @@
+---
+title: "Andi does Epanechnikov kernel matching for lolz"
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+```{r}
+library(MatchIt)
+library(tidyverse)
+library(marginaleffects)
+library(sandwich)
+```
+
+Sample data:
+
+```{r}
+data(lalonde)
+```
+
+Take a peek:
+
+```{r}
+head(lalonde)
+```
+
+Follow through with an example:
+
+```{r}
+m0 <- matchit(
+  treat ~ age + educ + race + married + nodegree + re74 + re75,
+  data = lalonde,
+  method = NULL,
+  distance = "glm"
+)
+```
+
+```{r}
+summary(m0)
+```
+1:1 matching:
+
+```{r}
+m1 <- matchit(
+  treat ~ age + educ + race + married + nodegree + re74 + re75,
+  data = lalonde,
+  method = "nearest",
+  distance = "glm",
+  replace = TRUE,
+  caliper = 0.2,
+  ratio = 1
+)
+m1
+```
+
+```{r}
+summary(m1)
+```
+
+
+
+```{r}
+m1mat <- get_matches(m1)
+head(m1mat)
+```
+
+```{r}
+nrow(lalonde)
+```
+
+
+```{r}
+nrow(m1mat)
+```
+
+
+
+
+```{r}
+m1fit <- lm(re78 ~ treat * (age + educ + race + married + nodegree + 
+             re74 + re75), data = m1mat, weights = weights)
+m1fit |> summary()
+```
+
+```{r}
+head(m1mat)
+```
+
+
+```{r}
+avg_comparisons(m1fit,
+                variables = "treat",
+                vcov = ~subclass + id,
+                newdata = subset(m1mat, treat == 1),
+                wts = "weights")
+```
+
+
+## Try homemade kernel matching
+
+First get the propensity scores
+
+
+```{r}
+glm1 <-
+  glm(
+    treat ~ age + educ + race + married + nodegree + re74 + re75,
+    data = lalonde,
+    family = binomial
+  )
+lalonde$ps <- predict(glm1, type = "response")
+```
+
+```{r}
+boxplot(ps ~ treat, data = lalonde)
+```
+
+The Epanechnikov kernel:
+
+```{r}
+epan <- function(x) {
+  (3/4)*(1-x^2)*(abs(x)<=1)
+}
+```
+
+```{r}
+curve(epan(x), -4, 4)
+```
+
+I'll want to rescale variables on an arbitary range to [-1, 1]
+
+```{r}
+rescale <- function(x, in_min, in_max, out_min, out_max) {
+  out_min + ((x - in_min)*(out_max - out_min)/(in_max - in_min))
+}
+```
+
+```{r}
+rescale(-0.2, -0.2, 0.2, -1, 1)
+```
+
+
+This produces a LONG dataset:
+
+```{r}
+kmatch <- function(dat, radius, treat_var, ps_var) {
+  res <- data.frame()
+  
+  temp <- dat |>
+    mutate(.id = 1:n())
+  
+  treats <- temp |>
+    filter(!!sym(treat_var) == 1)
+  controls <- temp |>
+    filter(!!sym(treat_var) == 0)
+  
+  for (r in 1:nrow(treats)) {
+    cur_row <- treats[r,]
+    target_ps <- as.numeric(cur_row[ps_var])
+    
+    matches <- controls |> 
+      filter(!!sym(ps_var) > target_ps - radius &
+             !!sym(ps_var) < target_ps + radius) |>
+      mutate(.dist = abs(target_ps - !!sym(ps_var)),
+             .distnorm = rescale(.dist, -radius, radius, -1, 1),
+             .epan = epan(.distnorm),
+             .wt = .epan/sum(.epan))
+    
+    if (nrow(matches) >= 1) {
+      cur_row$.class <- r
+      cur_row$.wt    <- 1
+      matches$.class <- r
+    
+      res <- bind_rows(res, cur_row, matches)
+    }
+  }
+  
+  res
+}
+```
+
+
+```{r}
+outdat <- kmatch(dat = lalonde, treat_var = "treat", radius = 0.05, ps_var = "ps")
+```
+
+
+Weights within a class sum to 1:
+
+```{r}
+outdat |>
+  group_by(.class)|>
+  filter(treat == 0) |>
+  summarise(sum(.wt))
+```
+
+
+The outcome model:
+
+```{r}
+outfit <- lm(re78 ~ treat * (age + educ + race + married + nodegree + 
+             re74 + re75), data = outdat, weights = .wt)
+```
+
+Don't trust this - the sample size is wildly inflated:
+
+```{r}
+summary(outfit)
+```
+
+Now estimate ATT with errors clustered by subclass and ID:
+
+```{r}
+avg_comparisons(outfit,
+                variables = "treat",
+                vcov = ~.class + .id,
+                newdata = subset(outdat, treat == 1),
+                wts = ".wt")
+```
+
+Looks vaguely sensible, e.g., the SE isn't minuscule.
+
+
