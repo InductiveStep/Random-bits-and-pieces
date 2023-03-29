@@ -1,5 +1,7 @@
 ---
 title: "Andi does Epanechnikov kernel matching for lolz"
+author: Andi
+date: 27 March 2023
 output: 
   html_notebook: 
     code_folding: none
@@ -105,9 +107,15 @@ glm1 <-
 lalonde$ps <- predict(glm1, type = "response")
 ```
 
+
 ```{r}
-boxplot(ps ~ treat, data = lalonde)
+lalonde %>%
+  ggplot(aes(x = ps, fill = factor(treat))) +
+  geom_density(alpha = .4) + 
+  labs(x = "Propensity Scores", y = "Density", fill = "") 
 ```
+
+
 
 The Epanechnikov kernel:
 
@@ -118,7 +126,7 @@ epan <- function(x) {
 ```
 
 ```{r}
-curve(epan(x), -4, 4)
+curve(epan(x), -4, 4, n = 1001)
 ```
 
 I'll want to rescale variables on an arbitrary range to [-1, 1]
@@ -130,7 +138,7 @@ rescale <- function(x, in_min, in_max, out_min, out_max) {
 ```
 
 ```{r}
-rescale(-0.2, -0.2, 0.2, -1, 1)
+rescale(seq(-0.3, 0.3, .1), -0.2, 0.2, -1, 1) |> round(2)
 ```
 
 
@@ -140,29 +148,33 @@ This produces a LONG dataset:
 kmatch <- function(dat, radius, treat_var, ps_var) {
   res <- data.frame()
   
+  # Give each observation a unique ID, for the SE calc later
   temp <- dat |>
     mutate(.id = 1:n())
   
   treats <- temp |>
     filter(!!sym(treat_var) == 1)
   controls <- temp |>
-    filter(!!sym(treat_var) == 0)
+    filter(!!sym(treat_var) == 0) |>
+    arrange(!!sym(ps_var)) # hopefully speeds up filter
   
+  # work through treat obs and find matches
   for (r in 1:nrow(treats)) {
     cur_row <- treats[r,]
     target_ps <- as.numeric(cur_row[ps_var])
     
+    # note the strictly less/greater than
     matches <- controls |> 
       filter(!!sym(ps_var) > target_ps - radius &
              !!sym(ps_var) < target_ps + radius) |>
       mutate(.dist = abs(target_ps - !!sym(ps_var)),
              .distnorm = rescale(.dist, -radius, radius, -1, 1),
              .epan = epan(.distnorm),
-             .wt = .epan/sum(.epan))
+             .wt = .epan/sum(.epan)) # weights sum to 1 within a class
     
     if (nrow(matches) >= 1) {
       cur_row$.class <- r
-      cur_row$.wt    <- 1
+      cur_row$.wt    <- 1 # treat obs gets weight 1
       matches$.class <- r
     
       res <- bind_rows(res, cur_row, matches)
@@ -179,24 +191,27 @@ outdat <- kmatch(dat = lalonde, treat_var = "treat", radius = 0.05, ps_var = "ps
 ```
 
 
-Weights within a class sum to 1:
+Check that weights within a class sum to 1:
 
 ```{r}
 outdat |>
   group_by(.class)|>
   filter(treat == 0) |>
-  summarise(sum(.wt))
+  summarise(sums = sum(.wt)) |>
+  pull(sums) |>
+  summary()
 ```
 
+All good.
 
-The outcome model:
+The outcome model, as advised by MatchIt author(s). Note interaction between treat and covariates. This is a doubly-robust approach. Leave out the covariates if you don't want that.
 
 ```{r}
 outfit <- lm(re78 ~ treat * (age + educ + race + married + nodegree + 
              re74 + re75), data = outdat, weights = .wt)
 ```
 
-Don't trust this - the sample size is wildly inflated:
+Don't trust this -- the sample size is wildly inflated:
 
 ```{r}
 summary(outfit)
