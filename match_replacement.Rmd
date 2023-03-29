@@ -228,3 +228,4 @@ avg_comparisons(outfit,
 ```
 
 Looks vaguely sensible, e.g., the SE isn't minuscule.
+
