@@ -1,5 +1,5 @@
 ---
-title: "Andi does Epanechnikov kernel matching for lolz"
+title: "Epanechnikov kernel matching experiment"
 author: Andi
 date: 27 March 2023
 output: 
@@ -26,7 +26,9 @@ Take a peek:
 head(lalonde)
 ```
 
-Follow through with an example:
+# Beginning with something easy on MatchIt
+
+Follow through with an example -- this is the non-matching:
 
 ```{r}
 m0 <- matchit(
@@ -40,7 +42,7 @@ m0 <- matchit(
 ```{r}
 summary(m0)
 ```
-1:1 matching:
+5:1 nearest neighbor matching with replacement:
 
 ```{r}
 m1 <- matchit(
@@ -50,7 +52,7 @@ m1 <- matchit(
   distance = "glm",
   replace = TRUE,
   caliper = 0.2,
-  ratio = 1
+  ratio = 5
 )
 m1
 ```
@@ -204,14 +206,14 @@ outdat |>
 
 All good.
 
-The outcome model, as advised by MatchIt author(s). Note interaction between treat and covariates. This is a doubly-robust approach. Leave out the covariates if you don't want that.
+The outcome model, as advised by MatchIt author(s) for another approach using matching with replacement. Note interaction between treat and covariates. This is a doubly-robust approach. Leave out the covariates if you don't want that.
 
 ```{r}
 outfit <- lm(re78 ~ treat * (age + educ + race + married + nodegree + 
              re74 + re75), data = outdat, weights = .wt)
 ```
 
-Don't trust this -- the sample size is wildly inflated:
+Don't trust this -- the sample size is wildly inflated and the SEs don't yet take this into account:
 
 ```{r}
 summary(outfit)
