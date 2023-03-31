@@ -7,11 +7,12 @@ output:
     code_folding: none
 ---
 
-```{r}
-library(MatchIt)
+```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(marginaleffects)
 library(sandwich)
+library(cobalt)
+library(tictoc)
 ```
 
 Sample data:
@@ -26,82 +27,13 @@ Take a peek:
 head(lalonde)
 ```
 
-# Beginning with something easy on MatchIt
 
-Follow through with an example -- this is the non-matching:
-
-```{r}
-m0 <- matchit(
-  treat ~ age + educ + race + married + nodegree + re74 + re75,
-  data = lalonde,
-  method = NULL,
-  distance = "glm"
-)
-```
-
-```{r}
-summary(m0)
-```
-5:1 nearest neighbor matching with replacement:
-
-```{r}
-m1 <- matchit(
-  treat ~ age + educ + race + married + nodegree + re74 + re75,
-  data = lalonde,
-  method = "nearest",
-  distance = "glm",
-  replace = TRUE,
-  caliper = 0.2,
-  ratio = 5
-)
-m1
-```
-
-```{r}
-summary(m1)
-```
-
-```{r}
-m1mat <- get_matches(m1)
-head(m1mat)
-```
-
-```{r}
-nrow(lalonde)
-```
-
-```{r}
-nrow(m1mat)
-```
-
-```{r}
-m1fit <- lm(re78 ~ treat * (age + educ + race + married + nodegree + 
-             re74 + re75), data = m1mat, weights = weights)
-m1fit |> summary()
-```
-
-```{r}
-head(m1mat)
-```
-
-
-```{r}
-avg_comparisons(m1fit,
-                variables = "treat",
-                vcov = ~subclass + id,
-                newdata = subset(m1mat, treat == 1),
-                wts = "weights")
-```
-
-
-## Try homemade kernel matching
+## Homebaked kernel matching
 
 First, get the propensity scores:
 
-
 ```{r}
-glm1 <-
-  glm(
+glm1 <- glm(
     treat ~ age + educ + race + married + nodegree + re74 + re75,
     data = lalonde,
     family = binomial
@@ -116,8 +48,6 @@ lalonde %>%
   geom_density(alpha = .4) + 
   labs(x = "Propensity Scores", y = "Density", fill = "") 
 ```
-
-
 
 The Epanechnikov kernel:
 
@@ -143,8 +73,7 @@ rescale <- function(x, in_min, in_max, out_min, out_max) {
 rescale(seq(-0.3, 0.3, .1), -0.2, 0.2, -1, 1) |> round(2)
 ```
 
-
-This produces a LONG dataset:
+The tofu. This function produces a LONG dataset with control observations potentially appearing a large number of times:
 
 ```{r}
 kmatch <- function(dat, radius, treat_var, ps_var) {
@@ -188,35 +117,108 @@ kmatch <- function(dat, radius, treat_var, ps_var) {
 ```
 
 
+Run it:
+
 ```{r}
-outdat <- kmatch(dat = lalonde, treat_var = "treat", radius = 0.05, ps_var = "ps")
+tic()
+outdat <-
+  kmatch(
+    dat = lalonde,
+    treat_var = "treat",
+    radius = 0.03,
+    ps_var = "ps"
+  )
+toc()
 ```
 
+```{r}
+nrow(lalonde)
+nrow(outdat)
+```
 
-Check that weights within a class sum to 1:
+Now aggregate the weights to make it easier to check for balance. This yields the same weights as those produced by psmatch2 and kmatch.
+
+```{r}
+outdat_agg <- outdat |>
+  group_by(.id) |>
+  summarise(.sumwt = sum(.wt))
+
+widedat <- lalonde |>
+  mutate(.id = 1:n()) |>
+  right_join(outdat_agg)
+```
+
+# Count
+
+## All data
+
+```{r}
+lalonde |>
+  group_by(treat) |>
+  tally()
+```
+
+## Matched data
 
 ```{r}
 outdat |>
-  group_by(.class)|>
-  filter(treat == 0) |>
-  summarise(sums = sum(.wt)) |>
-  pull(sums) |>
-  summary()
+  group_by(treat) |>
+  summarise(unique_n = unique(.id) |> length(),
+            rep_n = .id |> length())
 ```
 
-All good.
 
-The outcome model, as advised by MatchIt author(s) for another approach using matching with replacement. Note interaction between treat and covariates. This is a doubly-robust approach. Leave out the covariates if you don't want that.
+# Check balance
 
 ```{r}
-outfit <- lm(re78 ~ treat * (age + educ + race + married + nodegree + 
-             re74 + re75), data = outdat, weights = .wt)
+bal_unadj <- bal.tab(
+  treat ~ age + educ + race + married + nodegree + re74 + re75,
+  data = lalonde,
+  binary = "std",
+  continuous = "std",
+  s.d.denom = "pooled"
+)
 ```
 
-Don't trust this -- the sample size is wildly inflated and the SEs don't yet take this into account:
+```{r}
+bal_adj <- bal.tab(
+  treat ~ age + educ + race + married + nodegree + re74 + re75,
+  data = widedat,
+  weights = ".sumwt",
+  binary = "std",
+  continuous = "std",
+  s.d.denom = "pooled"
+)
+```
 
 ```{r}
-summary(outfit)
+merge(bal_unadj$Balance |> select(-Diff.Adj,-Type),
+      bal_adj$Balance   |> select(-Diff.Un,-Type),
+      by=0, all=TRUE) |>
+  rename(Matched = Diff.Adj,
+         All     = Diff.Un) |>
+  pivot_longer(cols = -Row.names) |>
+  ggplot(aes(x = abs(value), y = factor(Row.names), color = name)) +
+  geom_point() +
+  labs(y = "",
+       x = "|SMD|",
+       color = "")
+```
+
+
+# Outcome model
+
+The outcome model, as [tentatively suggested](https://cran.r-project.org/web/packages/MatchIt/vignettes/estimating-effects.html) by MatchIt authors for another approach using matching with replacement.
+
+Note interaction between treat and covariates. This is a doubly-robust approach. Leave out the covariates if you don't want that.
+
+```{r}
+outfit <-
+  lm(
+    re78 ~ treat * (age + educ + race + married + nodegree + re74 + re75),
+    data = outdat,
+    weights = .wt
+  )
 ```
 
 Now estimate ATT with errors clustered by subclass and ID:
@@ -230,4 +232,15 @@ avg_comparisons(outfit,
 ```
 
 Looks vaguely sensible, e.g., the SE isn't minuscule.
+
+The following call replicates kmatch (no covariates, no clustering by subclass):
+
+```{r}
+avg_comparisons(lm(re78 ~ treat, data = outdat, weights = .wt),
+                variables = "treat",
+                vcov = ~ .id,
+                newdata = subset(outdat, treat == 1),
+                wts = ".wt")
+```
+
 
