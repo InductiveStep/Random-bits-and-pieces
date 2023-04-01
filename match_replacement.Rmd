@@ -1,6 +1,6 @@
 ---
 title: "Epanechnikov kernel matching experiment"
-author: Andi
+author: "Andi Fugard"
 date: 27 March 2023
 output: 
   html_notebook: 
@@ -224,23 +224,25 @@ outfit <-
 Now estimate ATT with errors clustered by subclass and ID:
 
 ```{r}
-avg_comparisons(outfit,
-                variables = "treat",
-                vcov = ~.class + .id,
-                newdata = subset(outdat, treat == 1),
-                wts = ".wt")
+avg_comparisons(
+  outfit,
+  variables = "treat",
+  vcov = ~ .class + .id,
+  newdata = subset(outdat, treat == 1),
+  wts = ".wt"
+)
 ```
-
-Looks vaguely sensible, e.g., the SE isn't minuscule.
 
 The following call replicates kmatch (no covariates, no clustering by subclass):
 
 ```{r}
-avg_comparisons(lm(re78 ~ treat, data = outdat, weights = .wt),
-                variables = "treat",
-                vcov = ~ .id,
-                newdata = subset(outdat, treat == 1),
-                wts = ".wt")
+avg_comparisons(
+  lm(re78 ~ treat, data = outdat, weights = .wt),
+  variables = "treat",
+  vcov = ~ .id,
+  newdata = subset(outdat, treat == 1),
+  wts = ".wt"
+)
 ```
 
 
