@@ -22,7 +22,7 @@ These are incomplete code fragments:
 
 [Sex and gender in the 2021 Census](https://inductivestep.github.io/Random-bits-and-pieces/census.html)
 
-[Matching with replacement](https://inductivestep.github.io/Random-bits-and-pieces/match_replacement.nb.html)
+[Matching with replacement](https://inductivestep.github.io/Random-bits-and-pieces/match_replacement.html)
 
 
 

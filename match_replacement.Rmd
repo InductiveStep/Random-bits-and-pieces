@@ -1,9 +1,11 @@
 ---
 title: "Epanechnikov kernel matching experiment"
 author: "Andi Fugard"
-date: 27 March 2023
-output: 
-  html_notebook: 
+date: "27 March 2023"
+output:
+  html_document:
+    df_print: paged
+  html_notebook:
     code_folding: none
 ---
 
@@ -14,6 +16,8 @@ library(sandwich)
 library(cobalt)
 library(tictoc)
 ```
+
+Use the code below at your own risk! I primarily wrote this to try to get my head around what `kmatch` is doing in Stata.
 
 Sample data:
 
@@ -57,7 +61,7 @@ epan <- function(x) {
 }
 ```
 
-```{r}
+```{r dpi=300}
 curve(epan(x), -4, 4, n = 1001)
 ```
 
@@ -136,7 +140,7 @@ nrow(lalonde)
 nrow(outdat)
 ```
 
-Now aggregate the weights to make it easier to check for balance. This yields the same weights as those produced by psmatch2 and kmatch.
+Now aggregate the weights to make it easier to check for balance. This yields the same weights as those produced by `psmatch2` and `kmatch` and each control observation appears only one.
 
 ```{r}
 outdat_agg <- outdat |>
@@ -192,13 +196,20 @@ bal_adj <- bal.tab(
 ```
 
 ```{r}
-merge(bal_unadj$Balance |> select(-Diff.Adj,-Type),
+summary_tab <- merge(bal_unadj$Balance |> select(-Diff.Adj,-Type),
       bal_adj$Balance   |> select(-Diff.Un,-Type),
       by=0, all=TRUE) |>
-  rename(Matched = Diff.Adj,
-         All     = Diff.Un) |>
-  pivot_longer(cols = -Row.names) |>
-  ggplot(aes(x = abs(value), y = factor(Row.names), color = name)) +
+  rename(Matched  = Diff.Adj,
+         All      = Diff.Un,
+         Variable = Row.names)
+summary_tab
+```
+
+
+```{r dpi=300}
+summary_tab |>
+  pivot_longer(cols = -Variable) |>
+  ggplot(aes(x = abs(value), y = factor(Variable), color = name)) +
   geom_point() +
   labs(y = "",
        x = "|SMD|",
@@ -208,7 +219,7 @@ merge(bal_unadj$Balance |> select(-Diff.Adj,-Type),
 
 # Outcome model
 
-The outcome model, as [tentatively suggested](https://cran.r-project.org/web/packages/MatchIt/vignettes/estimating-effects.html) by MatchIt authors for another approach using matching with replacement.
+The outcome model, as [tentatively suggested](https://cran.r-project.org/web/packages/MatchIt/vignettes/estimating-effects.html) by `MatchIt` authors for another approach using matching with replacement: "There is some evidence for an alternative approach that incorporates pair membership and adjusts for reuse of control units, though this has only been studied for survival outcomes."
 
 Note interaction between treat and covariates. This is a doubly-robust approach. Leave out the covariates if you don't want that.
 
@@ -233,7 +244,7 @@ avg_comparisons(
 )
 ```
 
-The following call replicates kmatch (no covariates, no clustering by subclass):
+The following call replicates `kmatch` (no covariates, no clustering by subclass):
 
 ```{r}
 avg_comparisons(
