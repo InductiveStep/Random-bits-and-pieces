@@ -1,0 +1,43 @@
+---
+title: "{ggflowchart} test"
+author: Andi Fugard
+date: 15 May 2023
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+```{r}
+library(ggflowchart)
+library(tidyverse)
+```
+
+
+
+```{r}
+dat <- read.csv(text = "from,to
+Let's get started,The end
+Let's get started,Another ending
+Another start,The end")
+```
+
+
+```{r}
+ggflowchart(dat)
+```
+
+
+```{r}
+dat2 <- read.csv(text = "from,to,type
+Another start,The end,One route
+Let's get started,The end,Another
+Let's get started,Another ending,Hmmm
+Another ending,Really this time,Hmmm") |>
+  mutate(name = 1:n() |> as.character())
+```
+
+To do: add colours below.
+
+```{r}
+ggflowchart(dat2, node_data = dat2, horizontal = TRUE) 
+```
