@@ -36,7 +36,7 @@ Another ending,Really this time,Hmmm") |>
   mutate(name = 1:n() |> as.character())
 ```
 
-To do: add colours below.
+To do: add colours below...
 
 ```{r}
 ggflowchart(dat2, node_data = dat2, horizontal = TRUE) 
