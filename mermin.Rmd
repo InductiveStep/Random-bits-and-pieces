@@ -34,7 +34,7 @@ One way to make this work is to assume the particles somehow encode what the mea
 
 In this way, it's easy to see that the same light will flash at the two detectors when the measurement settings are the same.
 
-Now suppose each measurement setting is chosen with equal probability. What happens when the settings are different?
+Now suppose each measurement setting is chosen randomly with equal probability and the settings at *A* and *B* are independent. What happens when the settings are different?
 
 Here's the setup. `a` and `b` give the measurement settings at *A* and *B*. `o1`, `o2`, and `o3`, give the outcome for the three measurement settings. The R code below generates all 72 possibilities from the $2^3 = 8$ possible particle setups and the $3^2 = 9$ different combinations of measurement settings at *A* and *B*.
 
