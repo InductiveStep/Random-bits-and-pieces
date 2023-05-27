@@ -28,7 +28,7 @@ If you can read bra--ket notation, then the quantum state of the particles fired
 
 $$|\psi\rangle = \frac{|RR\rangle + |GG\rangle}{\sqrt{2}}$$
 
-What this means in words is that when the measurement settings on *A* and *B* are the same, e.g., both 1 or both 2, then the same lights always flash on *A* and *B* when the particles arrive. They are either both red or both green, with equal probability. Otherwise, sometimes they flash the same colour and other times they flash different colours.
+What this means in words is that when the measurement settings on *A* and *B* are the same, e.g., both 1 or both 2, then the same lights always flash on *A* and *B* when the particles arrive. They are either both red or both green, with equal probability. If the measurement settings are different, sometimes the lights flash the same colour and other times they flash different colours.
 
 One way to make this work is to assume the particles somehow encode what the measurement outcome will be for each of the three settings. The particles heading left and right would then encode the same information. We can write this as a three-character string. *RGR* would denote that the outcome is red for setting 1, green for setting 2, and red for setting 3.
 
@@ -36,7 +36,7 @@ In this way, it's easy to see that the same light will flash at the two detector
 
 Now suppose each measurement setting is chosen randomly with equal probability and the settings at *A* and *B* are independent. What happens when the settings are different?
 
-Here's the setup. `a` and `b` give the measurement settings at *A* and *B*. `o1`, `o2`, and `o3`, give the outcome for the three measurement settings. The R code below generates all 72 possibilities from the $2^3 = 8$ possible particle setups and the $3^2 = 9$ different combinations of measurement settings at *A* and *B*.
+Here's the setup. `a` and `b` give the measurement settings at *A* and *B*. `o1`, `o2`, and `o3`, give the outcome for the three measurement settings (so concatenating them together gives the three-character string). The R code below generates all 72 possibilities from the $2^3 = 8$ possible particle setups and the $3^2 = 9$ different combinations of measurement settings at *A* and *B*.
 
 ```{r}
 dat <- expand.grid(
