@@ -1,0 +1,108 @@
+---
+title: "Mermin's (1981) variant on the Bell experiments in R"
+author: Andi Fugard
+date: 27 May 2023
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+```{r warning=FALSE}
+library(tidyverse)
+```
+
+
+Entanglement is the weirdest feature of quantum mechanics. David Mermin (1981) provides an accessible introduction to experiments showing that local determinism doesn't hold in the quantum world. This post shows the sums in R. It's probably only going to make sense if you have been here before, but hadn't got around to doing the sums yourself (that was me, before writing this today!).
+
+I'm not going to attempt to explain what Einstein, Podolsky, and Rosen, and Bell and others did or didn't say. Good luck wading into the lit.
+
+First, a diagram of the setup (Mermin, 1981, p. 400):
+
+![](mermin_device.png)
+
+
+We have a device, *C*, that fires out two entangled particles to detectors *A* and *B*. The detectors have three measurement settings, 1, 2, and 3, and two lights, red (R) and green (G) which signal the measurement outcome. *A* and *B* do not communicate with each other in any way and it is assumed that the measurement settings are independent of each other.
+
+If you can read bra--ket notation, then the quantum states of the particles fired out by *C* are as follows:
+
+
+$$|\psi\rangle = \frac{|RR\rangle + |GG\rangle}{\sqrt{2}}$$
+
+What this means in words is that when the measurement settings on *A* and *B* are the same, e.g., both 1 or both 2, then the same lights always flash on *A* and *B* when the particles arrive, i.e., they are both red or both green. Otherwise, sometimes they flash the same colour and other times they flash different colours.
+
+One way to make this work is to assume the particles somehow encode what the measurement outcome will be for each of the three settings. The particles heading left and right would then encode the same information. We can write this as a three-character string. *RGR* would denote that the outcome is red for setting 1, green for setting 2, and red for setting 3.
+
+In this way, it's easy to see that the same light will flash at the two detectors when the measurement settings are the same.
+
+Now suppose each measurement setting is chosen with equal probability. What happens when the settings are different?
+
+Here's the setup. `a` and `b` give the measurement settings at *A* and *B*. `o1`, `o2`, and `o3`, give the outcome for the three measurement settings. The R code below generates all 72 possibilities from the $2^3 = 8$ possible particle setups and the $3^2 = 9$ different combinations of measurement settings at *A* and *B*.
+
+```{r}
+dat <- expand.grid(
+  a = 1:3,
+  b = 1:3,
+  o1 = c("R", "G"),
+  o2 = c("R", "G"),
+  o3 = c("R", "G")
+) |>
+  mutate(A = case_when(a == 1 ~ o1,
+                       a == 2 ~ o2,
+                       a == 3 ~ o3),
+         B = case_when(b == 1 ~ o1,
+                       b == 2 ~ o2,
+                       b == 3 ~ o3),
+         same = A == B)
+dat
+```
+
+Now we can see how the probability of getting the same outcome depends on whether the measurement settings are the same:
+
+```{r}
+dat |>
+  group_by(a == b) |>
+  summarise(`P(Same outcome)` = mean(same))
+```
+
+The outcomes are always the same if the settings are the same and have a 50--50 chance of being the same if the settings are different.
+
+Across all runs, the probability that the outcomes are the same is $2/3$:
+
+```{r}
+dat |>
+  summarise(`P(Same outcome)` = mean(same))
+```
+
+This differs from the empirical findings from actual experiments where the measurement settings rotate the measurement bases of the two detectors (see the voluminous lit for more explanation). The probability that the outcomes are the same is given by $\cos^2(\theta)$, where $\theta$ is the difference in the angles of the bases.
+
+Following Mermin (1981), we choose angles $0^{\circ}$, $-120^{\circ}$, and $120^{\circ}$ for the three measurement settings. `ang_diff` gives the difference in the angles.
+
+Here is a table of the outcomes:
+
+```{r}
+dat_actual <- expand.grid(a = c(-120,0,120), b = c(-120,0,120)) |>
+  mutate(ang_diff = b - a,
+         `P(Same outcome)` = cos(2*pi*ang_diff/360)^2)
+dat_actual
+```
+
+When the settings are the same, the findings agree with local determinism: the lights always flash the same colour. However, when the settings are different, the lights are only the same on $1/4$ of trials. This is lower than the $1/2$ predicted by the local determinism setup.
+
+```{r}
+dat_actual |>
+  group_by(a == b) |>
+  summarise(`P(Same outcome)` = mean(`P(Same outcome)`))
+```
+
+Hossenfelder and Palmer (2020) would want to emphasise that the falsification of local determinism assumes that the measurement settings are statistically independent, which they argue isn't obviously true. Allowing the measurement settings to be correlated is known as *superdeterminism*.
+
+
+### References
+
+Mermin, N. D. (1981). [Quantum Mysteries for Anyone](https://www.jstor.org/stable/2026482). *The Journal of Philosophy*, *78*(7), 397--408.
+
+Hossenfelder, S., & Palmer, T. (2020). [https://doi.org/10.3389/fphy.2020.00139 Rethinking Superdeterminism]. *Frontiers in Physics*, *8*, 139.
+
+
+
+
