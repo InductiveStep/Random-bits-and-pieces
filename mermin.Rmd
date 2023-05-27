@@ -23,7 +23,7 @@ First, a diagram of the setup (Mermin, 1981, p. 400):
 
 We have a device, *C*, that fires out two entangled particles to detectors *A* and *B*. The detectors have three measurement settings, 1, 2, and 3, and two lights, red (R) and green (G) which signal the measurement outcome. *A* and *B* do not communicate with each other in any way and it is assumed that the measurement settings are independent of each other.
 
-If you can read bra--ket notation, then the quantum states of the particles fired out by *C* are as follows:
+If you can read bra--ket notation, then the quantum state of the particles fired out by *C* is as follows:
 
 
 $$|\psi\rangle = \frac{|RR\rangle + |GG\rangle}{\sqrt{2}}$$
