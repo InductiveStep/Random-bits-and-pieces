@@ -75,7 +75,7 @@ dat |>
 
 This differs from the empirical findings from actual experiments, suggesting that something else is going on.
 
-Let's view the entangled particles fired from *C* as qubits (abstracting from Mermin's discussion of Stern--Gerlach magnets). The measurement settings of *A* and *B* are then implemented as rotating the qubit entering the detector about the y-axis by using an [RY gate](https://qiskit.org/documentation/stubs/qiskit.circuit.library.RYGate.html), before measuring it.
+Let's view the entangled particles fired from *C* as qubits (abstracting from Mermin's discussion of spin-1/2 particles and Stern--Gerlach magnets). The measurement settings of *A* and *B* are then implemented as rotating the qubit entering the detector about the y-axis using an [RY gate](https://qiskit.org/documentation/stubs/qiskit.circuit.library.RYGate.html). After this rotation, we measure using the computational basis.
 
 Here's a quantum circuit with example settings:
 
