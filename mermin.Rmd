@@ -73,7 +73,7 @@ dat |>
   summarise(`P(Same outcome)` = mean(same))
 ```
 
-This differs from the empirical findings from actual experiments where the measurement settings rotate the measurement bases of the two detectors (see the voluminous lit for more explanation). The probability that the outcomes are the same is given by $\cos^2(\theta)$, where $\theta$ is the difference in the angles of the bases.
+This differs from the empirical findings from actual experiments where the measurement settings rotate the measurement bases of the two detectors (see the voluminous lit for more explanation). The probability that the outcomes are the same is given by $\cos^2(\theta/2)$, where $\theta$ is the difference in the angles of the bases.
 
 Following Mermin (1981), we choose angles $0^{\circ}$, $-120^{\circ}$, and $120^{\circ}$ for the three measurement settings. `ang_diff` gives the difference in the angles.
 
@@ -81,12 +81,13 @@ Here is a table of the outcomes:
 
 ```{r}
 dat_actual <- expand.grid(a = c(-120,0,120), b = c(-120,0,120)) |>
-  mutate(ang_diff = b - a,
-         `P(Same outcome)` = cos(2*pi*ang_diff/360)^2)
+  mutate(ang_diff          = b - a,
+         ang_diff_rads     = (ang_diff/360) * 2 * pi,
+         `P(Same outcome)` = cos(ang_diff_rads/2)^2)
 dat_actual
 ```
 
-When the settings are the same, the findings agree with local determinism: the lights always flash the same colour. However, when the settings are different, the lights are only the same on $1/4$ of trials. This is lower than the $1/2$ predicted by the local determinism setup.
+When the settings are the same, the findings agree with local determinism: the lights always flash the same colour. However, when the settings are different, the lights are the same on only $1/4$ of trials. This is lower than the $1/2$ predicted by the local determinism setup.
 
 ```{r}
 dat_actual |>
