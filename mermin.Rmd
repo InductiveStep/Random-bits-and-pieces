@@ -81,7 +81,7 @@ Here's a quantum circuit with example settings:
 
 ![](mermin_qiskit.png)
 
-The probability that the outcomes are the same at *A* and *B* is given by $\cos^2(\theta/2)$, where $\theta$ is the difference in between angles of rotations at *A* and *B*. (We're squaring because Born rule.)
+The probability that the outcomes are the same at *A* and *B* is given by $\cos^2(\theta/2)$, where $\theta$ is the difference between angles of rotations at *A* and *B*. (We're squaring because Born rule.)
 
 Following Mermin (1981), we choose angles $0^{\circ}$, $-120^{\circ}$, and $120^{\circ}$ for the three measurement settings. `ang_diff` gives the difference in the angles (in degrees; `ang_diff_rads` is the same in radians).
 
