@@ -21,7 +21,7 @@ First, a diagram of the setup (Mermin, 1981, p. 400):
 ![](mermin_device.png)
 
 
-We have a device, *C*, that fires out two entangled particles to detectors *A* and *B*. The detectors have three measurement settings, 1, 2, and 3, and two lights, red (R) and green (G) which signal the measurement outcome. *A* and *B* do not communicate with each other in any way and it is assumed that the measurement settings are independent of each other.
+We have a device, *C*, that fires out two entangled particles to detectors *A* and *B*. The detectors have three measurement settings, 1, 2, and 3, and two lights, red (R) and green (G), which indicate the measurement outcome. *A* and *B* do not communicate with each other in any way and it is assumed that the measurement settings are independent of each other.
 
 If you can read bra--ket notation, then the quantum state of the particles fired out by *C* is as follows:
 
@@ -30,7 +30,7 @@ $$|\psi\rangle = \frac{|RR\rangle + |GG\rangle}{\sqrt{2}}$$
 
 What this means in words is that when the measurement settings on *A* and *B* are the same, e.g., both 1 or both 2, then the same lights always flash on *A* and *B* when the particles arrive. They are either both red or both green, with equal probability. If the measurement settings are different, sometimes the lights flash the same colour and other times they flash different colours.
 
-One way to make this work is to assume the particles somehow encode what the measurement outcome will be for each of the three settings. The particles heading left and right would then encode the same information. We can write this as a three-character string. *RGR* would denote that the outcome is red for setting 1, green for setting 2, and red for setting 3.
+One way to make this work is to assume the particles somehow encode what the measurement outcome will be for each of the three settings (local determinism). The particles heading left and right would then encode the same information. We can write this as a three-character string. *RGR* would denote that the outcome is red for setting 1, green for setting 2, and red for setting 3.
 
 In this way, it's easy to see that the same light will flash at the two detectors when the measurement settings are the same.
 
@@ -73,9 +73,17 @@ dat |>
   summarise(`P(Same outcome)` = mean(same))
 ```
 
-This differs from the empirical findings from actual experiments where the measurement settings rotate the measurement bases of the two detectors (see the voluminous lit for more explanation). The probability that the outcomes are the same is given by $\cos^2(\theta/2)$, where $\theta$ is the difference in the angles of the bases.
+This differs from the empirical findings from actual experiments, suggesting that something else is going on.
 
-Following Mermin (1981), we choose angles $0^{\circ}$, $-120^{\circ}$, and $120^{\circ}$ for the three measurement settings. `ang_diff` gives the difference in the angles.
+Let's view the entangled particles fired from *C* as qubits (abstracting from Mermin's discussion of Stern--Gerlach magnets). The measurement settings of *A* and *B* are then implemented as rotating the qubit entering the detector about the y-axis by using an [RY gate](https://qiskit.org/documentation/stubs/qiskit.circuit.library.RYGate.html), before measuring it.
+
+Here's a quantum circuit with example settings:
+
+![](mermin_qiskit.png)
+
+The probability that the outcomes are the same at *A* and *B* is given by $\cos^2(\theta/2)$, where $\theta$ is the difference in between angles of rotations at *A* and *B*. (We're squaring because Born rule.)
+
+Following Mermin (1981), we choose angles $0^{\circ}$, $-120^{\circ}$, and $120^{\circ}$ for the three measurement settings. `ang_diff` gives the difference in the angles (in degrees; `ang_diff_rads` is the same in radians).
 
 Here is a table of the outcomes:
 
@@ -87,7 +95,7 @@ dat_actual <- expand.grid(a = c(-120,0,120), b = c(-120,0,120)) |>
 dat_actual
 ```
 
-When the settings are the same, the findings agree with local determinism: the lights always flash the same colour. However, when the settings are different, the lights are the same on only $1/4$ of trials. This is lower than the $1/2$ predicted by the local determinism setup.
+When the settings are the same at *A* and *B*, the findings agree with local determinism: the lights always flash the same colour. However, when the settings are different, the lights are the same on only $1/4$ of trials. This is lower than the $1/2$ predicted by the local determinism setup.
 
 ```{r}
 dat_actual |>
