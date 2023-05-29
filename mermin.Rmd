@@ -1,42 +1,39 @@
 ---
-title: "Mermin's (1981) variant on the Bell experiments in R"
-author: Andi Fugard
-date: 27 May 2023
+title: "Mermin's (1981) variant on the Bell experiments, in R"
+author: "[Andi Fugard](https://www.andifugard.info)"
+date: 27 May 2023 (last tweaked 29 May 2023)
 output: 
   html_notebook: 
     code_folding: none
 ---
 
-```{r message=FALSE, warning=FALSE}
-library(tidyverse)
-```
-
-
-Entanglement is the weirdest feature of quantum mechanics. David Mermin (1981) provides an accessible introduction to experiments showing that local determinism doesn't hold in the quantum world. This post shows the sums in R. It's probably only going to make sense if you have been here before, but hadn't got around to doing the sums yourself (that was me, before writing this today!).
-
-I'm not going to attempt to explain what Einstein, Podolsky, and Rosen, and Bell and others did or didn't say. Good luck wading into the lit.
+Entanglement is the weirdest feature of quantum mechanics. David Mermin (1981) provides an accessible introduction to experiments showing that local determinism doesn't hold in the quantum world. This post shows the sums in R. (I'm not going to attempt to explain what Einstein, Podolsky, and Rosen, and Bell and others did or didn't say.)
 
 First, a diagram of the setup (Mermin, 1981, p. 400):
 
 ![](mermin_device.png)
 
 
-We have a device, *C*, that fires out two entangled particles to detectors *A* and *B*. The detectors have three measurement settings, 1, 2, and 3, and two lights, red (R) and green (G), which indicate the measurement outcome. *A* and *B* do not communicate with each other in any way and it is assumed that the measurement settings are independent of each other.
+We have a device, *C*, that fires out two particles to detectors *A* and *B*. The detectors have three measurement settings, 1, 2, and 3, and two lights, red (R) and green (G), which indicate the measurement outcome. *A* and *B* do not communicate with each other in any way and it is assumed that the measurement settings are independent of each other.
 
-If you can read bra--ket notation, then the quantum state of the particles fired out by *C* is as follows:
+If you can read bra--ket notation, then the quantum state of the particles fired out by *C* is the entangled [Bell state](https://en.wikipedia.org/wiki/Bell_state), $|\Phi^+\rangle$:
 
 
-$$|\psi\rangle = \frac{|RR\rangle + |GG\rangle}{\sqrt{2}}$$
+$$|\Phi^+\rangle = \frac{|R\rangle_A \otimes |R\rangle_B + |G\rangle_A \otimes |G\rangle_B}{\sqrt{2}} = \frac{|RR\rangle + |GG\rangle}{\sqrt{2}}$$
 
-What this means in words is that when the measurement settings on *A* and *B* are the same, e.g., both 1 or both 2, then the same lights always flash on *A* and *B* when the particles arrive. They are either both red or both green, with equal probability. If the measurement settings are different, sometimes the lights flash the same colour and other times they flash different colours.
+What this means in words is that when the measurement settings on *A* and *B* are the same, e.g., both 1 or both 2, then the same lights always flash on *A* and *B* when the particles arrive. They are either both red or both green, with equal probability. If the measurement settings are different then, as we see later, sometimes the lights flash the same colour and other times they flash different colours.
 
-One way to make this work is to assume the particles somehow encode what the measurement outcome will be for each of the three settings (local determinism). The particles heading left and right would then encode the same information. We can write this as a three-character string. *RGR* would denote that the outcome is red for setting 1, green for setting 2, and red for setting 3.
+One way to make this work is to assume the particles somehow encode what the measurement outcome will be for each of the three settings (local determinism), it's just that this is generally hidden from experimenters. The particles heading left and right would then encode the same information. We can write this as a three-character string. *RGR* would denote that the outcome is red for setting 1, green for setting 2, and red for setting 3.
 
 In this way, it's easy to see that the same light will flash at the two detectors when the measurement settings are the same.
 
-Now suppose each measurement setting is chosen randomly with equal probability and the settings at *A* and *B* are independent. What happens when the settings are different?
+Now suppose each measurement setting is chosen randomly with equal probability and the settings at *A* and *B* are independent. What happens when the settings are *different*?
 
-Here's the setup. `a` and `b` give the measurement settings at *A* and *B*. `o1`, `o2`, and `o3`, give the outcome for the three measurement settings (so concatenating them together gives the three-character string). The R code below generates all 72 possibilities from the $2^3 = 8$ possible particle setups and the $3^2 = 9$ different combinations of measurement settings at *A* and *B*.
+Here's the setup. `a` and `b` give the measurement settings at *A* and *B*. `o1`, `o2`, and `o3`, give the outcome for the three measurement settings, so concatenating them together gives the three-character string. The R code below generates all $8 \times 9 = 72$ possibilities from the $2^3 = 8$ possible particle setups and the $3^2 = 9$ different combinations of measurement settings at *A* and *B*.
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+```
 
 ```{r}
 dat <- expand.grid(
@@ -52,8 +49,9 @@ dat <- expand.grid(
          B = case_when(b == 1 ~ o1,
                        b == 2 ~ o2,
                        b == 3 ~ o3),
+         hidden = paste0(o1, o2, o3),
          same = A == B)
-dat
+dat |> select(-c(o1,o2,o3))
 ```
 
 Now we can see how the probability of getting the same outcome depends on whether the measurement settings are the same:
@@ -64,26 +62,19 @@ dat |>
   summarise(`P(Same outcome)` = mean(same))
 ```
 
-The outcomes are always the same if the settings are the same and have a 50--50 chance of being the same if the settings are different.
+The outcomes are always the same if the settings are the same and have a 50--50 chance of being the same if the settings are different. This differs from the predictions of quantum mechanics and empirical findings from actual experiments.
 
-Across all runs, the probability that the outcomes are the same is $2/3$:
-
-```{r}
-dat |>
-  summarise(`P(Same outcome)` = mean(same))
-```
-
-This differs from the empirical findings from actual experiments, suggesting that something else is going on.
-
-Let's view the entangled particles fired from *C* as qubits (abstracting from Mermin's discussion of spin-1/2 particles and Stern--Gerlach magnets). The measurement settings of *A* and *B* are then implemented as rotating the qubit entering the detector about the y-axis using an [RY gate](https://qiskit.org/documentation/stubs/qiskit.circuit.library.RYGate.html). After this rotation, we measure using the computational basis.
+To see this, let's view the entangled particles fired from *C* as qubits, abstracting from Mermin's discussion of spin-1/2 particles and Stern--Gerlach magnets. The measurement settings of *A* and *B* are then implemented as rotating the qubit entering the detector about the y-axis using an [RY gate](https://qiskit.org/documentation/stubs/qiskit.circuit.library.RYGate.html). After this rotation, we measure using the computational basis.
 
 Here's a quantum circuit with example settings:
 
 ![](mermin_qiskit.png)
 
-The probability that the outcomes are the same at *A* and *B* is given by $\cos^2(\theta/2)$, where $\theta$ is the difference between angles of rotations at *A* and *B*. (We're squaring because Born rule.)
+The circuit for *C* establishes a Bell state by using a Hadmard gate and CNOT.
 
-Following Mermin (1981), we choose angles $0^{\circ}$, $-120^{\circ}$, and $120^{\circ}$ for the three measurement settings. `ang_diff` gives the difference in the angles (in degrees; `ang_diff_rads` is the same in radians).
+The probability that the outcomes are the same at *A* and *B* is given by $\cos^2(\theta/2)$, where $\theta$ is the difference between angles of rotations at *A* and *B*. (We're squaring because [Born rule](https://en.wikipedia.org/wiki/Born_rule).)
+
+Following Mermin (1981), we choose angles $0^{\circ}$, $-120^{\circ}$, and $120^{\circ}$ for the three measurement settings. `ang_diff` gives the difference in the angles in degrees; `ang_diff_rads` is the same in radians.
 
 Here is a table of the outcomes:
 
@@ -92,18 +83,14 @@ dat_actual <- expand.grid(a = c(-120,0,120), b = c(-120,0,120)) |>
   mutate(ang_diff          = b - a,
          ang_diff_rads     = (ang_diff/360) * 2 * pi,
          `P(Same outcome)` = cos(ang_diff_rads/2)^2)
-dat_actual
+dat_actual |> 
+  select(-ang_diff_rads) |>
+  arrange(abs(ang_diff), a)
 ```
 
-When the settings are the same at *A* and *B*, the findings agree with local determinism: the lights always flash the same colour. However, when the settings are different, the lights are the same on only $1/4$ of trials. This is lower than the $1/2$ predicted by the local determinism setup.
+When the settings are the same at *A* and *B*, the findings agree with local determinism: the lights always flash the same colour. However, when the settings are different, the lights are the same colour on only $1/4$ of trials. This is lower than the $1/2$ predicted by the local determinism setup, so something else is going on. Local determinism is false.
 
-```{r}
-dat_actual |>
-  group_by(a == b) |>
-  summarise(`P(Same outcome)` = mean(`P(Same outcome)`))
-```
-
-Hossenfelder and Palmer (2020) would want to emphasise that the falsification of local determinism assumes that the measurement settings are statistically independent, which they argue isn't obviously true. Allowing the measurement settings to be correlated is known as *superdeterminism*.
+Hossenfelder and Palmer (2020) would want to emphasise that this falsification of local determinism assumes that the measurement settings are statistically independent, which they argue isn't true. Allowing the measurement settings to be correlated is known as *superdeterminism*.
 
 
 ### References
