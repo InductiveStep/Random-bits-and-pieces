@@ -90,6 +90,8 @@ dat_actual |>
 
 When the settings are the same at *A* and *B*, the findings agree with local determinism: the lights always flash the same colour. However, when the settings are different, the lights are the same colour on only $1/4$ of trials. This is lower than the $1/2$ predicted by the local determinism setup, so something else is going on. Local determinism is false.
 
+Out of curiosity, I gave the circuit above a go on an IBM Quantum computer (ibmq_jakarta). The measurement outcomes were the same on `r 13.8+12.8`% of 1,000 trials, 95% CI = [23.9%, 29.5%]. This matches the predictions of quantum mechanics and is well below 50%.
+
 There are values of $\theta$ for which the local determinism predictions do work, e.g., $\frac{\pi}{2}$ radians = $90^{\circ}$:
 
 ```{r}
