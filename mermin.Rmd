@@ -7,7 +7,7 @@ output:
     code_folding: none
 ---
 
-Entanglement is the weirdest feature of quantum mechanics. David Mermin (1981) provides an accessible introduction to experiments showing that local determinism doesn't hold in the quantum world. This post shows the sums in R. (I'm not going to attempt to explain what Einstein, Podolsky, and Rosen, and Bell and others did or didn't say.)
+Entanglement is the weirdest feature of quantum mechanics. David Mermin (1981) provides an accessible introduction to experiments showing that local determinism doesn't hold in the quantum world, simplifying [Bell's theorem](https://plato.stanford.edu/entries/bell-theorem/) and tests thereof. This post shows the sums in R.
 
 First, a diagram of the setup (Mermin, 1981, p. 400):
 
@@ -29,7 +29,7 @@ In this way, it's easy to see that the same light will flash at the two detector
 
 Now suppose each measurement setting is chosen randomly with equal probability and the settings at *A* and *B* are independent. What happens when the settings are *different*?
 
-Here's the setup. `a` and `b` give the measurement settings at *A* and *B*. `o1`, `o2`, and `o3`, give the outcome for the three measurement settings, so concatenating them together gives the three-character string. The R code below generates all $8 \times 9 = 72$ possibilities from the $2^3 = 8$ possible particle setups and the $3^2 = 9$ different combinations of measurement settings at *A* and *B*.
+Here's the setup. <tt>a</tt> and <tt>b</tt> give the measurement settings at *A* and *B*. <tt>o1</tt>, <tt>o2</tt>, and <tt>o3</tt>, give the outcome for the three measurement settings, so concatenating them together gives the three-character string, <tt>hidden</tt>. The R code below generates all $8 \times 9 = 72$ possibilities from the $2^3 = 8$ possible particle setups and the $3^2 = 9$ different combinations of measurement settings at *A* and *B*.
 
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -74,7 +74,7 @@ The circuit for *C* establishes a Bell state by using a Hadmard gate and CNOT.
 
 The probability that the outcomes are the same at *A* and *B* is given by $\cos^2(\theta/2)$, where $\theta$ is the difference between angles of rotations at *A* and *B*. (We're squaring because [Born rule](https://en.wikipedia.org/wiki/Born_rule).)
 
-Following Mermin (1981), we choose angles $0^{\circ}$, $-120^{\circ}$, and $120^{\circ}$ for the three measurement settings. `ang_diff` gives the difference in the angles in degrees; `ang_diff_rads` is the same in radians.
+Following Mermin (1981), we choose angles $0^{\circ}$, $-120^{\circ}$, and $120^{\circ}$ for the three measurement settings. <tt>ang_diff</tt> gives the difference in the angles in degrees; <tt>ang_diff_rads</tt> is the same in radians.
 
 Here is a table of the outcomes:
 
@@ -90,7 +90,7 @@ dat_actual |>
 
 When the settings are the same at *A* and *B*, the findings agree with local determinism: the lights always flash the same colour. However, when the settings are different, the lights are the same colour on only $1/4$ of trials. This is lower than the $1/2$ predicted by the local determinism setup, so something else is going on. Local determinism is false.
 
-Out of curiosity, I gave the circuit above a go on an IBM Quantum computer (ibmq_jakarta). The measurement outcomes were the same on `r 13.8+12.8`% of 1,000 trials, 95% CI = [23.9%, 29.5%]. This matches the predictions of quantum mechanics and is well below 50%.
+Out of curiosity, I gave the circuit above a go on an IBM Quantum computer (ibmq_jakarta). The measurement outcomes were the same on `r 13.8+12.8`% of 1,000 trials, 95% CI = [23.9%, 29.5%]. This confidence interval includes the prediction of quantum mechanics and is well below 50%.
 
 There are values of $\theta$ for which the local determinism predictions do work, e.g., $\frac{\pi}{2}$ radians = $90^{\circ}$:
 
