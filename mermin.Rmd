@@ -99,6 +99,14 @@ cos((pi/2)/2)^2
 ```
 But that clearly doesn't rescue it.
 
+More generally, here's what $\cos^2(\theta/2)$ looks like:
+
+```{r}
+curve(cos(((x/360)*2*pi)/2)^2, -360, 360, ylab = "P(Same outcome)", xlab = expression(theta))
+```
+
+Suppose I'm sitting beside detector *A* and detector *B* is light years away. Suppose also that I hold my measurement setting constant, so any variation in $\theta$ is driven by the setting over at *B*. The measurement outcomes from repeated trials I get here depend on the measurement settings way over there, and those settings have an effect apparently instantaneously.
+
 Hossenfelder and Palmer (2020) would want to emphasise that this falsification of local determinism assumes that the measurement settings are statistically independent, which they argue isn't true. Allowing the measurement settings to be correlated is known as *superdeterminism*.
 
 
