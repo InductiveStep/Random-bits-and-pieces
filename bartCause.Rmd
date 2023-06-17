@@ -1,0 +1,15 @@
+---
+title: "BART test"
+author: Andi Fugard
+date: 11 June 2023
+output: html_notebook
+---
+
+```{r}
+library(bartCause)
+```
+
+```{r}
+
+```
+
