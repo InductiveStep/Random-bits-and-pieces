@@ -1,12 +1,12 @@
 ---
 title: "Mermin's (1981) variant of Bell's theorem -- in R"
 author: '[Andi Fugard](https://www.andifugard.info)'
-date: "27 May 2023 (last tweaked 29 May 2023)"
+date: "27 May 2023 (last tweaked 17 June 2023)"
 output:
-  html_document:
-    df_print: paged
   html_notebook:
     code_folding: none
+  html_document:
+    df_print: paged
 ---
 
 Entanglement is the weirdest feature of quantum mechanics. David Mermin (1981) provides an accessible introduction to experiments showing that local determinism doesn't hold in the quantum world, simplifying [Bell's theorem](https://plato.stanford.edu/entries/bell-theorem/) and tests thereof. This post shows the sums in R.
@@ -103,8 +103,14 @@ But that clearly doesn't rescue it.
 
 More generally, here's what $\cos^2(\theta/2)$ looks like:
 
-```{r dpi=300}
-curve(cos(((x/360)*2*pi)/2)^2, -360, 360, ylab = "P(Same outcome)", xlab = expression(theta))
+```{r fig.width=9,fig.height=3}
+ggplot() +
+  geom_function(fun = \(x) cos(((x / 360) * 2 * pi) / 2) ^ 2) +
+  scale_y_continuous(breaks = seq(0, 1, .25)) +
+  scale_x_continuous(breaks = c(seq(-360, 360, 90),
+                                seq(-240, 240, 120)),
+                     limits = c(-360, 360)) +
+  labs(x = expression(theta), y = "P(Same outcome)")
 ```
 
 Suppose I'm sitting beside detector *A* and detector *B* is light years away. Suppose also that I hold my measurement setting constant, so any variation in $\theta$ is driven by the setting over at *B*. The measurement outcomes from repeated trials I get here depend on the measurement settings way over there, and those settings have an effect apparently instantaneously.
