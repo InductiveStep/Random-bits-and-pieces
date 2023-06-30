@@ -1758,22 +1758,11 @@ display: none;
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShtZWRpYXRpb24pXG5gYGAifQ== -->
 <pre class="r"><code>library(mediation)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBNQVNTXG5Mb2FkaW5nIHJlcXVpcmVkIHBhY2thZ2U6IE1hdHJpeFxuTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBtdnRub3JtXG5Mb2FkaW5nIHJlcXVpcmVkIHBhY2thZ2U6IHNhbmR3aWNoXG5SZWdpc3RlcmVkIFMzIG1ldGhvZCBvdmVyd3JpdHRlbiBieSAnaHRtbHdpZGdldHMnOlxuICBtZXRob2QgICAgICAgICAgIGZyb20gICAgICAgICBcbiAgcHJpbnQuaHRtbHdpZGdldCB0b29sczpyc3R1ZGlvXG5SZWdpc3RlcmVkIFMzIG1ldGhvZCBvdmVyd3JpdHRlbiBieSAnZGF0YS50YWJsZSc6XG4gIG1ldGhvZCAgICAgICAgICAgZnJvbVxuICBwcmludC5kYXRhLnRhYmxlICAgICBcbm1lZGlhdGlvbjogQ2F1c2FsIE1lZGlhdGlvbiBBbmFseXNpc1xuVmVyc2lvbjogNC41LjBcbiJ9 -->
-<pre><code>Loading required package: MASS
-Loading required package: Matrix
-Loading required package: mvtnorm
-Loading required package: sandwich
-Registered S3 method overwritten by &#39;htmlwidgets&#39;:
-  method           from         
-  print.htmlwidget tools:rstudio
-Registered S3 method overwritten by &#39;data.table&#39;:
-  method           from
-  print.data.table     
-mediation: Causal Mediation Analysis
-Version: 4.5.0</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+<p>Fit a model to estimate the total effect. <em>treat</em> is the
+treatment and <em>depress2</em> the outcome. The other variables are
+covariates.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYSA8LSBsbShkZXByZXNzMiB+IHRyZWF0ICsgZWNvbl9oYXJkICsgc2V4ICsgYWdlLCBkYXRhPWpvYnMpXG5zdW1tYXJ5KGEpXG5gYGAifQ== -->
@@ -1805,6 +1794,7 @@ F-statistic: 11.57 on 4 and 894 DF,  p-value: 3.635e-09</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+<p>Now the models for the mediation test:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYiA8LSBsbShqb2Jfc2VlayB+IHRyZWF0ICsgZWNvbl9oYXJkICsgc2V4ICsgYWdlLCBkYXRhPWpvYnMpXG5jIDwtIGxtKGRlcHJlc3MyIH4gdHJlYXQgKyBqb2Jfc2VlayArIGVjb25faGFyZCArIHNleCArIGFnZSwgZGF0YT1qb2JzKVxuYGBgIn0= -->
@@ -1813,6 +1803,8 @@ c &lt;- lm(depress2 ~ treat + job_seek + econ_hard + sex + age, data=jobs)</code
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+<p>Estimate the CIs for the various effects by nonparametric
+bootstrap:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29udGNvbnQuYm9vdCA8LSBtZWRpYXRlKGIsIGMsIGJvb3Q9VFJVRSwgc2ltcz0xMDAwLCB0cmVhdD1cInRyZWF0XCIsIG1lZGlhdG9yPVwiam9iX3NlZWtcIilcbmBgYCJ9 -->
@@ -1821,20 +1813,24 @@ c &lt;- lm(depress2 ~ treat + job_seek + econ_hard + sex + age, data=jobs)</code
 <!-- rnb-output-begin eyJkYXRhIjoiUnVubmluZyBub25wYXJhbWV0cmljIGJvb3RzdHJhcFxuIn0= -->
 <pre><code>Running nonparametric bootstrap</code></pre>
 <!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VtbWFyeShjb250Y29udC5ib290KVxuYGBgIn0= -->
 <pre class="r"><code>summary(contcont.boot)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG5DYXVzYWwgTWVkaWF0aW9uIEFuYWx5c2lzIFxuXG5Ob25wYXJhbWV0cmljIEJvb3RzdHJhcCBDb25maWRlbmNlIEludGVydmFscyB3aXRoIHRoZSBQZXJjZW50aWxlIE1ldGhvZFxuXG4gICAgICAgICAgICAgICBFc3RpbWF0ZSA5NSUgQ0kgTG93ZXIgOTUlIENJIFVwcGVyIHAtdmFsdWVcbkFDTUUgICAgICAgICAgICAtMC4wMTU3ICAgICAgLTAuMDQxMiAgICAgICAgIDAuMDEgICAgMC4xOFxuQURFICAgICAgICAgICAgIC0wLjA0MDMgICAgICAtMC4xMjQ0ICAgICAgICAgMC4wNSAgICAwLjQxXG5Ub3RhbCBFZmZlY3QgICAgLTAuMDU2MCAgICAgIC0wLjE0NjAgICAgICAgICAwLjA0ICAgIDAuMjdcblByb3AuIE1lZGlhdGVkICAgMC4yODExICAgICAgLTIuNzgzOSAgICAgICAgIDIuNTAgICAgMC4zNlxuXG5TYW1wbGUgU2l6ZSBVc2VkOiA4OTkgXG5cblxuU2ltdWxhdGlvbnM6IDEwMDAgXG4ifQ== -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5DYXVzYWwgTWVkaWF0aW9uIEFuYWx5c2lzIFxuXG5Ob25wYXJhbWV0cmljIEJvb3RzdHJhcCBDb25maWRlbmNlIEludGVydmFscyB3aXRoIHRoZSBQZXJjZW50aWxlIE1ldGhvZFxuXG4gICAgICAgICAgICAgICBFc3RpbWF0ZSA5NSUgQ0kgTG93ZXIgOTUlIENJIFVwcGVyIHAtdmFsdWVcbkFDTUUgICAgICAgICAgICAtMC4wMTU3ICAgICAgLTAuMDQxOCAgICAgICAgIDAuMDEgICAgMC4xNlxuQURFICAgICAgICAgICAgIC0wLjA0MDMgICAgICAtMC4xMjkxICAgICAgICAgMC4wNSAgICAwLjM5XG5Ub3RhbCBFZmZlY3QgICAgLTAuMDU2MCAgICAgIC0wLjE0ODIgICAgICAgICAwLjA0ICAgIDAuMjVcblByb3AuIE1lZGlhdGVkICAgMC4yODExICAgICAgLTIuNjAxMiAgICAgICAgIDIuNTQgICAgMC4zNFxuXG5TYW1wbGUgU2l6ZSBVc2VkOiA4OTkgXG5cblxuU2ltdWxhdGlvbnM6IDEwMDAgXG4ifQ== -->
 <pre><code>
 Causal Mediation Analysis 
 
 Nonparametric Bootstrap Confidence Intervals with the Percentile Method
 
                Estimate 95% CI Lower 95% CI Upper p-value
-ACME            -0.0157      -0.0412         0.01    0.18
-ADE             -0.0403      -0.1244         0.05    0.41
-Total Effect    -0.0560      -0.1460         0.04    0.27
-Prop. Mediated   0.2811      -2.7839         2.50    0.36
+ACME            -0.0157      -0.0418         0.01    0.16
+ADE             -0.0403      -0.1291         0.05    0.39
+Total Effect    -0.0560      -0.1482         0.04    0.25
+Prop. Mediated   0.2811      -2.6012         2.54    0.34
 
 Sample Size Used: 899 
 
@@ -1846,9 +1842,8 @@ Simulations: 1000 </code></pre>
 <p>Average direct effect (ADE):</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29lZihjKVtcInRyZWF0XCJdXG5cbmBgYCJ9 -->
-<pre class="r"><code>coef(c)[&quot;treat&quot;]
-</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29lZihjKVtcInRyZWF0XCJdXG5gYGAifQ== -->
+<pre class="r"><code>coef(c)[&quot;treat&quot;]</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiICAgICB0cmVhdCBcbi0wLjA0MDI2NDcgXG4ifQ== -->
 <pre><code>     treat 
@@ -1871,9 +1866,8 @@ Simulations: 1000 </code></pre>
 <p>Total effect:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29lZihhKVtcInRyZWF0XCJdXG5cbmBgYCJ9 -->
-<pre class="r"><code>coef(a)[&quot;treat&quot;]
-</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29lZihhKVtcInRyZWF0XCJdXG5gYGAifQ== -->
+<pre class="r"><code>coef(a)[&quot;treat&quot;]</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiICAgICAgdHJlYXQgXG4tMC4wNTYwMDkzNSBcbiJ9 -->
 <pre><code>      treat 
@@ -1881,7 +1875,7 @@ Simulations: 1000 </code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Or</p>
+<p>Or the ADE + ACME:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29lZihjKVtcInRyZWF0XCJdICsgY29lZihiKVtcInRyZWF0XCJdICogY29lZihjKVtcImpvYl9zZWVrXCJdXG5gYGAifQ== -->
@@ -1893,7 +1887,7 @@ Simulations: 1000 </code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Proportion mediated</p>
+<p>Proportion mediated is ACME / total effect:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29lZihiKVtcInRyZWF0XCJdICogY29lZihjKVtcImpvYl9zZWVrXCJdIC8gY29lZihhKVtcInRyZWF0XCJdXG5gYGAifQ== -->
@@ -1907,7 +1901,7 @@ Simulations: 1000 </code></pre>
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIk1lZGlhdG9yIGVmZmVjdHMiDQphdXRob3I6ICJBbmRpIEZ1Z2FyZCINCmRhdGU6IDMwIEp1bmUgMjAyMw0Kb3V0cHV0OiANCiAgaHRtbF9ub3RlYm9vazogDQogICAgY29kZV9mb2xkaW5nOiBub25lDQotLS0NCg0KYGBge3Igd2FybmluZz1GQUxTRX0NCmxpYnJhcnkobWVkaWF0aW9uKQ0KYGBgDQoNCg0KDQoNCg0KYGBge3J9DQphIDwtIGxtKGRlcHJlc3MyIH4gdHJlYXQgKyBlY29uX2hhcmQgKyBzZXggKyBhZ2UsIGRhdGE9am9icykNCnN1bW1hcnkoYSkNCmBgYA0KDQoNCg0KYGBge3J9DQpiIDwtIGxtKGpvYl9zZWVrIH4gdHJlYXQgKyBlY29uX2hhcmQgKyBzZXggKyBhZ2UsIGRhdGE9am9icykNCmMgPC0gbG0oZGVwcmVzczIgfiB0cmVhdCArIGpvYl9zZWVrICsgZWNvbl9oYXJkICsgc2V4ICsgYWdlLCBkYXRhPWpvYnMpDQpgYGANCg0KDQpgYGB7cn0NCmNvbnRjb250LmJvb3QgPC0gbWVkaWF0ZShiLCBjLCBib290PVRSVUUsIHNpbXM9MTAwMCwgdHJlYXQ9InRyZWF0IiwgbWVkaWF0b3I9ImpvYl9zZWVrIikNCnN1bW1hcnkoY29udGNvbnQuYm9vdCkNCmBgYA0KDQpBdmVyYWdlIGRpcmVjdCBlZmZlY3QgKEFERSk6DQoNCmBgYHtyfQ0KY29lZihjKVsidHJlYXQiXQ0KYGBgDQoNCkF2ZXJhZ2UgY2F1c2FsIG1lZGlhdGlvbiBlZmZlY3QgKEFDTUUpOg0KDQpgYGB7cn0NCmNvZWYoYilbInRyZWF0Il0gKiBjb2VmKGMpWyJqb2Jfc2VlayJdDQpgYGANCg0KDQpUb3RhbCBlZmZlY3Q6DQoNCmBgYHtyfQ0KY29lZihhKVsidHJlYXQiXQ0KYGBgDQpPcg0KDQpgYGB7cn0NCmNvZWYoYylbInRyZWF0Il0gKyBjb2VmKGIpWyJ0cmVhdCJdICogY29lZihjKVsiam9iX3NlZWsiXQ0KYGBgDQoNCg0KUHJvcG9ydGlvbiBtZWRpYXRlZA0KDQpgYGB7cn0NCmNvZWYoYilbInRyZWF0Il0gKiBjb2VmKGMpWyJqb2Jfc2VlayJdIC8gY29lZihhKVsidHJlYXQiXQ0KYGBgDQoNCg0KDQo=</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIk1lZGlhdG9yIGVmZmVjdHMiDQphdXRob3I6ICJBbmRpIEZ1Z2FyZCINCmRhdGU6IDMwIEp1bmUgMjAyMw0Kb3V0cHV0OiANCiAgaHRtbF9ub3RlYm9vazogDQogICAgY29kZV9mb2xkaW5nOiBub25lDQotLS0NCg0KYGBge3IgbWVzc2FnZT1GQUxTRSwgd2FybmluZz1GQUxTRX0NCmxpYnJhcnkobWVkaWF0aW9uKQ0KYGBgDQoNCg0KDQpGaXQgYSBtb2RlbCB0byBlc3RpbWF0ZSB0aGUgdG90YWwgZWZmZWN0LiAqdHJlYXQqIGlzIHRoZSB0cmVhdG1lbnQgYW5kICpkZXByZXNzMiogdGhlIG91dGNvbWUuIFRoZSBvdGhlciB2YXJpYWJsZXMgYXJlIGNvdmFyaWF0ZXMuDQoNCmBgYHtyfQ0KYSA8LSBsbShkZXByZXNzMiB+IHRyZWF0ICsgZWNvbl9oYXJkICsgc2V4ICsgYWdlLCBkYXRhPWpvYnMpDQpzdW1tYXJ5KGEpDQpgYGANCg0KTm93IHRoZSBtb2RlbHMgZm9yIHRoZSBtZWRpYXRpb24gdGVzdDoNCg0KYGBge3J9DQpiIDwtIGxtKGpvYl9zZWVrIH4gdHJlYXQgKyBlY29uX2hhcmQgKyBzZXggKyBhZ2UsIGRhdGE9am9icykNCmMgPC0gbG0oZGVwcmVzczIgfiB0cmVhdCArIGpvYl9zZWVrICsgZWNvbl9oYXJkICsgc2V4ICsgYWdlLCBkYXRhPWpvYnMpDQpgYGANCg0KDQpFc3RpbWF0ZSB0aGUgQ0lzIGZvciB0aGUgdmFyaW91cyBlZmZlY3RzIGJ5IG5vbnBhcmFtZXRyaWMgYm9vdHN0cmFwOg0KDQpgYGB7cn0NCmNvbnRjb250LmJvb3QgPC0gbWVkaWF0ZShiLCBjLCBib290PVRSVUUsIHNpbXM9MTAwMCwgdHJlYXQ9InRyZWF0IiwgbWVkaWF0b3I9ImpvYl9zZWVrIikNCmBgYA0KDQoNCmBgYHtyfQ0Kc3VtbWFyeShjb250Y29udC5ib290KQ0KYGBgDQoNCkF2ZXJhZ2UgZGlyZWN0IGVmZmVjdCAoQURFKToNCg0KYGBge3J9DQpjb2VmKGMpWyJ0cmVhdCJdDQpgYGANCg0KQXZlcmFnZSBjYXVzYWwgbWVkaWF0aW9uIGVmZmVjdCAoQUNNRSk6DQoNCmBgYHtyfQ0KY29lZihiKVsidHJlYXQiXSAqIGNvZWYoYylbImpvYl9zZWVrIl0NCmBgYA0KDQoNClRvdGFsIGVmZmVjdDoNCg0KYGBge3J9DQpjb2VmKGEpWyJ0cmVhdCJdDQpgYGANCk9yIHRoZSBBREUgKyBBQ01FOg0KDQpgYGB7cn0NCmNvZWYoYylbInRyZWF0Il0gKyBjb2VmKGIpWyJ0cmVhdCJdICogY29lZihjKVsiam9iX3NlZWsiXQ0KYGBgDQoNCg0KUHJvcG9ydGlvbiBtZWRpYXRlZCBpcyBBQ01FIC8gdG90YWwgZWZmZWN0Og0KDQpgYGB7cn0NCmNvZWYoYilbInRyZWF0Il0gKiBjb2VmKGMpWyJqb2Jfc2VlayJdIC8gY29lZihhKVsidHJlYXQiXQ0KYGBgDQoNCg0KDQo=</div>
 
 
 

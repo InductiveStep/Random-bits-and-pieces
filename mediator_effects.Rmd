@@ -7,20 +7,20 @@ output:
     code_folding: none
 ---
 
-```{r warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 library(mediation)
 ```
 
 
 
-
+Fit a model to estimate the total effect. *treat* is the treatment and *depress2* the outcome. The other variables are covariates.
 
 ```{r}
 a <- lm(depress2 ~ treat + econ_hard + sex + age, data=jobs)
 summary(a)
 ```
 
-
+Now the models for the mediation test:
 
 ```{r}
 b <- lm(job_seek ~ treat + econ_hard + sex + age, data=jobs)
@@ -28,8 +28,14 @@ c <- lm(depress2 ~ treat + job_seek + econ_hard + sex + age, data=jobs)
 ```
 
 
+Estimate the CIs for the various effects by nonparametric bootstrap:
+
 ```{r}
 contcont.boot <- mediate(b, c, boot=TRUE, sims=1000, treat="treat", mediator="job_seek")
+```
+
+
+```{r}
 summary(contcont.boot)
 ```
 
@@ -51,14 +57,14 @@ Total effect:
 ```{r}
 coef(a)["treat"]
 ```
-Or
+Or the ADE + ACME:
 
 ```{r}
 coef(c)["treat"] + coef(b)["treat"] * coef(c)["job_seek"]
 ```
 
 
-Proportion mediated
+Proportion mediated is ACME / total effect:
 
 ```{r}
 coef(b)["treat"] * coef(c)["job_seek"] / coef(a)["treat"]
