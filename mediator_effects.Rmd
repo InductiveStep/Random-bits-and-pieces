@@ -1,0 +1,68 @@
+---
+title: "Mediator effects"
+author: "Andi Fugard"
+date: 30 June 2023
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+```{r warning=FALSE}
+library(mediation)
+```
+
+
+
+
+
+```{r}
+a <- lm(depress2 ~ treat + econ_hard + sex + age, data=jobs)
+summary(a)
+```
+
+
+
+```{r}
+b <- lm(job_seek ~ treat + econ_hard + sex + age, data=jobs)
+c <- lm(depress2 ~ treat + job_seek + econ_hard + sex + age, data=jobs)
+```
+
+
+```{r}
+contcont.boot <- mediate(b, c, boot=TRUE, sims=1000, treat="treat", mediator="job_seek")
+summary(contcont.boot)
+```
+
+Average direct effect (ADE):
+
+```{r}
+coef(c)["treat"]
+```
+
+Average causal mediation effect (ACME):
+
+```{r}
+coef(b)["treat"] * coef(c)["job_seek"]
+```
+
+
+Total effect:
+
+```{r}
+coef(a)["treat"]
+```
+Or
+
+```{r}
+coef(c)["treat"] + coef(b)["treat"] * coef(c)["job_seek"]
+```
+
+
+Proportion mediated
+
+```{r}
+coef(b)["treat"] * coef(c)["job_seek"] / coef(a)["treat"]
+```
+
+
+
