@@ -27,3 +27,5 @@ These are incomplete code fragments:
 [Flow charts](https://inductivestep.github.io/Random-bits-and-pieces/flowcharts.nb.html)
 
 [Mermin](https://inductivestep.github.io/Random-bits-and-pieces/mermin.nb.html)
+
+[Mediator effects](https://inductivestep.github.io/Random-bits-and-pieces/mediator_effects.nb.html)
