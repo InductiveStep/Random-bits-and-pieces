@@ -17,10 +17,9 @@ Fit a model to estimate the total effect. *treat* is the treatment and *depress2
 
 ```{r}
 a <- lm(depress2 ~ treat + econ_hard + sex + age, data=jobs)
-summary(a)
 ```
 
-Now the models for the mediation test:
+Now the models for the mediation test (*job_seek* is the mediator):
 
 ```{r}
 b <- lm(job_seek ~ treat + econ_hard + sex + age, data=jobs)
@@ -70,5 +69,26 @@ Proportion mediated is ACME / total effect:
 coef(b)["treat"] * coef(c)["job_seek"] / coef(a)["treat"]
 ```
 
+Summary of all model coefficients:
+
+```{r}
+summary(a)
+summary(b)
+summary(c)
+```
+
+```{r}
+library(jtools)
+```
 
 
+And some pics:
+
+```{r}
+plot_summs(a, c, model.names = c("a", "b"))
+```
+
+
+```{r}
+plot_summs(b)
+```
