@@ -1,0 +1,104 @@
+---
+title: "Associations between gender and sexuality in the England and Wales 2021 Census"
+author: "@Andi@lgbt.tech"
+date: 3 Aug 2023
+output:
+  html_document: 
+    theme: yeti
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+```
+
+
+```{r}
+dat <- read.csv("census2021GenderSexuality.csv") |>
+  mutate(
+    LAcode = Lower.tier.local.authorities.Code,
+    LAname = Lower.tier.local.authorities,
+    gender = Gender.identity..7.categories. |> factor(),
+    sexual = Sexual.orientation..4.categories.  |> factor(),
+    n      = Observation
+  ) |>
+  select(LAcode, LAname, gender, sexual, n) |>
+  mutate(
+    gender = fct_recode(
+      gender,
+      `All others` = "All other gender identities",
+      `Not apply`  = "Does not apply",
+      `Trans other` = "Gender identity different from sex registered at birth but no specific identity given",
+      Cis = "Gender identity the same as sex registered at birth",
+      `No answer` = "Not answered"
+    ),
+    sexual = fct_recode(sexual,
+      `Not apply` = "Does not apply",
+      LGBO = "Lesbian, Gay, Bisexual, or Other (LGB+)",
+      `No answer` = "Not answered",
+      Het = "Straight or Heterosexual"
+    )
+  )
+```
+
+
+
+```{r}
+head(dat)
+```
+
+
+```{r}
+dat_sums <- dat |>
+  group_by(gender,sexual) |>
+  summarise(n = sum(n)) |>
+  ungroup()
+```
+
+
+```{r}
+perc_by_gender <- dat_sums |>
+  group_by(gender) |>
+  mutate(perc = n*100/sum(n))
+
+perc_by_sexual <- dat_sums |>
+  group_by(sexual) |>
+  mutate(perc = n*100/sum(n)) |>
+  arrange(sexual) |>
+  relocate(sexual)
+```
+
+
+```{r}
+view(perc_by_gender)
+view(perc_by_sexual)
+```
+
+
+```{r}
+perc_by_gender |>
+  na.omit() |>
+  filter(sexual != "Not apply") |>
+  mutate(
+    gender = fct_relevel(
+      gender,
+      "Cis",
+      "Trans man",
+      "Trans woman",
+      "Trans other",
+      "All others",
+      "No answer"),
+    sexual = fct_relevel(
+      sexual,
+      "Het",
+      "LGBO",
+      "No answer",
+      "Not apply")
+  ) |>
+  ggplot(aes(x = gender, y = perc, fill = sexual)) +
+    geom_bar(stat = "identity", position = position_dodge()) +
+    labs(x = "Gender", y = "%", fill = "Sexuality")
+```
+
+
+

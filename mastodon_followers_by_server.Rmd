@@ -40,7 +40,7 @@ whoami <- "109273348690338129"
 ```
 
 
-There's a handy function in {rtoot} for getting all followers; however, it doesn't currently support auto-pagination. After [reading the friendly manual](https://github.com/schochastics/rtoot/wiki/Pagination), here's a workaround:
+There's a handy function in {rtoot} for getting all followers; however, it doesn't (or didn't, end of 2022) support auto-pagination. After [reading the friendly manual](https://github.com/schochastics/rtoot/wiki/Pagination), here's a workaround:
 
 ```{r}
 really_get_all_followers <- function(id, sure = "No!") {
@@ -122,7 +122,7 @@ So far so good.
 Next up, how many users are there on each of those servers? Note the exception handling...
 
 ```{r}
-get_user_count <- Vectorize(function(server) {
+get_user_count <- function(server) {
   res <- NA
   
   # This will catch problems like missing servers
@@ -137,26 +137,40 @@ get_user_count <- Vectorize(function(server) {
         cat("\n")
       }
   )
-  res
-})
+  ifelse(is.numeric(res), ifelse(length(res) == 1, res, NA), NA)
+}
 ```
 
+
 ```{r}
-server_count$server_user_n <- get_user_count(server_count$server)
+server_count$server_user_n <- map(server_count$server, get_user_count)
 server_count
 ```
+
+Hmmm something went wrong... Quick fix:
+
+```{r}
+server_count$server_user_n2 <-
+  server_count$server_user_n |> sapply(\(x) ifelse(length(x) == 1, x[[1]], NA))
+```
+
+
+```{r}
+server_count
+```
+
 
 A couple of histograms:
 
 ```{r}
 server_count |>
-  select(n, server_user_n) |>
+  select(n, server_user_n2) |>
   na.omit()  |>
   pivot_longer(cols = everything(),
-               names_to = "key",
+               names_to  = "key",
                values_to = "value") |>
   mutate(nice_name = case_when(key == "n" ~ "Followers",
-                               key == "server_user_n" ~ "Users on server")) |>
+                               key == "server_user_n2" ~ "Users on server")) |>
   ggplot(aes(value)) +
     facet_wrap(~ nice_name, scales = "free") +
     geom_histogram(bins = 40) +
@@ -176,7 +190,7 @@ server_count |>
          home = factor(home,
                        c("My home server", "Elsewhere"))) |>
   ggplot(aes(y = log(n, 10),
-             x = log(server_user_n, 10),
+             x = log(server_user_n2, 10),
              colour = home)) +
   geom_point() +
   scale_colour_manual(values = c("magenta", "black")) +
@@ -190,7 +204,7 @@ server_count |>
 There is indeed a correlation:
 
 ```{r}
-cor.test(~ n + server_user_n, data = server_count, method = "kendall")
+cor.test(~ n + server_user_n2, data = server_count, method = "kendall")
 ```
 
 Last run (or at least knitted) `r date()`.

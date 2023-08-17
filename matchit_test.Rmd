@@ -1,0 +1,27 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+LLM fails:
+
+```{r}
+library(MatchIt)
+
+# Load the data
+data(lalonde)
+
+# Estimate the propensity score model
+ps <- glm(treat ~ age + educ + race + married + nodegree, data = lalonde, family = "binomial")
+
+# Choose a kernel function and bandwidth
+kernel <- "epanechnikov"
+bw <- 0.1
+
+# Run the kernel matching algorithm
+matched <- matchit(treat ~ ps, data = lalonde, method = "kernel", kernel = kernel, bw = bw)
+
+# Assess the balance of the covariates after matching
+summary(matched)
+```
+

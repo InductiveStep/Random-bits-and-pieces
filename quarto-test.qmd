@@ -1,0 +1,28 @@
+---
+title: "Quarto test"
+author: "@Andi@tech.lgbt"
+date: 2023-08-12
+format:
+  html:
+    embed-resources: true
+---
+
+
+```{r}
+x <- 6 * 7
+x
+```
+
+```{r}
+hist(rnorm(100))
+```
+
+
+
+
+```{r}
+curve(sin(x), -2*pi, 2*pi)
+```
+
+
+
