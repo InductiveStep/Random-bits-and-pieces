@@ -1,0 +1,17 @@
+---
+title: "Zotero, BibTex, and Quarto test"
+author: "&#64;Andi&#64;tech.lgbt"
+date: 2022-08-20
+format:
+  html:
+    embed-resources: true
+bibliography: references.bib
+---
+
+You can cite things in all kinds of ways [@king2006]. Sometimes you might want to cite @abadie2021 -- what used to be called "cite as a noun" somewhere in LaTeX land.
+
+Here is some R:
+
+```{r}
+hist(rnorm(1000))
+```

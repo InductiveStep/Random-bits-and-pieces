@@ -9,6 +9,7 @@ format:
 
 ```{r}
 library(tidyverse)
+library(lintr)
 ```
 
 From Table 3 of Pownall, M., & Heflick, N. (2023). Mr. Active and Little Miss Passive? The Transmission and Existence of Gender Stereotypes in Children’s Books. Sex Roles. https://doi.org/10.1007/s11199-023-01409-2
@@ -25,7 +26,7 @@ dat <- strsplit(raw_dat, " ")[[1]] |>
   as.data.frame() |>
   rename(name = V1, masc.mean = V2, masc.SD = V3, pos.mean = V4, pos.SD = V5) |>
   mutate(across(masc.mean:pos.SD, as.numeric)) |>
-  mutate(binary = 100*abs(masc.mean - 3)/2)
+  mutate(binary = 100 * abs(masc.mean - 3) / 2)
 dat
 ```
 
