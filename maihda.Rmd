@@ -1,0 +1,141 @@
+---
+title: "R Notebook"
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+```{r}
+library(tidyverse)
+library(lme4)
+```
+
+
+```{r}
+group_n <- 100
+```
+
+```{r}
+rand_within <- rnorm(group_n, mean = 0, sd = 20) |> round(1)
+rand_within <- rand_within - mean(rand_within) 
+mean(rand_within) |> round(3)
+```
+
+
+
+```{r}
+dat <-
+  expand.grid(
+    gender = c("male", "female"),
+    ethnicity = c("white", "Black"),
+    i = 1:group_n
+  ) |>
+  select(-i) |>
+  arrange(gender, ethnicity) |>
+  mutate(
+    y = case_when(
+      gender == "male"   & ethnicity == "white" ~ 60,
+      gender == "female" & ethnicity == "white" ~ 80,
+      gender == "male"   & ethnicity == "Black" ~ 80,
+      gender == "female" & ethnicity == "Black" ~ 60
+    ),
+    y = y + rep(rand_within, n()/length(rand_within))
+  )
+dat
+```
+
+
+```{r}
+dat |>
+  group_by(gender) |>
+  summarise(mean = mean(y))
+```
+
+
+```{r}
+dat |>
+  group_by(ethnicity) |>
+  summarise(mean = mean(y))
+```
+
+
+```{r}
+mod_add <- lm(y ~ gender + ethnicity, data = dat)
+summary(mod_add)
+```
+
+```{r}
+mod_mult <- lm(y ~ gender * ethnicity, data = dat)
+summary(mod_mult)
+```
+
+
+```{r}
+lmm_null  <- lmer(y ~ 1 + (1|gender:ethnicity), data = dat)
+summary(lmm_null)
+```
+
+```{r}
+vars <- as.data.frame(VarCorr(lmm_null))
+vars$vcov[1] / sum(vars$vcov)
+```
+
+```{r}
+lmm_add  <- lmer(y ~ gender + ethnicity + (1|gender:ethnicity), data = dat)
+summary(lmm_add)
+```
+
+```{r}
+vars_add <- as.data.frame(VarCorr(lmm_add))
+vars_add$vcov[1] / sum(vars_add$vcov)
+```
+
+
+```{r}
+dat_add <-
+  expand.grid(
+    gender = c("male", "female"),
+    ethnicity = c("white", "Black"),
+    i = 1:group_n
+  ) |>
+  select(-i) |>
+  arrange(gender, ethnicity) |>
+  mutate(
+    y = case_when(
+      gender == "male"   & ethnicity == "white" ~ 80,
+      gender == "female" & ethnicity == "white" ~ 80,
+      gender == "male"   & ethnicity == "Black" ~ 60,
+      gender == "female" & ethnicity == "Black" ~ 60
+    ),
+    y = y + rep(rand_within, n()/length(rand_within))
+  )
+dat
+```
+
+
+```{r}
+mod_dat_add <- lm(y ~ gender + ethnicity, data = dat_add)
+summary(mod_dat_add)
+```
+
+
+```{r}
+lmm_add_null  <- lmer(y ~ 1 + (1|gender:ethnicity), data = dat_add)
+summary(lmm_add_null)
+```
+
+```{r}
+vars_add <- as.data.frame(VarCorr(lmm_add_null))
+vars_add$vcov[1] / sum(vars_add$vcov)
+```
+
+```{r}
+lmm_add_add  <- lmer(y ~ gender + ethnicity + (1|gender:ethnicity), data = dat_add)
+summary(lmm_add_add)
+```
+
+```{r}
+vars_add_add <- as.data.frame(VarCorr(lmm_add_add))
+vars_add_add$vcov[1] / sum(vars_add_add$vcov)
+```
+

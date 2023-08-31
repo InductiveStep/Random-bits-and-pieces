@@ -1,0 +1,37 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+  html_notebook:
+    code_folding: none
+---
+
+```{r}
+library(ggdag)
+library(tidyverse)
+```
+
+
+```{r dpi=600, width=3, height=3}
+dagify(Y ~ X) |>
+  ggdag_equivalent_dags() +
+  theme_void()
+```
+
+
+
+```{r fig.height=8, fig.width=8, dpi=600}
+dagify(out   ~ med + treat,
+       med   ~ treat,
+       out   ~ X1 + X2,
+       med   ~ X1 + X2,
+       treat ~ X1 + X2,
+       exposure = "treat", outcome = "out") |>
+  ggdag_equivalent_dags() +
+  theme_void()
+```
+
+
+
+
