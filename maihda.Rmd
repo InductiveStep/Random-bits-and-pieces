@@ -8,6 +8,7 @@ output:
 ```{r}
 library(tidyverse)
 library(lme4)
+options(scipen=0)
 ```
 
 
@@ -15,13 +16,14 @@ library(lme4)
 group_n <- 100
 ```
 
+We'll use the same residuals with a sample mean of 0 for each group.
+
 ```{r}
-rand_within <- rnorm(group_n, mean = 0, sd = 20) |> round(1)
-rand_within <- rand_within - mean(rand_within) 
-mean(rand_within) |> round(3)
+rand_within <- rnorm(group_n, mean = 0, sd = 20)
+rand_within <- rand_within - mean(rand_within)
 ```
 
-
+Simulate data:
 
 ```{r}
 dat <-
@@ -137,5 +139,22 @@ summary(lmm_add_add)
 ```{r}
 vars_add_add <- as.data.frame(VarCorr(lmm_add_add))
 vars_add_add$vcov[1] / sum(vars_add_add$vcov)
+```
+
+
+
+```{r}
+library(lattice)
+```
+
+
+```{r}
+ranef(lmm_add) |> dotplot()
+```
+
+
+
+```{r}
+ranef(lmm_add_add) |> dotplot()
 ```
 

@@ -8,8 +8,22 @@ output:
 ---
 
 ```{r}
+library(conflicted)
 library(ggdag)
 library(tidyverse)
+```
+
+
+```{r dpi=600, width=6, height=6}
+dagify(c ~ a,
+       f ~ c,
+       a ~ d,
+       c ~ d,
+       f ~ d,
+       d ~ b + g,
+       b ~ e) |>
+  ggdag() +
+  theme_dag()
 ```
 
 
@@ -21,12 +35,10 @@ dagify(Y ~ X) |>
 
 
 
+
 ```{r fig.height=8, fig.width=8, dpi=600}
 dagify(out   ~ med + treat,
        med   ~ treat,
-       out   ~ X1 + X2,
-       med   ~ X1 + X2,
-       treat ~ X1 + X2,
        exposure = "treat", outcome = "out") |>
   ggdag_equivalent_dags() +
   theme_void()
