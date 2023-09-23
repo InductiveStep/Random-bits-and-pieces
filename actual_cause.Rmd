@@ -1,0 +1,350 @@
+---
+title: "Actual causation"
+author: "Andi Fugard (@andi@sciences.social)"
+date: "23 Sept 2023"
+output:
+  html_document:
+    df_print: paged
+  html_notebook:
+    code_folding: none
+---
+
+This R code implements ideas in Joseph Halpern's *Actual Causality*.
+
+
+```{r}
+library(conflicted)
+library(tidyverse)
+library(R6)
+```
+
+```{r}
+conflicts_prefer(dplyr::filter)
+```
+
+Comments coming on this one. {R6} is a lovely package; however, I'm not sure how best to use it in Markdown.
+
+```{r CausalMod}
+CausalMod <- R6Class("CausalMod",
+  public = list(
+    
+    initialize = function(funs = NA, ranges = NA) {
+      self$setFuns(funs)
+      self$setRanges(ranges)
+    },
+    
+    setFuns = function(funs) {
+      private$funs <- funs
+    },
+    
+    setRanges = function(ranges) {
+      private$ranges <- ranges
+    },
+    
+    update = function(var, newVal) {
+      if (!var %in% self$getVars())
+        stop(paste(var, "is not a variable"))
+      if (!newVal %in% self$getRanges()[[var]])
+        stop(paste(newVal, "is not in range",
+                   paste(self$getRanges()[[var]], collapse = ", " )))
+      
+      private$funs[[var]] <- \() newVal
+    },
+    
+    updateList = function(valList) {
+      vars <- names(valList)
+      
+      for (v in vars) {
+        self$update(v, valList[[v]])
+      }
+    },
+    
+    getFuns = function() {
+      private$funs
+    },
+    
+    getRanges = function() {
+      private$ranges
+    },
+    
+    getVars = function() {
+      names(private$funs)
+    },
+    
+    getState = function() {
+      res <- as.list(rep(NA, length(private$funs)))
+      names(res) <- names(private$funs)
+  
+      for (v in names(res)) {
+        theArgs <- formalArgs(private$funs[[v]])
+        theParams <- list()
+        if (!is.null(theArgs)) {
+          theParams <- res[theArgs]
+        }
+        res[[v]] <- do.call(private$funs[[v]], theParams)
+      }
+
+      res      
+    },
+    
+    testProp = function(prop) {
+      state <- self$getState()[(formalArgs(prop))]
+      do.call(prop, state)
+    },
+    
+    AC1 = function(XsProp, phiProp) {
+      self$testProp(XsProp) && self$testProp(phiProp)
+    },
+    
+    AC2 = function(XsProp, phiProp) {
+      Xs <- formalArgs(XsProp)
+      partitions <- private$listZWs(Xs, names(private$funs))
+      res <- data.frame()
+      
+      for (Ws in partitions$Ws) {
+        possibilities <- expand.grid(private$ranges[c(Xs, Ws)])
+        Zs <- setdiff(names(private$funs), c(Xs, Ws))
+        
+        cat("\nTrying partition:\n")
+        private$printPartition(Xs, Ws, Zs)
+
+        for (r in seq_len(nrow(possibilities))) {
+          cloned <- self$clone()
+          thisWorld <- possibilities[r,,drop = FALSE]
+          cloned$updateList(thisWorld |> as.list())
+          if (!cloned$testProp(XsProp) && !cloned$testProp(phiProp)) {
+            cat("AC2u(a) PASSED on: \n")
+            cat("  ")
+            private$printFlatList(thisWorld |> as.list())
+            cat("\n")
+            
+            X_setting <- self$getState()[Xs]
+            Z_setting <- self$getState()[Zs]
+            W_setting <- cloned$getState()[Ws]
+            ZW_setting <- c(Z_setting, W_setting)
+            
+            test_subs <- private$allSubsets(ZW_setting)
+            test_subs <- lapply(test_subs, \(x) c(X_setting, x))
+
+            cat("Testing AC2u(b) on subsets:\n")
+            
+            AC2b_res <- c()
+            for (x in seq_len(length(test_subs))) {
+              cat("  ")
+              private$printFlatList(test_subs[[x]])
+              
+              testWorld <- self$clone()
+              testWorld$updateList(test_subs[[x]])
+              testResult <- testWorld$testProp(phiProp)
+              
+              if (testResult)
+                cat("✓\n")
+              else
+                cat("✗\n") 
+              
+              AC2b_res <- c(AC2b_res, testResult)
+            }
+
+            if (all(AC2b_res)) {
+              res <- bind_rows(res, thisWorld)
+              cat("✓✓ AC2(a) and AC2u(b)!\n")
+            }
+            else {
+              cat("AC2u(b) failed!\n")              
+            }
+          }
+        }
+      }
+      cat("\n")
+      res
+    },
+    
+    AC = function(XsProp, phiProp) {
+      c(AC1 = self$AC1(XsProp, phiProp),
+        AC2u = (nrow(self$AC2(XsProp, phiProp)) > 0)
+      )
+    }
+    
+  ),
+  
+  private = list(
+    funs   = list(),
+    ranges = list(),
+    
+    allZWs = function(Xs, vars) {
+      varsList <- as.list(rep(NA, length(vars)))
+      names(varsList) <- vars
+  
+      for (v in vars) {
+        if (v %in% Xs)
+          varsList[[v]] <- c("Z")
+        else
+          varsList[[v]] <- c("Z", "W")
+      }
+  
+      expand.grid(varsList, stringsAsFactors = FALSE)
+    },
+    
+    listZWs = function(Xs, vars) {
+      dat <- private$allZWs(Xs, vars)
+      Zs <- list(rep(NA, nrow(dat)))
+      Ws <- list(rep(NA, nrow(dat)))
+  
+      for (i in seq_len(nrow(dat))) {
+        Zs[[i]] <- names(dat)[dat[i,,drop = FALSE] == "Z"]
+        Ws[[i]] <- names(dat)[dat[i,,drop = FALSE] == "W"]
+      }
+    
+      list(Ws = Ws, Zs = Zs)
+    },
+    
+    allSubsets = function(theList) {
+      vars <- names(theList)
+      varsList <- as.list(rep(NA, length(vars)))
+      names(varsList) <- vars
+      
+      for (v in vars) {
+          varsList[[v]] <- c(TRUE, FALSE)
+      }
+      
+      truthtab <- expand.grid(varsList, stringsAsFactors = FALSE)
+      
+      res <- list()
+      for (r in seq_len(nrow(truthtab))) {
+        vec <- truthtab[r,,drop = FALSE] |> t() |> as.vector()
+        res <- c(res, list(theList[vec]))
+      }
+      
+      res
+    },
+    
+    printFlatList = function(flat) {
+      if (length(flat) > 0)
+        stopifnot(!is.null(names(flat)))
+      
+      cat("[ ")
+      for (v in names(flat)) {
+        cat(v)
+        cat("←")
+        cat(flat[[v]])
+        cat(" ")
+      }
+      cat("]")
+    },
+    
+    printListofLists = function(lists) {
+      for (e in lists) {
+        cat("  ")
+        private$printFlatList(e)
+        cat("\n")
+      }
+    },
+    
+    printPartition = function(Xs, Ws, Zs) {
+      cat("  X = {")
+      cat(paste(Xs, collapse = ", "))
+      cat("}\n")
+      cat("  W = {")
+      cat(paste(Ws, collapse = ", "))
+      cat("}\n")
+      cat("  Z-X = {")
+      cat(paste(Zs, collapse = ", "))
+      cat("}\n")
+    }
+  )
+)
+```
+
+
+Here's an easy simplfication of an example given by Halpert. Suzy throws (ST), bottle smashes (BS).
+
+```{r simpBottle}
+simpBottle <- CausalMod$new(
+  funs = list(
+    ST = \() 1,
+    BS = \(ST) ST
+  ), 
+  ranges = list(
+    ST = c(0, 1),
+    BS = c(0, 1)    
+  )
+)
+
+simpBottle$AC(\(ST) ST == 1, \(BS) BS == 1)
+```
+
+Both AC1 and AC2u (for updated) hold.
+
+```{r}
+simpBottle$AC(\(BS) BS == 1, \(ST) ST == 1)
+```
+
+The reverse doesn't for AC2u.
+
+Now a more complicated example from the book (Fig 2.3).
+
+```{r bottle}
+bottle <- CausalMod$new(
+  funs = list(
+    ST = \() 1,
+    BT = \() 1,
+    SH = \(ST) ST,
+    BH = \(BT, SH) BT * (1 - SH),
+    BS = \(SH, BH) max(SH, BH)
+  ), 
+  ranges = list(
+    ST = c(0, 1),
+    BT = c(0, 1),
+    SH = c(0, 1),
+    BH = c(0, 1),
+    BS = c(0, 1)    
+  )
+)
+```
+
+ST causes BT:
+
+```{r}
+bottle$AC(\(ST) ST == 1, \(BS) BS == 1)
+```
+
+Blimey. Imagine doing that by hand (though we didn't actually need to try all partitions and settings).
+
+Reverse:
+
+```{r}
+bottle$AC(\(BS) BS == 1, \(ST) ST == 1)
+```
+
+It works!
+
+Now a moderately hard one (not quite as bad as above) which I use in the [blog post](https://www.andifugard.info/actual-causes/).
+
+```{r mod_hard}
+mod_hard <- CausalMod$new(
+  funs = list(
+    AliceThrow  = \() 1,
+    BobThrow    = \() 1,
+    GlassBreaks = \(AliceThrow, BobThrow) max(AliceThrow, BobThrow)
+  ), 
+  ranges = list(
+    AliceThrow  = c(0, 1),
+    BobThrow    = c(0, 1),
+    GlassBreaks = c(0, 1)
+  )
+)
+```
+
+```{r}
+mod_hard$AC(\(AliceThrow) AliceThrow == 1, \(GlassBreaks) GlassBreaks == 1)
+```
+
+
+```{r}
+mod_hard$AC(\(GlassBreaks) GlassBreaks == 1,
+            \(AliceThrow) AliceThrow == 1)
+```
+
+
+
+

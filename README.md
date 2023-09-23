@@ -31,3 +31,7 @@ These are incomplete code fragments:
 [Mediator effects](https://inductivestep.github.io/Random-bits-and-pieces/mediator_effects.nb.html)
 
 [Little Miss and Mr Men name binariness](https://inductivestep.github.io/Random-bits-and-pieces/name_binariness.html)
+
+[Actual causes](https://inductivestep.github.io/Random-bits-and-pieces/actual cause.html)
+
+
