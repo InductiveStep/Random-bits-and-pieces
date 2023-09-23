@@ -32,6 +32,6 @@ These are incomplete code fragments:
 
 [Little Miss and Mr Men name binariness](https://inductivestep.github.io/Random-bits-and-pieces/name_binariness.html)
 
-[Actual causes](https://inductivestep.github.io/Random-bits-and-pieces/actual_ _cause.html)
+[Actual causes](https://inductivestep.github.io/Random-bits-and-pieces/actual_cause.html)
 
 
