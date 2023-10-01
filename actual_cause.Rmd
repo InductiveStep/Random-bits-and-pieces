@@ -5,12 +5,15 @@ date: "23 Sept 2023"
 output:
   html_document:
     df_print: paged
+    toc: true
   html_notebook:
     code_folding: none
 ---
 
 This R code implements ideas in Joseph Halpern's *Actual Causality*.
 
+
+## Library setup
 
 ```{r}
 library(conflicted)
@@ -21,6 +24,8 @@ library(R6)
 ```{r}
 conflicts_prefer(dplyr::filter)
 ```
+
+## The R6 class that does all the magic
 
 Comments coming on this one. {R6} is a lovely package; however, I'm not sure how best to use it in Markdown.
 
@@ -256,6 +261,9 @@ CausalMod <- R6Class("CausalMod",
 ```
 
 
+## Easy example: one person lobbing stone at bottle
+
+
 Here's an easy simplfication of an example given by Halpert. Suzy throws (ST), bottle smashes (BS).
 
 ```{r simpBottle}
@@ -280,6 +288,10 @@ simpBottle$AC(\(BS) BS == 1, \(ST) ST == 1)
 ```
 
 The reverse doesn't for AC2u.
+
+
+## Complicated example from Fig 2.3 in the book
+
 
 Now a more complicated example from the book (Fig 2.3).
 
@@ -318,6 +330,10 @@ bottle$AC(\(BS) BS == 1, \(ST) ST == 1)
 
 It works!
 
+
+## Two people throwing bricks at a glasshouse
+
+
 Now a moderately hard one (not quite as bad as above) which I use in the [blog post](https://www.andifugard.info/actual-causes/).
 
 ```{r mod_hard}
@@ -345,6 +361,52 @@ mod_hard$AC(\(GlassBreaks) GlassBreaks == 1,
             \(AliceThrow) AliceThrow == 1)
 ```
 
+## Scriven example
+
+
+```{r scriven_ex}
+scriven_ex <- CausalMod$new(
+  funs = list(
+    jumped_t0       = \() 1,
+    shot_mid_flight = \() 1,
+    dead_t1         = \(jumped_t0, shot_mid_flight)
+                                min(jumped_t0, shot_mid_flight),
+    dead_t2         = \(jumped_t0) jumped_t0
+  ), 
+  ranges = list(
+    jumped_t0       = c(0, 1),
+    shot_mid_flight = c(0, 1),
+    dead_t1         = c(0, 1),
+    dead_t2         = c(0, 1)
+  )
+)
+```
+
+
+Does jumping at t0 lead to death at t2?
+
+```{r}
+scriven_ex$AC(\(jumped_t0) jumped_t0 == 1,
+              \(dead_t2)   dead_t2 == 1)
+```
+
+
+Does jumping at t0 cause death at t1?
+
+```{r}
+scriven_ex$AC(\(jumped_t0) jumped_t0 == 1,
+              \(dead_t1)   dead_t1 == 1)
+```
+
+
+```{r}
+scriven_ex$AC(\(shot_mid_flight) shot_mid_flight == 1,
+              \(dead_t1) dead_t1 == 1)
+```
 
 
 
+```{r}
+scriven_ex$AC(\(shot_mid_flight) shot_mid_flight == 1,
+              \(dead_t2) dead_t2 == 1)
+```

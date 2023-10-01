@@ -1626,9 +1626,27 @@ display: none;
 
 </div>
 
+<div id="TOC">
+<ul>
+<li><a href="#library-setup" id="toc-library-setup">Library
+setup</a></li>
+<li><a href="#the-r6-class-that-does-all-the-magic" id="toc-the-r6-class-that-does-all-the-magic">The R6 class that does all
+the magic</a></li>
+<li><a href="#easy-example-one-person-lobbing-stone-at-bottle" id="toc-easy-example-one-person-lobbing-stone-at-bottle">Easy example:
+one person lobbing stone at bottle</a></li>
+<li><a href="#complicated-example-from-fig-2.3-in-the-book" id="toc-complicated-example-from-fig-2.3-in-the-book">Complicated
+example from Fig 2.3 in the book</a></li>
+<li><a href="#two-people-throwing-bricks-at-a-glasshouse" id="toc-two-people-throwing-bricks-at-a-glasshouse">Two people throwing
+bricks at a glasshouse</a></li>
+<li><a href="#scriven-example" id="toc-scriven-example">Scriven
+example</a></li>
+</ul>
+</div>
 
 <p>This R code implements ideas in Joseph Halpern’s <em>Actual
 Causality</em>.</p>
+<div id="library-setup" class="section level2">
+<h2>Library setup</h2>
 <pre class="r"><code>library(conflicted)
 library(tidyverse)</code></pre>
 <pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
@@ -1640,6 +1658,9 @@ library(tidyverse)</code></pre>
 <pre class="r"><code>library(R6)</code></pre>
 <pre class="r"><code>conflicts_prefer(dplyr::filter)</code></pre>
 <pre><code>## [conflicted] Will prefer dplyr::filter over any other package.</code></pre>
+</div>
+<div id="the-r6-class-that-does-all-the-magic" class="section level2">
+<h2>The R6 class that does all the magic</h2>
 <p>Comments coming on this one. {R6} is a lovely package; however, I’m
 not sure how best to use it in Markdown.</p>
 <pre class="r"><code>CausalMod &lt;- R6Class(&quot;CausalMod&quot;,
@@ -1870,6 +1891,9 @@ not sure how best to use it in Markdown.</p>
     }
   )
 )</code></pre>
+</div>
+<div id="easy-example-one-person-lobbing-stone-at-bottle" class="section level2">
+<h2>Easy example: one person lobbing stone at bottle</h2>
 <p>Here’s an easy simplfication of an example given by Halpert. Suzy
 throws (ST), bottle smashes (BS).</p>
 <pre class="r"><code>simpBottle &lt;- CausalMod$new(
@@ -1929,6 +1953,9 @@ simpBottle$AC(\(ST) ST == 1, \(BS) BS == 1)</code></pre>
 <pre><code>##   AC1  AC2u 
 ##  TRUE FALSE</code></pre>
 <p>The reverse doesn’t for AC2u.</p>
+</div>
+<div id="complicated-example-from-fig-2.3-in-the-book" class="section level2">
+<h2>Complicated example from Fig 2.3 in the book</h2>
 <p>Now a more complicated example from the book (Fig 2.3).</p>
 <pre class="r"><code>bottle &lt;- CausalMod$new(
   funs = list(
@@ -3357,6 +3384,9 @@ try all partitions and settings).</p>
 <pre><code>##   AC1  AC2u 
 ##  TRUE FALSE</code></pre>
 <p>It works!</p>
+</div>
+<div id="two-people-throwing-bricks-at-a-glasshouse" class="section level2">
+<h2>Two people throwing bricks at a glasshouse</h2>
 <p>Now a moderately hard one (not quite as bad as above) which I use in
 the <a href="https://www.andifugard.info/actual-causes/">blog
 post</a>.</p>
@@ -3475,6 +3505,995 @@ post</a>.</p>
 ## AC2u(b) failed!</code></pre>
 <pre><code>##   AC1  AC2u 
 ##  TRUE FALSE</code></pre>
+</div>
+<div id="scriven-example" class="section level2">
+<h2>Scriven example</h2>
+<pre class="r"><code>scriven_ex &lt;- CausalMod$new(
+  funs = list(
+    jumped_t0       = \() 1,
+    shot_mid_flight = \() 1,
+    dead_t1         = \(jumped_t0, shot_mid_flight)
+                                min(jumped_t0, shot_mid_flight),
+    dead_t2         = \(jumped_t0) jumped_t0
+  ), 
+  ranges = list(
+    jumped_t0       = c(0, 1),
+    shot_mid_flight = c(0, 1),
+    dead_t1         = c(0, 1),
+    dead_t2         = c(0, 1)
+  )
+)</code></pre>
+<p>Does jumping at t0 lead to death at t2?</p>
+<pre class="r"><code>scriven_ex$AC(\(jumped_t0) jumped_t0 == 1,
+              \(dead_t2)   dead_t2 == 1)</code></pre>
+<pre><code>## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {}
+##   Z-X = {shot_mid_flight, dead_t1, dead_t2}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {shot_mid_flight}
+##   Z-X = {dead_t1, dead_t2}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t1←1 dead_t2←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 dead_t1←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←1 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t1←1 dead_t2←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {dead_t1}
+##   Z-X = {shot_mid_flight, dead_t2}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 dead_t1←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←1 dead_t1←0 ]✓
+##   [ jumped_t0←1 dead_t2←1 dead_t1←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 ]✓
+##   [ jumped_t0←1 dead_t1←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 dead_t1←1 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {shot_mid_flight, dead_t1}
+##   Z-X = {dead_t2}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←0 dead_t1←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←0 dead_t1←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t1←0 ]✓
+##   [ jumped_t0←1 dead_t2←1 dead_t1←0 ]✓
+##   [ jumped_t0←1 dead_t1←0 ]✓
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←1 dead_t1←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←1 dead_t1←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 ]✓
+##   [ jumped_t0←1 dead_t2←1 dead_t1←0 ]✓
+##   [ jumped_t0←1 dead_t1←0 ]✓
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←0 dead_t1←1 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←0 dead_t1←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←1 dead_t1←1 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {dead_t2}
+##   Z-X = {shot_mid_flight, dead_t1}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t1←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {shot_mid_flight, dead_t2}
+##   Z-X = {dead_t1}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t1←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←1 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t1←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {dead_t1, dead_t2}
+##   Z-X = {shot_mid_flight}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 dead_t1←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t1←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 ]✓
+##   [ jumped_t0←1 dead_t1←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 dead_t1←1 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t1←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {shot_mid_flight, dead_t1, dead_t2}
+##   Z-X = {}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←0 dead_t1←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t1←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t1←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t1←0 ]✓
+##   [ jumped_t0←1 dead_t1←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←1 dead_t1←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t1←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 ]✓
+##   [ jumped_t0←1 dead_t1←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←0 dead_t1←1 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t1←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t1←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←1 dead_t1←1 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t1←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!</code></pre>
+<pre><code>##  AC1 AC2u 
+## TRUE TRUE</code></pre>
+<p>Does jumping at t0 cause death at t1?</p>
+<pre class="r"><code>scriven_ex$AC(\(jumped_t0) jumped_t0 == 1,
+              \(dead_t1)   dead_t1 == 1)</code></pre>
+<pre><code>## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {}
+##   Z-X = {shot_mid_flight, dead_t1, dead_t2}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {shot_mid_flight}
+##   Z-X = {dead_t1, dead_t2}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t1←1 dead_t2←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←0 ]✗
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←0 ]✗
+##   [ jumped_t0←1 dead_t1←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←1 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t1←1 dead_t2←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {dead_t1}
+##   Z-X = {shot_mid_flight, dead_t2}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 dead_t1←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 dead_t2←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {shot_mid_flight, dead_t1}
+##   Z-X = {dead_t2}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←0 dead_t1←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←0 dead_t1←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t1←0 ]✗
+##   [ jumped_t0←1 dead_t2←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←0 ]✗
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←1 dead_t1←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 dead_t2←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 dead_t2←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {dead_t2}
+##   Z-X = {shot_mid_flight, dead_t1}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 dead_t2←0 ]✓
+##   [ jumped_t0←1 dead_t1←1 dead_t2←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←0 ]✓
+##   [ jumped_t0←1 dead_t2←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 dead_t2←1 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {shot_mid_flight, dead_t2}
+##   Z-X = {dead_t1}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←0 dead_t2←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t1←1 dead_t2←0 ]✓
+##   [ jumped_t0←1 dead_t2←0 ]✓
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←0 ]✗
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←1 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←1 dead_t2←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←0 ]✓
+##   [ jumped_t0←1 dead_t1←1 dead_t2←0 ]✓
+##   [ jumped_t0←1 dead_t2←0 ]✓
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←0 dead_t2←1 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←0 dead_t2←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t2←1 ]✗
+##   [ jumped_t0←1 dead_t1←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←0 ]✗
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←1 dead_t2←1 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 dead_t1←1 ]✓
+##   [ jumped_t0←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {dead_t1, dead_t2}
+##   Z-X = {shot_mid_flight}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 dead_t1←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t1←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←0 ]✓
+##   [ jumped_t0←1 dead_t2←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 dead_t1←0 dead_t2←1 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 dead_t2←1 ]✗
+##   [ jumped_t0←1 dead_t1←0 dead_t2←1 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## 
+## Trying partition:
+##   X = {jumped_t0}
+##   W = {shot_mid_flight, dead_t1, dead_t2}
+##   Z-X = {}
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←0 dead_t1←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t1←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t1←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t2←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t1←0 ]✗
+##   [ jumped_t0←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←0 ]✗
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←1 dead_t1←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 dead_t1←0 dead_t2←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←0 ]✓
+##   [ jumped_t0←1 dead_t2←0 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←0 dead_t1←0 dead_t2←1 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t1←0 dead_t2←1 ]✗
+##   [ jumped_t0←1 dead_t1←0 dead_t2←1 ]✗
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t2←1 ]✗
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←0 dead_t1←0 ]✗
+##   [ jumped_t0←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←0 ]✗
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ jumped_t0←0 shot_mid_flight←1 dead_t1←0 dead_t2←1 ]
+## Testing AC2u(b) on subsets:
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 dead_t2←1 ]✗
+##   [ jumped_t0←1 dead_t1←0 dead_t2←1 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 dead_t2←1 ]✓
+##   [ jumped_t0←1 shot_mid_flight←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 dead_t1←0 ]✗
+##   [ jumped_t0←1 shot_mid_flight←1 ]✓
+##   [ jumped_t0←1 ]✓
+## AC2u(b) failed!</code></pre>
+<pre><code>##  AC1 AC2u 
+## TRUE TRUE</code></pre>
+<pre class="r"><code>scriven_ex$AC(\(shot_mid_flight) shot_mid_flight == 1,
+              \(dead_t1) dead_t1 == 1)</code></pre>
+<pre><code>## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {}
+##   Z-X = {jumped_t0, dead_t1, dead_t2}
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {jumped_t0}
+##   Z-X = {dead_t1, dead_t2}
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←1 jumped_t0←0 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 jumped_t0←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←1 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {dead_t1}
+##   Z-X = {jumped_t0, dead_t2}
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 dead_t1←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {jumped_t0, dead_t1}
+##   Z-X = {dead_t2}
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←0 dead_t1←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 dead_t2←1 jumped_t0←0 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←1 dead_t1←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 dead_t2←1 jumped_t0←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {dead_t2}
+##   Z-X = {jumped_t0, dead_t1}
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←1 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 dead_t2←1 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {jumped_t0, dead_t2}
+##   Z-X = {dead_t1}
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 dead_t1←1 jumped_t0←0 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 jumped_t0←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←1 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 dead_t1←1 jumped_t0←1 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←0 dead_t2←1 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 dead_t1←1 jumped_t0←0 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t2←1 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 jumped_t0←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←1 dead_t2←1 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 dead_t1←1 jumped_t0←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## ✓✓ AC2(a) and AC2u(b)!
+## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {dead_t1, dead_t2}
+##   Z-X = {jumped_t0}
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 dead_t1←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 dead_t1←0 dead_t2←1 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←0 dead_t2←1 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 dead_t2←1 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {jumped_t0, dead_t1, dead_t2}
+##   Z-X = {}
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←0 dead_t1←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t1←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←1 dead_t1←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 dead_t2←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←0 dead_t1←0 dead_t2←1 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t1←0 dead_t2←1 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 dead_t2←1 ]✗
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t2←1 ]✗
+##   [ shot_mid_flight←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←1 dead_t1←0 dead_t2←1 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←0 dead_t2←1 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 dead_t2←1 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!</code></pre>
+<pre><code>##  AC1 AC2u 
+## TRUE TRUE</code></pre>
+<pre class="r"><code>scriven_ex$AC(\(shot_mid_flight) shot_mid_flight == 1,
+              \(dead_t2) dead_t2 == 1)</code></pre>
+<pre><code>## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {}
+##   Z-X = {jumped_t0, dead_t1, dead_t2}
+## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {jumped_t0}
+##   Z-X = {dead_t1, dead_t2}
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←1 jumped_t0←0 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 jumped_t0←0 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {dead_t1}
+##   Z-X = {jumped_t0, dead_t2}
+## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {jumped_t0, dead_t1}
+##   Z-X = {dead_t2}
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←0 dead_t1←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 dead_t2←1 jumped_t0←0 dead_t1←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←1 dead_t1←0 ]✓
+##   [ shot_mid_flight←1 dead_t1←0 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 jumped_t0←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←0 dead_t1←1 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 dead_t2←1 jumped_t0←0 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t1←1 ]✗
+##   [ shot_mid_flight←1 dead_t2←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 dead_t2←1 jumped_t0←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {dead_t2}
+##   Z-X = {jumped_t0, dead_t1}
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {jumped_t0, dead_t2}
+##   Z-X = {dead_t1}
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 dead_t1←1 jumped_t0←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←1 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 dead_t1←1 jumped_t0←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {dead_t1, dead_t2}
+##   Z-X = {jumped_t0}
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 dead_t1←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←0 ]✓
+##   [ shot_mid_flight←1 dead_t1←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 dead_t1←1 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## 
+## Trying partition:
+##   X = {shot_mid_flight}
+##   W = {jumped_t0, dead_t1, dead_t2}
+##   Z-X = {}
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←0 dead_t1←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t1←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t1←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←1 dead_t1←0 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←0 ]✓
+##   [ shot_mid_flight←1 dead_t1←0 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←0 dead_t1←1 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t1←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←0 dead_t1←1 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←0 ]✗
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!
+## AC2u(a) PASSED on: 
+##   [ shot_mid_flight←0 jumped_t0←1 dead_t1←1 dead_t2←0 ]
+## Testing AC2u(b) on subsets:
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t1←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 dead_t2←0 ]✗
+##   [ shot_mid_flight←1 jumped_t0←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 dead_t1←1 ]✓
+##   [ shot_mid_flight←1 jumped_t0←1 ]✓
+##   [ shot_mid_flight←1 ]✓
+## AC2u(b) failed!</code></pre>
+<pre><code>##   AC1  AC2u 
+##  TRUE FALSE</code></pre>
+</div>
 
 
 
