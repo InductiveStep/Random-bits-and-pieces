@@ -1,5 +1,5 @@
 ---
-title: "R Notebook"
+title: "Enumerating Markov equivalence classes"
 output:
   html_document:
     df_print: paged
@@ -36,14 +36,27 @@ dagify(Y ~ X) |>
 
 
 
-```{r fig.height=8, fig.width=8, dpi=600}
+```{r fig.height=4, fig.width=8, dpi=600}
 dagify(out   ~ med + treat,
        med   ~ treat,
-       exposure = "treat", outcome = "out") |>
+       exposure = "treat", outcome = "out",
+       coords = list(
+         x = c(treat = 0, med = 2, out = 4),
+         y = c(treat = 0, med = 0.2, out = 0))
+       ) |>
   ggdag_equivalent_dags() +
   theme_void()
 ```
 
 
+
+
+```{r fig.height=4, fig.width=8, dpi=600}
+dagify(B   ~ A,
+       C   ~ B
+       ) |>
+  ggdag_equivalent_dags() +
+  theme_void()
+```
 
 
