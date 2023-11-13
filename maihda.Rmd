@@ -1,13 +1,16 @@
 ---
 title: "R Notebook"
-output: 
-  html_notebook: 
+output:
+  html_document:
+    df_print: paged
+  html_notebook:
     code_folding: none
 ---
 
 ```{r}
 library(tidyverse)
 library(lme4)
+library(lattice)
 options(scipen=0)
 ```
 
@@ -19,7 +22,7 @@ group_n <- 100
 We'll use the same residuals with a sample mean of 0 for each group.
 
 ```{r}
-rand_within <- rnorm(group_n, mean = 0, sd = 20)
+rand_within <- rnorm(group_n, mean = 0, sd = 5)
 rand_within <- rand_within - mean(rand_within)
 ```
 
@@ -29,17 +32,17 @@ Simulate data:
 dat <-
   expand.grid(
     gender = c("male", "female"),
-    ethnicity = c("white", "Black"),
+    ethnicity = c("White", "Black"),
     i = 1:group_n
   ) |>
   select(-i) |>
   arrange(gender, ethnicity) |>
   mutate(
     y = case_when(
-      gender == "male"   & ethnicity == "white" ~ 60,
-      gender == "female" & ethnicity == "white" ~ 80,
-      gender == "male"   & ethnicity == "Black" ~ 80,
-      gender == "female" & ethnicity == "Black" ~ 60
+      gender == "male"   & ethnicity == "White" ~ 40,
+      gender == "female" & ethnicity == "White" ~ 60,
+      gender == "male"   & ethnicity == "Black" ~ 60,
+      gender == "female" & ethnicity == "Black" ~ 40
     ),
     y = y + rep(rand_within, n()/length(rand_within))
   )
@@ -50,15 +53,32 @@ dat
 ```{r}
 dat |>
   group_by(gender) |>
-  summarise(mean = mean(y))
+  summarise(mean = mean(y),
+            sd = sd(y),
+            min = min(y),
+            max = max(y))
 ```
 
 
 ```{r}
 dat |>
   group_by(ethnicity) |>
-  summarise(mean = mean(y))
+  summarise(mean = mean(y),
+            sd = sd(y),
+            min = min(y),
+            max = max(y))
 ```
+
+```{r}
+dat |>
+  group_by(ethnicity, gender) |>
+  summarise(mean = mean(y)) |>
+  ggplot(aes(fill = gender, y = mean, x = ethnicity)) +
+  geom_col(position="dodge") + 
+  labs(x = "Ethnicity", y = "Mean salary", fill = "Gender")
+```
+
+
 
 
 ```{r}
@@ -83,7 +103,7 @@ vars$vcov[1] / sum(vars$vcov)
 ```
 
 ```{r}
-lmm_add  <- lmer(y ~ gender + ethnicity + (1|gender:ethnicity), data = dat)
+lmm_add  <- lmer(y ~ ethnicity + gender + (1|ethnicity:gender), data = dat)
 summary(lmm_add)
 ```
 
@@ -92,27 +112,62 @@ vars_add <- as.data.frame(VarCorr(lmm_add))
 vars_add$vcov[1] / sum(vars_add$vcov)
 ```
 
+```{r}
+ranef(lmm_add) |> dotplot()
+```
+
+
 
 ```{r}
 dat_add <-
   expand.grid(
     gender = c("male", "female"),
-    ethnicity = c("white", "Black"),
+    ethnicity = c("White", "Black"),
     i = 1:group_n
   ) |>
   select(-i) |>
   arrange(gender, ethnicity) |>
   mutate(
     y = case_when(
-      gender == "male"   & ethnicity == "white" ~ 80,
-      gender == "female" & ethnicity == "white" ~ 80,
+      gender == "male"   & ethnicity == "White" ~ 80,
+      gender == "female" & ethnicity == "White" ~ 80,
       gender == "male"   & ethnicity == "Black" ~ 60,
       gender == "female" & ethnicity == "Black" ~ 60
     ),
     y = y + rep(rand_within, n()/length(rand_within))
   )
-dat
+dat_add
 ```
+
+
+```{r}
+dat_add |>
+  group_by(gender) |>
+  summarise(mean = mean(y),
+            sd = sd(y),
+            min = min(y),
+            max = max(y))
+```
+
+```{r}
+dat_add |>
+  group_by(ethnicity) |>
+  summarise(mean = mean(y),
+            sd = sd(y),
+            min = min(y),
+            max = max(y))
+```
+
+
+```{r}
+dat_add |>
+  group_by(gender,ethnicity) |>
+  summarise(mean = mean(y),
+            sd = sd(y),
+            min = min(y),
+            max = max(y))
+```
+
 
 
 ```{r}
@@ -122,7 +177,7 @@ summary(mod_dat_add)
 
 
 ```{r}
-lmm_add_null  <- lmer(y ~ 1 + (1|gender:ethnicity), data = dat_add)
+lmm_add_null  <- lmer(y ~ 1 + (1|ethnicity:gender), data = dat_add)
 summary(lmm_add_null)
 ```
 
@@ -132,7 +187,7 @@ vars_add$vcov[1] / sum(vars_add$vcov)
 ```
 
 ```{r}
-lmm_add_add  <- lmer(y ~ gender + ethnicity + (1|gender:ethnicity), data = dat_add)
+lmm_add_add  <- lmer(y ~ ethnicity + gender + (1|ethnicity:gender), data = dat_add)
 summary(lmm_add_add)
 ```
 
@@ -157,4 +212,56 @@ ranef(lmm_add) |> dotplot()
 ```{r}
 ranef(lmm_add_add) |> dotplot()
 ```
+
+
+
+
+```{r}
+ONS_ethnicities <- c(
+  "Bangladeshi",
+  "Chinese",
+  "Indian",
+  "Pakistani",
+  "Other Asian",
+  "African",
+  "Caribbean",
+  "Other Black",
+  "White and Asian",
+  "White and Black African",
+  "White and Black Caribbean",
+  "Other Mixed or Multiple ethnic groups",
+  "English, Welsh, Scottish, Northern Irish or British",
+  "Irish",
+  "Gypsy or Irish Traveller",
+  "Roma",
+  "Other White",
+  "Arab",
+  "Any other ethnic group"
+)
+```
+
+
+
+```{r}
+ONS_gender <- c("Cis woman",
+                "Cis man",
+                "Trans woman",
+                "Trans man",
+                "Non-binary",
+                "Other")
+```
+
+
+
+```{r}
+expand.grid(ethnicity = ONS_ethnicities, gender = ONS_gender) |>
+  mutate(intersect = paste(ethnicity, gender, sep = " : ")) |>
+  pull(intersect) |>
+  paste(collapse = "\n") |>
+  cat()
+```
+
+
+
+
 

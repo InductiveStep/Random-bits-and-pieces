@@ -1,0 +1,40 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+
+```{r}
+library(blockrand)
+```
+
+
+```{r}
+blockrand(n = 15, id.prefix = 'M', block.prefix = 'M', stratum='Male', block.sizes = c(2,4))
+```
+
+
+
+```{r}
+library(randomizr)
+```
+
+
+```{r}
+complete_ra(N = 7) |> table()
+```
+
+```{r}
+frame <- data.frame(type = c(rep("Private",15), rep("Public", 8))) |>
+  mutate(group = block_ra(blocks = type))
+frame |>
+  group_by(type, group) |>
+  tally()
+```
+
+

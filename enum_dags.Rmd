@@ -45,7 +45,7 @@ dagify(out   ~ med + treat,
          y = c(treat = 0, med = 0.2, out = 0))
        ) |>
   ggdag_equivalent_dags() +
-  theme_void()
+  theme_dag()
 ```
 
 
