@@ -34,4 +34,5 @@ These are incomplete code fragments:
 
 [Actual causes](https://inductivestep.github.io/Random-bits-and-pieces/actual_cause.html)
 
+[Randomise](https://inductivestep.github.io/Random-bits-and-pieces/randomise.nb.html)
 
