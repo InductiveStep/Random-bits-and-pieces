@@ -36,8 +36,9 @@ theMotherLoad
 ```
 
 
-```{r}
+```{r results = 'asis'}
 theMotherLoad$words |> paste(collapse = ", ") |> cat()
+cat(".")
 ```
 
 
