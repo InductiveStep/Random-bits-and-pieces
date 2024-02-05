@@ -36,3 +36,5 @@ These are incomplete code fragments:
 
 [Randomise](https://inductivestep.github.io/Random-bits-and-pieces/randomise.nb.html)
 
+[The Ballad of Kandi](https://inductivestep.github.io/Random-bits-and-pieces/kandi_ballad.html)
+
