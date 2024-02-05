@@ -1,0 +1,43 @@
+---
+title: "The Ballad of Kandi"
+author: "Kandi Rodguard"
+date: "5 Feb 2024"
+output:
+  html_document:
+    df_print: paged
+  html_notebook:
+    code_folding: none
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+KatrinasWords <- c("glitches", "bitches", "stitches", "snitches", "witches", "ditches") |>
+  sort()
+```
+
+```{r}
+KatrinasWords
+```
+
+```{r}
+theMotherLoad <- expand.grid(a = KatrinasWords, b = KatrinasWords) |>
+  filter(a != b) |>
+  mutate(words = paste0(a, " get ", b))
+```
+
+
+
+```{r}
+theMotherLoad
+```
+
+
+```{r}
+theMotherLoad$words |> paste(collapse = ", ") |> cat()
+```
+
+
