@@ -74,10 +74,10 @@ rescale <- function(x, in_min, in_max, out_min, out_max) {
 ```
 
 ```{r}
-rescale(seq(-0.3, 0.3, .1), -0.2, 0.2, -1, 1) |> round(2)
+rescale(seq(-0.3, 0.3, .1), -0.3, 0.3, -1, 1) |> round(2)
 ```
 
-The tofu. This function produces a LONG dataset with control observations potentially appearing a large number of times:
+The tofu. This function produces a long dataset with control observations potentially repeating a large number of times:
 
 ```{r}
 kmatch <- function(dat, radius, treat_var, ps_var) {
@@ -197,8 +197,7 @@ bal_adj <- bal.tab(
 
 ```{r}
 summary_tab <- merge(bal_unadj$Balance |> select(-Diff.Adj,-Type),
-      bal_adj$Balance   |> select(-Diff.Un,-Type),
-      by=0, all=TRUE) |>
+      bal_adj$Balance   |> select(-Diff.Un,-Type), by = 0, all = TRUE) |>
   rename(Matched  = Diff.Adj,
          All      = Diff.Un,
          Variable = Row.names)

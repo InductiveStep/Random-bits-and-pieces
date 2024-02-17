@@ -1669,10 +1669,10 @@ lalonde$ps &lt;- predict(glm1, type = &quot;response&quot;)</code></pre>
 <pre class="r"><code>rescale &lt;- function(x, in_min, in_max, out_min, out_max) {
   out_min + ((x - in_min)*(out_max - out_min)/(in_max - in_min))
 }</code></pre>
-<pre class="r"><code>rescale(seq(-0.3, 0.3, .1), -0.2, 0.2, -1, 1) |&gt; round(2)</code></pre>
-<pre><code>## [1] -1.5 -1.0 -0.5  0.0  0.5  1.0  1.5</code></pre>
-<p>The tofu. This function produces a LONG dataset with control
-observations potentially appearing a large number of times:</p>
+<pre class="r"><code>rescale(seq(-0.3, 0.3, .1), -0.3, 0.3, -1, 1) |&gt; round(2)</code></pre>
+<pre><code>## [1] -1.00 -0.67 -0.33  0.00  0.33  0.67  1.00</code></pre>
+<p>The tofu. This function produces a long dataset with control
+observations potentially repeating a large number of times:</p>
 <pre class="r"><code>kmatch &lt;- function(dat, radius, treat_var, ps_var) {
   res &lt;- data.frame()
   
@@ -1721,7 +1721,7 @@ outdat &lt;-
     ps_var = &quot;ps&quot;
   )
 toc()</code></pre>
-<pre><code>## 0.57 sec elapsed</code></pre>
+<pre><code>## 0.65 sec elapsed</code></pre>
 <pre class="r"><code>nrow(lalonde)</code></pre>
 <pre><code>## [1] 614</code></pre>
 <pre class="r"><code>nrow(outdat)</code></pre>
@@ -1783,8 +1783,7 @@ widedat &lt;- lalonde |&gt;
   s.d.denom = &quot;pooled&quot;
 )</code></pre>
 <pre class="r"><code>summary_tab &lt;- merge(bal_unadj$Balance |&gt; select(-Diff.Adj,-Type),
-      bal_adj$Balance   |&gt; select(-Diff.Un,-Type),
-      by=0, all=TRUE) |&gt;
+      bal_adj$Balance   |&gt; select(-Diff.Un,-Type), by = 0, all = TRUE) |&gt;
   rename(Matched  = Diff.Adj,
          All      = Diff.Un,
          Variable = Row.names)
@@ -1830,7 +1829,7 @@ that.</p>
 )</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["term"],"name":[1],"type":["chr"],"align":["left"]},{"label":["contrast"],"name":[2],"type":["chr"],"align":["left"]},{"label":["estimate"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["std.error"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["statistic"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["p.value"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["conf.low"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["conf.high"],"name":[8],"type":["dbl"],"align":["right"]}],"data":[{"1":"treat","2":"1 - 0","3":"1653.942","4":"776.1255","5":"2.131024","6":"0.03308714","7":"132.7643","8":"3175.121"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["term"],"name":[1],"type":["chr"],"align":["left"]},{"label":["contrast"],"name":[2],"type":["chr"],"align":["left"]},{"label":["estimate"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["std.error"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["statistic"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["p.value"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["s.value"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["conf.low"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["conf.high"],"name":[9],"type":["dbl"],"align":["right"]}],"data":[{"1":"treat","2":"1 - 0","3":"1653.942","4":"776.1256","5":"2.131024","6":"0.03308715","7":"4.917585","8":"132.7642","9":"3175.121"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <p>The following call replicates <code>kmatch</code> (no covariates, no
@@ -1844,7 +1843,7 @@ clustering by subclass):</p>
 )</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["term"],"name":[1],"type":["chr"],"align":["left"]},{"label":["contrast"],"name":[2],"type":["chr"],"align":["left"]},{"label":["estimate"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["std.error"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["statistic"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["p.value"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["conf.low"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["conf.high"],"name":[8],"type":["dbl"],"align":["right"]}],"data":[{"1":"treat","2":"1 - 0","3":"1494.585","4":"809.284","5":"1.8468","6":"0.06477616","7":"-91.58195","8":"3080.753"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["term"],"name":[1],"type":["chr"],"align":["left"]},{"label":["contrast"],"name":[2],"type":["chr"],"align":["left"]},{"label":["estimate"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["std.error"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["statistic"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["p.value"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["s.value"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["conf.low"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["conf.high"],"name":[9],"type":["dbl"],"align":["right"]}],"data":[{"1":"treat","2":"1 - 0","3":"1494.585","4":"809.284","5":"1.8468","6":"0.06477616","7":"3.948393","8":"-91.58195","9":"3080.753"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 </div>
