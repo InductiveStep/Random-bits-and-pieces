@@ -1,0 +1,170 @@
+---
+title: "ITS test -- mildly edited real data used as an example..."
+output: html_document
+date: "2024-04-08"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(nlme)
+```
+
+
+```{r}
+dat <- read.csv(text = "Year	Weeks	Intervention
+2023	39	1
+2022	24	1
+2021	20	1
+2020	20	1
+2019	20	1
+2018	22	1
+2017	21	1
+2016	40	0
+2015	33	0
+2014	40	0
+2013	36	0
+2012	34	0
+2011	33	0
+2010	24	0
+2009	32	0
+2008	44	0
+2007	39	0
+2006	45	0
+2005	40	0
+2004	21	0
+2003	26	0", sep = "\t") |>
+  arrange(Year) |>
+  filter(Year != 2023)
+```
+
+
+Intervention started mid-way through 2016, but coded in data above as 2017. Also dropped the last data point.
+
+
+```{r}
+lm_mod = lm(
+  Weeks ~ I(Year - 2017) * Intervention,
+  data = dat
+)
+summary(lm_mod)
+```
+
+
+```{r}
+acf(residuals(lm_mod))
+```
+
+
+```{r}
+acf(residuals(lm_mod), type = "partial")
+```
+
+```{r}
+library(car)
+```
+
+
+```{r}
+durbinWatsonTest(lm_mod, max.lag = 10, data = dat)
+```
+
+
+
+
+```{r}
+dat |>
+  filter(Intervention == 1) |>
+  pull(Year) |>
+  min()
+```
+
+
+
+```{r}
+gls_mod2 = gls(
+  Weeks ~ I(Year - 2017) * Intervention,
+  data = dat,
+  correlation = corARMA(p = 1, q = 1, form = ~ I(Year - 2017)),
+  method = "ML"
+)
+
+summary(gls_mod2)
+```
+
+
+```{r}
+predictions <- predict(gls_mod2) |> as.numeric()
+dat$predicted <- predictions
+```
+
+
+
+```{r}
+preddat <- tibble(
+  Year = seq(min(dat$Year), max(dat$Year), .01),
+  Intervention = as.numeric(Year >= 2017)
+)
+```
+
+
+```{r}
+preddat0 <- tibble(
+  Year = seq(min(dat$Year), max(dat$Year), .01),
+  Intervention = 0
+)
+```
+
+
+```{r}
+preddat$Weeks  <- predict(gls_mod2, preddat)
+preddat0$Weeks <- predict(gls_mod2, preddat0)
+```
+
+```{r dpi = 300}
+plot(Weeks ~ Year, data = dat, ylim = c(0,45), ylab = "Weeks until event")
+lines(preddat0$Year, preddat0$Weeks, lty = 2)
+lines(preddat$Year, preddat$Weeks)
+```
+
+
+
+
+
+
+
+```{r}
+ACF(gls_mod2, form = ~ I(Year - 2017)) |> plot(alpha = 5/100)
+```
+
+
+
+
+
+
+# Made up example to show autocorrelation in the intercept-only model
+
+```{r}
+set.seed(123)
+x <- rnorm(100, 0, 1)
+y <- 20 + 2*x + rnorm(100, 0, 2)
+madeup <- data.frame(x,y) |>
+  arrange(x)
+plot(y ~ x, data = madeup)
+```
+
+
+```{r}
+lm0 <- lm(y ~ 1, data = madeup)
+acf(resid(lm0))
+```
+
+```{r}
+lm1 <- lm(y ~ x, data = madeup)
+acf(resid(lm1))
+```
+
+

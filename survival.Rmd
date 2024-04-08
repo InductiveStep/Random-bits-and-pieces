@@ -1,0 +1,117 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Example from https://argoshare.is.ed.ac.uk/healthyr_book/get-and-check-the-data.html
+
+```{r}
+library(tidyverse)
+library(finalfit)
+melanoma <- boot::melanoma
+```
+
+```{r}
+glimpse(melanoma)
+```
+
+
+```{r}
+missing_glimpse(melanoma)
+```
+
+
+```{r}
+head(melanoma)
+```
+
+
+```{r}
+library(dplyr)
+library(forcats)
+melanoma <- melanoma %>%
+  mutate(
+    # Overall survival
+    status_os = if_else(status == 2, 0, # "still alive"
+                       1), # "died of melanoma" or "died of other causes"
+    
+    # Diease-specific survival
+    status_dss = if_else(status == 2, 0, # "still alive"
+                        if_else(status == 1, 1, # "died of melanoma"
+                               0)), # "died of other causes is censored"
+    
+    # Competing risks regression
+    status_crr = if_else(status == 2, 0, # "still alive"
+                        if_else(status == 1, 1, # "died of melanoma"
+                               2)), # "died of other causes"
+    
+    # Label and recode other variables
+    age = ff_label(age, "Age (years)"), # ff_label table friendly  labels
+    thickness = ff_label(thickness, "Tumour thickness (mm)"),
+    sex = factor(sex) %>% 
+      fct_recode("Male" = "1", 
+                 "Female" = "0") %>% 
+      ff_label("Sex"),
+    ulcer = factor(ulcer) %>% 
+      fct_recode("No" = "0",
+                 "Yes" = "1") %>% 
+      ff_label("Ulcerated tumour")
+  )
+```
+
+
+```{r}
+head(melanoma)
+```
+
+
+
+
+```{r}
+library(survival)
+
+survival_object <- melanoma %$% 
+    Surv(time, status_os)
+
+# Explore:
+head(survival_object) # + marks censoring, in this case "Alive"
+```
+
+```{r}
+survival_object <- melanoma %$% 
+    Surv(time/365, status_os)
+```
+
+
+
+
+```{r}
+my_survfit <- survfit(survival_object ~ 1, data = melanoma)
+my_survfit # 205 patients, 71 events
+```
+
+```{r}
+summary(my_survfit, times = c(0, 1, 2, 3, 4, 5))
+```
+
+```{r}
+library(survminer)
+```
+
+
+```{r}
+dependent_os <- "Surv(time/365, status_os)"
+explanatory  <- c("ulcer")
+
+melanoma %>% 
+    surv_plot(dependent_os, explanatory, pval = TRUE)
+```
+
+
+
+```{r}
+library(survival)
+coxph(Surv(time, status_os) ~ age + sex + thickness + ulcer, data = melanoma) %>% 
+  summary()
+```
+

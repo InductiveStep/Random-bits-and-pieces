@@ -1,0 +1,38 @@
+---
+title: "Difference-in-differences (diff-in-diffs) experiments"
+output: html_notebook
+---
+
+```{r}
+library(DRDID)
+```
+
+Got the data from https://psantanna.com/DRDID/ 
+
+
+```{r}
+nsw_long
+```
+
+
+
+```{r}
+eval_lalonde_cps <- subset(nsw_long, nsw_long$treated == 0 | nsw_long$sample == 2)
+```
+
+
+```{r}
+library(lme4)
+```
+
+
+```{r}
+out <- lmer(re ~ (1|id) + (year * experimental) + age + educ + black + married + nodegree + hisp + re74,
+             data = eval_lalonde_cps)
+fixef(out)["year:experimental"]
+```
+
+
+
+
+

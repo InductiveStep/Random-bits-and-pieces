@@ -1,0 +1,121 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  word_document: default
+---
+
+
+```{r}
+library(jtools)
+library(kableExtra)
+```
+
+
+Linear regression can estimate non-linear relationship between variables.
+
+```{r}
+set.seed(13371337)
+x <- rnorm(1000, 0, 2)
+y <- -x^2 + rnorm(length(x), 0, 1)
+```
+
+
+
+```{r dpi=300}
+plot(y ~ x)
+```
+
+
+```{r}
+silly_mod <- lm(y ~ x)
+summ(silly_mod) 
+```
+
+
+
+```{r dpi=300}
+plot(y ~ x)
+abline(silly_mod, lwd = 2)
+```
+
+```{r}
+better_mod <- lm(y ~ x + I(x^2))
+summ(better_mod)
+```
+
+```{r dpi=300}
+effect_plot(better_mod, x, interval = TRUE, plot.points = TRUE)
+```
+
+
+Note, although nonparametric correlation approaches such as Kendall's $\tau$ and siblings can deal with some nonlinear relationships, they only work for monotonic relationships. The one above isn't...
+
+```{r}
+cor_res <- cor.test(~ x + y, method = "kendall")
+cor_res
+```
+
+... so the p-value is `r cor_res$p.value |> round(2)`.
+
+
+
+
+```{r}
+the_dat <- read.csv(text = "x	y
+1	1
+2	2
+3	2.1
+4	2.2
+5	2.3
+6	2.4
+7	2.5
+8	2.6
+9	20
+10	21
+11	23
+12	25
+13	25.1
+14	25.2
+15	25.3
+16	25.4
+17	25.5
+18	25.6
+19	25.7
+20	25.8
+21	50
+22	50.05
+23	50.1
+24	50.15
+25	50.2
+26	50.25
+27	50.3
+28	50.35
+29	50.4
+30	60
+31	62
+32	64
+33	66
+34	68
+35	70
+36	72
+37	74
+38	76
+39	78
+40	80", sep = "\t")
+the_dat
+```
+
+
+
+```{r dpi=300}
+plot(y ~ x, dat = the_dat, type = "l")
+```
+
+
+```{r}
+cor.test(~ x + y, data = the_dat, method = "kendall")
+```
+
