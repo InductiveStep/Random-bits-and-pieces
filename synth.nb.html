@@ -11,7 +11,7 @@
 
 
 
-<title>R Notebook</title>
+<title>Synth</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1746,7 +1746,7 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">R Notebook</h1>
+<h1 class="title toc-ignore">Synth</h1>
 
 </div>
 
@@ -1754,96 +1754,14 @@ display: none;
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShRQ0EpXG5gYGAifQ== -->
-<pre class="r"><code>library(QCA)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuTENcbmBgYCJ9 -->
-<pre class="r"><code>LC</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudHRMQyA8LSB0cnV0aFRhYmxlKExDLCBTVVJWLCBzb3J0LmJ5ID0gXCJpbmNsLCBuXCIsIHNob3cuY2FzZXMgPSBUUlVFLCBkZXRhaWxzID0gVFJVRSlcbmNMQyA8LSBtaW5pbWl6ZSh0dExDKVxuY0xDXG5gYGAifQ== -->
-<pre class="r"><code>ttLC &lt;- truthTable(LC, SURV, sort.by = &quot;incl, n&quot;, show.cases = TRUE, details = TRUE)
-cLC &lt;- minimize(ttLC)
-cLC</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuTEMkREVWIDwtIGFzLmZhY3RvcihMQyRERVYpXG5MQyRVUkIgPC0gYXMuZmFjdG9yKExDJFVSQilcbkxDJExJVCA8LSBhcy5mYWN0b3IoTEMkTElUKVxuTEMkSU5EIDwtIGFzLmZhY3RvcihMQyRJTkQpXG5MQyRTVEIgPC0gYXMuZmFjdG9yKExDJFNUQilcbmBgYCJ9 -->
-<pre class="r"><code>LC$DEV &lt;- as.factor(LC$DEV)
-LC$URB &lt;- as.factor(LC$URB)
-LC$LIT &lt;- as.factor(LC$LIT)
-LC$IND &lt;- as.factor(LC$IND)
-LC$STB &lt;- as.factor(LC$STB)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShycGFydClcbmBgYCJ9 -->
-<pre class="r"><code>library(rpart)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2FydDEgPC1cbiAgcnBhcnQoXG4gICAgU1VSViB+IERFViArIFVSQiArIExJVCArIElORCArIFNUQixcbiAgICBkYXRhID0gTFIsXG4gICAgY29udHJvbCA9IHJwYXJ0LmNvbnRyb2wobWluc3BsaXQgPSAyLCBtaW5idWNrZXQgPSAxLCBjcCA9IDAuMDUsIHh2YWwgPSAxMDApXG4gIClcbnJwYXJ0LnBsb3Q6OnJwYXJ0LnBsb3QoY2FydDEsIHR5cGUgPSAzKVxuYGBgIn0= -->
-<pre class="r"><code>cart1 &lt;-
-  rpart(
-    SURV ~ DEV + URB + LIT + IND + STB,
-    data = LR,
-    control = rpart.control(minsplit = 2, minbucket = 1, cp = 0.05, xval = 100)
-  )
-rpart.plot::rpart.plot(cart1, type = 3)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2FydDIgPC1cbiAgcnBhcnQoXG4gICAgU1VSViB+IERFViArIFVSQiArIExJVCArIElORCArIFNUQixcbiAgICBkYXRhID0gTEMsXG4gICAgY29udHJvbCA9IHJwYXJ0LmNvbnRyb2wobWluc3BsaXQgPSAyLCBjcCA9IDAsIHh2YWwgPSAxMDApXG4gIClcbnN1bW1hcnkoY2FydDIpXG5ycGFydC5wbG90OjpycGFydC5wbG90KGNhcnQyLCB0eXBlID0gMylcbmBgYCJ9 -->
-<pre class="r"><code>cart2 &lt;-
-  rpart(
-    SURV ~ DEV + URB + LIT + IND + STB,
-    data = LC,
-    control = rpart.control(minsplit = 2, cp = 0, xval = 100)
-  )
-summary(cart2)
-rpart.plot::rpart.plot(cart2, type = 3)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubG1fbW9kIDwtIGxtKFNVUlYgfiAoREVWICsgVVJCICsgTElUICsgSU5EICsgU1RCKV4yLCBkYXRhID0gTFIpXG5sbV9zdGVwIDwtIHN0ZXAobG1fbW9kLCBkaXJlY3Rpb24gPSBcImJvdGhcIiwgayA9IDIuNSlcbnN1bW1hcnkobG1fc3RlcClcbmBgYCJ9 -->
-<pre class="r"><code>lm_mod &lt;- lm(SURV ~ (DEV + URB + LIT + IND + STB)^2, data = LR)
-lm_step &lt;- step(lm_mod, direction = &quot;both&quot;, k = 2.5)
-summary(lm_step)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShjYXIpXG5gYGAifQ== -->
-<pre class="r"><code>library(car)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudmlmKGxtX21vZCwgdHlwZSA9IFwicHJlZGljdG9yXCIpXG5gYGAifQ== -->
-<pre class="r"><code>vif(lm_mod, type = &quot;predictor&quot;)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5c3ludGgpXG5gYGAifQ== -->
+<pre class="r"><code>library(tidysynth)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpgYGB7cn0NCmxpYnJhcnkoUUNBKQ0KYGBgDQpgYGB7cn0NCkxDDQpgYGANCg0KDQoNCmBgYHtyfQ0KdHRMQyA8LSB0cnV0aFRhYmxlKExDLCBTVVJWLCBzb3J0LmJ5ID0gImluY2wsIG4iLCBzaG93LmNhc2VzID0gVFJVRSwgZGV0YWlscyA9IFRSVUUpDQpjTEMgPC0gbWluaW1pemUodHRMQykNCmNMQw0KYGBgDQoNCmBgYHtyfQ0KTEMkREVWIDwtIGFzLmZhY3RvcihMQyRERVYpDQpMQyRVUkIgPC0gYXMuZmFjdG9yKExDJFVSQikNCkxDJExJVCA8LSBhcy5mYWN0b3IoTEMkTElUKQ0KTEMkSU5EIDwtIGFzLmZhY3RvcihMQyRJTkQpDQpMQyRTVEIgPC0gYXMuZmFjdG9yKExDJFNUQikNCmBgYA0KDQoNCg0KYGBge3J9DQpsaWJyYXJ5KHJwYXJ0KQ0KYGBgDQoNCg0KYGBge3J9DQpjYXJ0MSA8LQ0KICBycGFydCgNCiAgICBTVVJWIH4gREVWICsgVVJCICsgTElUICsgSU5EICsgU1RCLA0KICAgIGRhdGEgPSBMUiwNCiAgICBjb250cm9sID0gcnBhcnQuY29udHJvbChtaW5zcGxpdCA9IDIsIG1pbmJ1Y2tldCA9IDEsIGNwID0gMC4wNSwgeHZhbCA9IDEwMCkNCiAgKQ0KcnBhcnQucGxvdDo6cnBhcnQucGxvdChjYXJ0MSwgdHlwZSA9IDMpDQpgYGANCg0KDQoNCmBgYHtyfQ0KY2FydDIgPC0NCiAgcnBhcnQoDQogICAgU1VSViB+IERFViArIFVSQiArIExJVCArIElORCArIFNUQiwNCiAgICBkYXRhID0gTEMsDQogICAgY29udHJvbCA9IHJwYXJ0LmNvbnRyb2wobWluc3BsaXQgPSAyLCBjcCA9IDAsIHh2YWwgPSAxMDApDQogICkNCnN1bW1hcnkoY2FydDIpDQpycGFydC5wbG90OjpycGFydC5wbG90KGNhcnQyLCB0eXBlID0gMykNCmBgYA0KDQoNCmBgYHtyfQ0KbG1fbW9kIDwtIGxtKFNVUlYgfiAoREVWICsgVVJCICsgTElUICsgSU5EICsgU1RCKV4yLCBkYXRhID0gTFIpDQpsbV9zdGVwIDwtIHN0ZXAobG1fbW9kLCBkaXJlY3Rpb24gPSAiYm90aCIsIGsgPSAyLjUpDQpzdW1tYXJ5KGxtX3N0ZXApDQpgYGANCg0KDQpgYGB7cn0NCmxpYnJhcnkoY2FyKQ0KYGBgDQoNCg0KYGBge3J9DQp2aWYobG1fbW9kLCB0eXBlID0gInByZWRpY3RvciIpDQpgYGANCg0KDQo=</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlN5bnRoIg0Kb3V0cHV0OiBodG1sX25vdGVib29rDQotLS0NCg0KYGBge3J9DQpsaWJyYXJ5KHRpZHlzeW50aCkNCmBgYA0KDQo=</div>
 
 
 
@@ -1890,7 +1808,7 @@ $(document).ready(function () {
 <!-- code folding -->
 <script>
 $(document).ready(function () {
-  window.initializeSourceEmbed("qca.Rmd");
+  window.initializeSourceEmbed("synth.Rmd");
   window.initializeCodeFolding("show" === "show");
 });
 </script>

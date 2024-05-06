@@ -1,0 +1,76 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(QCA)
+```
+```{r}
+LC
+```
+
+
+
+```{r}
+ttLC <- truthTable(LC, SURV, sort.by = "incl, n", show.cases = TRUE, details = TRUE)
+cLC <- minimize(ttLC)
+cLC
+```
+
+```{r}
+LC$DEV <- as.factor(LC$DEV)
+LC$URB <- as.factor(LC$URB)
+LC$LIT <- as.factor(LC$LIT)
+LC$IND <- as.factor(LC$IND)
+LC$STB <- as.factor(LC$STB)
+```
+
+
+
+```{r}
+library(rpart)
+```
+
+
+```{r}
+cart1 <-
+  rpart(
+    SURV ~ DEV + URB + LIT + IND + STB,
+    data = LR,
+    control = rpart.control(minsplit = 2, minbucket = 1, cp = 0.05, xval = 100)
+  )
+rpart.plot::rpart.plot(cart1, type = 3)
+```
+
+
+
+```{r}
+cart2 <-
+  rpart(
+    SURV ~ DEV + URB + LIT + IND + STB,
+    data = LC,
+    control = rpart.control(minsplit = 2, cp = 0, xval = 100)
+  )
+summary(cart2)
+rpart.plot::rpart.plot(cart2, type = 3)
+```
+
+
+```{r}
+lm_mod <- lm(SURV ~ (DEV + URB + LIT + IND + STB)^2, data = LR)
+lm_step <- step(lm_mod, direction = "both", k = 2.5)
+summary(lm_step)
+```
+
+
+```{r}
+library(car)
+```
+
+
+```{r}
+vif(lm_mod, type = "predictor")
+```
+
+

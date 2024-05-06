@@ -37,8 +37,7 @@ dat <- read.csv(text = "Year	Weeks	Intervention
 2005	40	0
 2004	21	0
 2003	26	0", sep = "\t") |>
-  arrange(Year) |>
-  filter(Year != 2023)
+  arrange(Year)
 ```
 
 
@@ -50,6 +49,7 @@ lm_mod = lm(
   Weeks ~ I(Year - 2017) * Intervention,
   data = dat
 )
+dat$lm_resids <- resid(lm_mod)
 summary(lm_mod)
 ```
 
@@ -166,5 +166,41 @@ acf(resid(lm0))
 lm1 <- lm(y ~ x, data = madeup)
 acf(resid(lm1))
 ```
+
+
+```{r}
+library(forecast)
+```
+
+
+```{r}
+dat_ts <- ts(dat$Weeks, start = min(dat$Year))
+dat_ts
+```
+
+```{r}
+automagic <- auto.arima(dat_ts, trace = TRUE, stepwise = FALSE, approximation = FALSE)
+automagic
+```
+
+```{r}
+automagic |>
+  forecast(h = 5) |>
+  autoplot()
+```
+
+```{r}
+resid(automagic) |> acf()
+```
+
+
+
+
+```{r}
+dat
+```
+
+
+
 
 

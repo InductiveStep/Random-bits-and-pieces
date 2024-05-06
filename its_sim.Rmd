@@ -1,0 +1,33 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+ts.sim <- arima.sim(model = list(ar = c(-.5,0,0,0), ma = c(0)), n = 200,
+                    mean = 0,
+                    sd = 1)
+ts.plot(ts.sim)
+```
+
+
+```{r}
+ts.sim |> acf()
+```
+
+```{r}
+ts.sim |> pacf()
+```
+
+```{r}
+library(forecast)
+```
+
+```{r}
+ts.sim |> auto.arima(trace = TRUE, stepwise = FALSE, approximation = FALSE) |>
+  forecast(h = 10) |>
+  autoplot()
+```
+
+
+

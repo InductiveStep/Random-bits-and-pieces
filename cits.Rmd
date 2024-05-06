@@ -1,0 +1,41 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+dat_c <- tibble(t = -10:10,
+                after = as.numeric(t >= 0),
+                treat = 0)
+dat_t <- dat_c |>
+  mutate(treat = 1)
+
+dat <- bind_rows(dat_t, dat_c) |>
+  mutate(
+    group = ifelse(treat == 1, "T", "C"),
+    y = 10 +
+      .5 * t +
+      10 * after +
+      2 * treat +
+      -25 * after * treat +
+      2 * after * t +
+      .2 * treat * t +
+      10 * t * after * treat
+  )
+```
+
+```{r}
+dat |>
+  ggplot(aes(x = t, y = y, group = group, colour = group)) +
+  geom_point()
+```
+
+```{r}
+mod <- lm(y ~ t * after * treat, data = dat)
+coef(mod)
+```
+
