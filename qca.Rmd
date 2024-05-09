@@ -1,11 +1,54 @@
 ---
-title: "R Notebook"
+title: "Playing with QCA"
 output: html_notebook
 ---
 
 ```{r}
 library(QCA)
 ```
+
+
+```{r}
+generate(S +  ~S + P -> C)
+```
+
+
+
+
+```{r}
+madeup <- data.frame(A = rep(1,100), C = rbinom(100, 1, .5))
+madeup$B <- madeup$A
+madeup$B[1] <- 0
+madeup$out <- madeup$B
+```
+
+```{r}
+summary(madeup)
+```
+
+```{r}
+madeup
+```
+
+
+
+```{r}
+madeup |>
+  truthTable(out) |>
+  minimize()
+```
+```{r}
+rpart(
+    out ~ A + B + C,
+    data = madeup,
+    control = rpart.control(minsplit = 20)
+  ) |>
+rpart.plot::rpart.plot(type = 3)
+```
+
+
+
+
 ```{r}
 LC
 ```
@@ -42,6 +85,40 @@ cart1 <-
   )
 rpart.plot::rpart.plot(cart1, type = 3)
 ```
+
+
+
+Random
+
+```{r}
+set.seed(44)
+
+rand_dat <- data.frame(
+  experienced = rbinom(30, 1, .5),
+  attended_leadership_training = rbinom(30, 1, .5),
+  studied_psych = rbinom(30, 1, .5),
+  studied_stats = rbinom(30, 1, .5),
+  good_leader  = rbinom(30, 1, .5)
+)
+
+rand_dat |>
+  truthTable(good_leader) |>
+  minimize(details = TRUE)
+```
+
+
+```{r}
+rpart(good_leader ~ .,
+      data = rand_dat,
+      control = rpart.control(
+        minsplit = 10,
+        cp = .01
+      )) |>
+  rpart.plot::rpart.plot(type = 3)
+```
+
+
+
 
 
 

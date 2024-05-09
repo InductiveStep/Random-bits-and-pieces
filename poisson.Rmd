@@ -1,0 +1,85 @@
+---
+title: "Get MDES for Poisson regression"
+author: Andi Fugard
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+```{r}
+library(WebPower)
+```
+
+```{r}
+get_mdes <-
+  function(interval,
+           n,
+           exp0,
+           alpha,
+           power,
+           family,
+           parameter,
+           ...) {
+    fun_min <- function(x) {
+      wp.poisson(
+        n = n,
+        exp0 = exp0,
+        exp1 = x,
+        alpha = alpha,
+        power = NULL,
+        family = family,
+        parameter = parameter
+      )$power - power
+    }
+    
+    the_mdes <- uniroot(fun_min, interval = interval, tol = .Machine$double.eps^0.5)$root
+    wp.poisson(
+      n = n,
+      exp0 = exp0,
+      exp1 = the_mdes,
+      alpha = alpha,
+      family = family,
+      parameter = parameter
+    )
+  }
+```
+
+```{r}
+get_mdes(
+  interval = c(1.0001, 2),
+  n = 5000,
+  exp0 = 11,
+  alpha = 0.05,
+  power = .8,
+  family = "Bernoulli",
+  parameter = 0.5
+)
+```
+
+
+```{r}
+design_effect <- function(m, icc) 1 + (m - 1) * icc
+```
+
+
+
+```{r}
+after_cluster <- floor(5000 / design_effect(147, 0.05))
+after_cluster
+```
+
+
+```{r}
+get_mdes(
+  interval = c(1.0001, 2),
+  n = after_cluster,
+  exp0 = 11,
+  alpha = 0.05,
+  power = .8,
+  family = "Bernoulli",
+  parameter = 0.5
+)
+```
+
+
+

@@ -1,0 +1,25 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(fluidsynth)
+```
+
+```{r}
+soundfont_download()
+```
+
+
+
+```{r}
+midi_play(
+  midi = demo_midi(),
+  soundfont = soundfont_path(),
+  audio.driver = NULL,
+  settings = list(),
+  verbose = interactive()
+)
+```
+
