@@ -38,3 +38,4 @@ These are incomplete code fragments:
 
 [The Ballad of Kandi](https://inductivestep.github.io/Random-bits-and-pieces/kandi_ballad.html)
 
+[Simulate RCT](https://inductivestep.github.io/Random-bits-and-pieces/sim_RCT.nb.html)
