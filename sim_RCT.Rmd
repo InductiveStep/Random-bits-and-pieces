@@ -1,0 +1,162 @@
+---
+title: "Simulating efficacy trials"
+author: Andi Fugard
+date: 12 May 2024
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+
+```{r}
+library(conflicted)
+library(tidyverse)
+library(tictoc)
+```
+
+```{r}
+gc()
+```
+
+
+```{r}
+tic()
+```
+
+
+Let's simulate some data where we know the average treatment effect.
+
+```{r}
+set.seed(3137942)
+theN <- 500
+
+sim_dat <- tibble(latent_magic = rnorm(theN, 0, sqrt(.6)),
+                  y0 = latent_magic + rnorm(theN, 0, sqrt(.4)),
+                  y1 = latent_magic + 0.2 + rnorm(theN, 0, sqrt(.4)),
+                  ITS = y1 - y0) |>
+  select(-latent_magic)
+```
+
+Take a look:
+
+```{r}
+sim_dat |>
+  slice_head(n = 5) |>
+  mutate(across(everything(), \(x) round(x, 1)))
+```
+
+y0 is the outcome under control, y1 the outcome under treatment, and ITS is the individual treatment effect, y1 -- y0.
+
+
+```{r}
+cor(sim_dat$y0, sim_dat$y1)
+sd(sim_dat$y0)
+sd(sim_dat$y1)
+sd(sim_dat$ITS)
+```
+
+
+We can get the true average treatment effect of an efficacy trial by averaging all those ITSes:
+
+
+```{r}
+trueATE <- mean(sim_dat$ITS)
+trueATE
+```
+
+That's the true answer we're trying to recover with an RCT.
+
+
+Now let's simulate an RCT.
+
+```{r}
+rct_dat <- sim_dat |>
+  mutate(treat = rbinom(n(), 1, .5),
+         y = treat * y1 + (1 - treat) * y0) |>
+  select(treat, y)
+
+rct_dat |>
+  slice_head(n = 10) |>
+  mutate(across(everything(), \(x) round(x, 1)))
+```
+
+We only see one of the potential outcomes, depending on which was realised.
+
+Estimate ATE and its 95% CI:
+
+```{r}
+lm_mod <- lm(y ~ treat, data = rct_dat)
+cbind(ATE = coef(lm_mod), confint(lm_mod))["treat",]
+```
+
+Repeat that 2,000 times to see the average of the ATEs across simulated trials...
+
+
+```{r}
+sim_reses <- data.frame()
+
+for (i in 1:2000) {
+  rct_dat <- sim_dat |>
+    mutate(treat = rbinom(n(), 1, .5),
+           y = treat * y1 + (1 - treat) * y0)
+  
+  lm_mod <- lm(y ~ treat, data = rct_dat)
+  this_res <- cbind(ATE = coef(lm_mod), confint(lm_mod))["treat", ]
+  
+  sim_reses <- bind_rows(sim_reses, this_res)
+}
+```
+
+
+```{r}
+sim_reses  |>
+  slice_head(n = 5) |>
+  mutate(across(everything(), \(x) round(x, 2)))
+```
+
+
+
+
+
+The mean estimated ATE across simulated trials is *really* close to the true ATE:
+
+
+```{r}
+c(
+  `mean of estimates` = mean(sim_reses$ATE),
+  `true ATE` = trueATE,
+  `true ATE - mean of estimates` = mean(sim_reses$ATE) - trueATE
+) |> round(4)
+```
+
+
+... but there's quite a bit of variation around the mean answer.
+
+
+```{r}
+sim_reses |>
+  ggplot(aes(x = ATE)) +
+  geom_histogram(bins = 40) +
+  xlab("estimated ATE")
+```
+
+
+Let's look at the 95% confidence interval coverage:
+
+```{r}
+sim_reses <- sim_reses |>
+  mutate(trueATE_in_interval = trueATE >= `2.5 %` &
+                               trueATE <= `97.5 %`)
+cover <- mean(sim_reses$trueATE_in_interval)
+cover
+```
+
+
+`r round(cover * 100,0)`% of the simulated studies' 95% confidence intervals included the true result.
+
+
+```{r}
+toc()
+```
+
+
