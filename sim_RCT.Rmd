@@ -20,28 +20,30 @@ tic()
 ```
 
 
-Let's simulate some data where we know the average treatment effect.
+Everyone loves a good randomised controlled trial because the mean outcome of people who were exposed to treatment minus the mean outcome of people who were exposed to control -- a *between*-participant difference -- is an unbiased estimator of the the mean of *within*-participant individual treatment effects.
+
+
+Let's simulate some data where we know the average treatment effect. This is an efficacy trial, so we are only interested in the average treatment effect for the study participants. There is still an inferential problem since not everyone gets treatment and not everyone gets control.
 
 ```{r}
 set.seed(3137942)
 theN <- 500
 
 sim_dat <- tibble(latent_magic = 50 + rnorm(theN, 0, sqrt(.6)),
-                  y0 = latent_magic + rnorm(theN, 0, sqrt(.4)),
-                  y1 = latent_magic + 0.2 + rnorm(theN, 0, sqrt(.4)),
+                  y0 = round(latent_magic + rnorm(theN, 0, sqrt(.4)), 1),
+                  y1 = round(latent_magic + 0.2 + rnorm(theN, 0, sqrt(.4)), 1),
                   ITS = y1 - y0) |>
   select(-latent_magic)
 ```
 
-Take a look:
+Take a look at the first ten rows:
 
 ```{r}
 sim_dat |>
-  slice_head(n = 10) |>
-  mutate(across(everything(), \(x) round(x, 1)))
+  slice_head(n = 10)
 ```
 
-y0 is the outcome under control, y1 the outcome under treatment, and ITS is the individual treatment effect, y1 -- y0.
+y0 is the potential outcome under control, y1 the potential outcome under treatment, and ITS is the individual treatment effect, y1 -- y0.
 
 We can get the true average treatment effect of an efficacy trial by averaging all those ITSes:
 
@@ -53,8 +55,7 @@ trueATE
 
 That's the true answer we're trying to recover with an RCT.
 
-
-Now let's simulate an RCT.
+Now let's simulate an RCT -- one randomisation of participants to treat or control. Here I'm using a coin toss.
 
 ```{r}
 rct_dat <- sim_dat |>
@@ -67,13 +68,12 @@ rct_dat <- sim_dat |>
   select(-ITS)
 
 rct_dat |>
-  slice_head(n = 10) |>
-  mutate(across(everything(), \(x) round(x, 1)))
+  slice_head(n = 10)
 ```
 
-We only see one of the potential outcomes, depending on which was realised.
+We only see one of the potential outcomes, depending on which was realised, hence the NAs.
 
-Estimate ATE and its 95% CI:
+Estimate ATE and its 95% CI using linear regression:
 
 ```{r}
 lm_mod <- lm(y ~ treat, data = rct_dat)
