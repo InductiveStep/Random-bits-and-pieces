@@ -23,7 +23,7 @@ tic()
 Everyone loves a good randomised controlled trial because the mean outcome of people who were exposed to treatment minus the mean outcome of people who were exposed to control -- a *between*-participant difference -- is an unbiased estimator of the the mean of *within*-participant individual treatment effects.
 
 
-Let's simulate some data where we know the average treatment effect. This is an efficacy trial, so we are only interested in the average treatment effect for the study participants. There is still an inferential problem since not everyone gets treatment and not everyone gets control.
+Let's simulate some data where we know the average treatment effect (ATE). This is an efficacy trial, so we are only interested in the ATE for the study participants. There is still an inferential problem since not everyone gets treatment and not everyone gets control.
 
 ```{r}
 set.seed(3137942)
@@ -36,11 +36,10 @@ sim_dat <- tibble(latent_magic = 50 + rnorm(theN, 0, sqrt(.6)),
   select(-latent_magic)
 ```
 
-Take a look at the first ten rows:
+Take a look:
 
 ```{r}
-sim_dat |>
-  slice_head(n = 10)
+sim_dat
 ```
 
 y0 is the potential outcome under control, y1 the potential outcome under treatment, and ITS is the individual treatment effect, y1 -- y0.
@@ -67,11 +66,10 @@ rct_dat <- sim_dat |>
   ) |>
   select(-ITS)
 
-rct_dat |>
-  slice_head(n = 10)
+rct_dat
 ```
 
-We only see one of the potential outcomes, depending on which was realised, hence the NAs.
+We only see one of the potential outcomes, depending on which was realised, hence the missing data on y0 and y1 (NAs).
 
 Estimate ATE and its 95% CI using linear regression:
 
@@ -101,7 +99,6 @@ for (i in 1:2000) {
 
 ```{r}
 sim_reses  |>
-  slice_head(n = 10) |>
   mutate(across(everything(), \(x) round(x, 2)))
 ```
 
@@ -113,7 +110,7 @@ The mean estimated ATE across simulated trials is *really* close to the true ATE
 c(
   `mean of ATE estimates` = mean(sim_reses$ATE),
   `true ATE` = trueATE,
-  `true ATE - mean of estimates` = mean(sim_reses$ATE) - trueATE
+  `true ATE - mean of estimates` = trueATE - mean(sim_reses$ATE) 
 ) |> round(4)
 ```
 
