@@ -1,0 +1,64 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(mice)
+library(howManyImputations)
+```
+
+
+```{r}
+airquality
+```
+
+
+Add some missingness:
+
+
+```{r}
+airquality[4:10, 3] <- rep(NA, 7)
+airquality[1:5, 4] <- NA
+airquality <- airquality[-c(5, 6)]
+```
+
+Impute five times:
+
+```{r}
+impdata1 <- mice(airquality, m = 5, maxit = 10, method = 'pmm', seed = 500)
+```
+
+
+Fit the model:
+
+```{r}
+modelFit1 <- with(impdata1, lm(Temp ~ Ozone + Solar.R + Wind))
+```
+
+
+```{r}
+modelFit1 |> pool() |> summary()
+```
+
+
+```{r}
+how_many_imputations(modelFit1)
+```
+
+
+```{r}
+impdata2 <- mice(airquality, m = 57, maxit = 10, method = 'pmm', seed = 500)
+```
+
+
+
+```{r}
+modelFit2 <- with(impdata2, lm(Temp ~ Ozone + Solar.R + Wind))
+```
+
+
+```{r}
+modelFit2 |> pool() |> summary()
+```
