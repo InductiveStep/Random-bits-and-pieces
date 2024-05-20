@@ -1754,123 +1754,147 @@ display: none;
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShtaWNlKVxuYGBgIn0= -->
-<pre class="r"><code>library(mice)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShsbWVJbmZvKVxubGlicmFyeShubG1lKVxubGlicmFyeShlZWZBbmFseXRpY3MpXG5gYGAifQ== -->
+<pre class="r"><code>library(lmeInfo)
+library(nlme)
+library(eefAnalytics)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYbWljZeKAmVxuXG5UaGUgZm9sbG93aW5nIG9iamVjdCBpcyBtYXNrZWQgZnJvbSDigJhwYWNrYWdlOnN0YXRz4oCZOlxuXG4gICAgZmlsdGVyXG5cblRoZSBmb2xsb3dpbmcgb2JqZWN0cyBhcmUgbWFza2VkIGZyb20g4oCYcGFja2FnZTpiYXNl4oCZOlxuXG4gICAgY2JpbmQsIHJiaW5kXG4ifQ== -->
+<!-- rnb-output-begin eyJkYXRhIjoiUmVnaXN0ZXJlZCBTMyBtZXRob2Qgb3ZlcndyaXR0ZW4gYnkgJ2h0bWx3aWRnZXRzJzpcbiAgbWV0aG9kICAgICAgICAgICBmcm9tICAgICAgICAgXG4gIHByaW50Lmh0bWx3aWRnZXQgdG9vbHM6cnN0dWRpb1xuIn0= -->
+<pre><code>Registered S3 method overwritten by &#39;htmlwidgets&#39;:
+  method           from         
+  print.htmlwidget tools:rstudio</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxub3V0cHV0MSA8LSBjcnRGUkVRKFxuICBQb3N0dGVzdCB+IEludGVydmVudGlvbiArIFByZXR0ZXN0LFxuICByYW5kb20gPSBcIlNjaG9vbFwiLFxuICBpbnRlcnZlbnRpb24gPSBcIkludGVydmVudGlvblwiLFxuICBkYXRhID0gY3J0RGF0YVxuKVxuYGBgIn0= -->
+<pre class="r"><code>output1 &lt;- crtFREQ(
+  Posttest ~ Intervention + Prettest,
+  random = &quot;School&quot;,
+  intervention = &quot;Intervention&quot;,
+  data = crtData
+)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiQ29tcHV0aW5nIHByb2ZpbGUgY29uZmlkZW5jZSBpbnRlcnZhbHMgLi4uXG4ifQ== -->
+<pre><code>Computing profile confidence intervals ...</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VtbWFyeShvdXRwdXQxKVxuYGBgIn0= -->
+<pre class="r"><code>summary(output1)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG4gbWV0aG9kOiAgICAgICAgTUxNXG4gRGVzaWduOiAgICAgICAgY3J0RlJFUVxuICAgICAgICAgICAgICBFc3RpbWF0ZSA5NSUgTEIgIDk1JSBVQlxuSW50ZXJjZXB0ICAgICAgICAxMS4yMyAgICA5LjA1ICAxMy40MlxuSW50ZXJ2ZW50aW9uMSAgICAgMy4xMSAgICAwLjc1ICAgNS40N1xuUHJldHRlc3QgICAgICAgICAgMS43OSAgICAxLjM5ICAgMi4xOFxuXG5SZXN1bHQgZm9yOiBDb25kaXRpb25hbCBlZmZlY3Qgc2l6ZVxuJEludGVydmVudGlvbjFcbiAgICAgICBFc3RpbWF0ZSA5NSUgTEIgOTUlIFVCXG5XaXRoaW4gICAgIDAuODEgICAwLjEwICAgMS41MlxuVG90YWwgICAgICAwLjY3ICAgMC4wNyAgIDEuMjhcblxuXG5SZXN1bHQgZm9yOiBVbmNvbmRpdGlvbmFsIGVmZmVjdCBzaXplXG4kSW50ZXJ2ZW50aW9uMVxuICAgICAgIEVzdGltYXRlIDk1JSBMQiA5NSUgVUJcbldpdGhpbiAgICAgIDAuNyAgIDAuMDQgICAxLjM3XG5Ub3RhbCAgICAgICAwLjYgICAwLjAyICAgMS4xN1xuIn0= -->
 <pre><code>
-Attaching package: ‘mice’
+ method:        MLM
+ Design:        crtFREQ
+              Estimate 95% LB  95% UB
+Intercept        11.23    9.05  13.42
+Intervention1     3.11    0.75   5.47
+Prettest          1.79    1.39   2.18
 
-The following object is masked from ‘package:stats’:
+Result for: Conditional effect size
+$Intervention1
+       Estimate 95% LB 95% UB
+Within     0.81   0.10   1.52
+Total      0.67   0.07   1.28
 
-    filter
 
-The following objects are masked from ‘package:base’:
-
-    cbind, rbind</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShob3dNYW55SW1wdXRhdGlvbnMpXG5gYGAifQ== -->
-<pre class="r"><code>library(howManyImputations)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYWlycXVhbGl0eVxuYGBgIn0= -->
-<pre class="r"><code>airquality</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImRhdGEuZnJhbWUiXSwibnJvdyI6MTUzLCJuY29sIjo2LCJzdW1tYXJ5Ijp7IkRlc2NyaXB0aW9uIjpbImRmIFsxNTMgw5cgNl0iXX19LCJyZGYiOiJINHNJQUFBQUFBQUFCdVZZVFd4VVZSUytienFkdGdNdFk2MWdMWVZTcGdMU0dXcmJoZFFBVXl4Z2JUdjBseFphMEtFZG9IRjQwN1FES2h0SlhCQjFaYUltTlhHdE94WXNTUHpYeElWUjQwYmp4dml6MEJXeU1DNk1JdmlkZDcvVFBtN0tlaGErNU91NTk1eDcvdStiZDI5SCs2YTY0bE54WTB5RmlVYnh0eEpEVXpreGZqajFtREhSQ0NhZWlab2FvYzlEZkQ4R01hQVdXQVoyQVVsZ1BWQi8yUVRQWm1BVElHdXJ5YXNDRXNBNm9FN1drcmJTM2hiS1BGS0VZbHBFVjBHYktXQUphQXZMbkhYTnBFZUFIV0g5MFBnQnNRRTBNUGJhZTlsYncvNFY0RkdORDA4RzJBa01BVGxpZ2pLcGJGT29CaDNBZG1BZmNCUTRJSFVKMlI0R0NveXJHeGdGT3VuamNja0hrR1lrZ0N4dEhRUXVBY2NCUDJTcjNkaGU5SEsra1Rha2psc3BsenJVVUM2MWZSZm81M3dRdUFpTVN6N0FNL1RaRDB3RGU2UUdqSFVUYlQwWXNydVpzY3BlU1J2YjgxcXVTWEFzZWtuV1J2YkRGdnJXUGRKZ1Z2ZmFSNHpuRFd5VHZhdDVlcnZ4WjliWS9mWVplUUxzTFU5czlJSWlicS9MeHU4ZFpJelZHRXRkRzRFWlcwY3ZUdi9pOHhid0UzaUkwY1ArOUtSbWZ3RHZBVDlnRG4zekl1aDlBUHJnUFFGVWdQYzM4RHJHZy9UMU1halVRdlliM2lIek12QW1lekhOOVZlc3JhQ21wOW1mVjZBbmNmd0YzQUR5d0ZYd2VnRFV4Y043NGlVc3o3ektlSzdhV0dTZmVWR2J2OWVNK2ZzMlpxbXpoNWZhd3o3eUhyYjVtUkZqOTlsMzRFa04vd1Z1QTJQczFaRFdtclc1QS93S2ZBUDh5SHcrc1hVd2J4dTdWK1hkazNyTHUvcW43VjFRbXlUMXZ3VnVBdCt6dDE4Q3Z3Qy9BeDhBN3dDZkE5ZUJENEduMmFOYnpPTTMycnRCZXBPeEx0REd6MEFUK1YrUTF0azZCZSt1N0t0UGdkZHNmOHhMcklXc1djNDBMOHZ6VnFiRkpweloxUlU4bVIyY3QxT2Ura3FlcnpQYktOOU5mbmVqcGNwdkluLzdtZURKdEpLMlVmOFJ6dFgrVHRKT2g2LzZTanNjdTZyWDRjVFg0dGhWL2taU3pWZmpYYkhQUERSZWxiYzdmalUvelYvajFmeFVYK053MTJrODNkZXMvVlluN3lUWE4xci9CLzVoSFBWY1IvNksvUlpIei9XajhvVFREN2N2OWM2OHdmRjNyL3E1KzBPcDhyVmVUbDRyOWpWZWQ5OG9mNXVUcjg2MXZ4cVBTelUvdDEvTlRsdzYxL3dUVGoxZHZ4cVhTOTI0M1h6Vmo5Wlg1WHVjOTB6ZlA3VzN6c2xmKzZEeWlOTW5wWnFmMWpsR3FuazJPLzdkdU5vY1A5cFhYYTkrZEozYlI2MTMwcUdhaCthcGZYTFg2WHV0OXZSM285MnhRNzltOWR1SmI1TjVFbmdLMkEvZ2NCZWNHL0J0REw1RGNoNDVSUGtoeXZxQUhtTi96MlcrbDd6OTFPbW4zajdLZWtqRmwzeFQ1SHdqWjRnczdRcGZ6eElpazIvT0pIQ0M5S1N4di9IQ0grYWFJY2JkUzMrRDVBMkdNR0JXenlYRGxJK0ZmSTF3UEVaTTBZL2dPUDMxYzkwMGJlZzNjWnl4VFRBSDVSOGpUOGRUcEdOY003TEcya242TzBITVVIWnNqWnpEdGN1RzZqQkEyVWpJcjV3M1R4bDdQanZGSEdaWXo1UDBPMDc3V2RyUWZMV2VSNGdzK3lUOFBzYVZvVXpXeTk2UU0rdGg2ZzJFMXVwZXF5d2pZbVZDVlJsUlhVYlVsQW02MStTZ0w1ZFVPUVBLblZIM2dOWkYxc29kVE82VTY2a25aN3dOeHQ1QjVNd3Fkd1E1OThxWlVPNHRjaytTZTRtY0orVnU4SkN4WjBrNXc4dFpXdTZxVzh2bysvK1ljeGw5My9WUGtFby9kejYvUklNeFpSNjlWUFR6bkZTTkZRdTV4ZlFvcDlISmVYOU94K1A1OHd1cU0xVDBTK2M0cWVqTHZlQTRxbGtzUHBkV1o1Sko1TElKbm1VM290bENia2tqVW1aOExsZktwYzhzUXQ4RWw3bTdWS3FLQzZYNW9nK2xpUDQvSjZ6c0xUcU1EUmQ4aVdRdU5YdnVndjlzcXRNUlZ5ejRaMWw2ejhZWUJPelpZRmZHTVJ0RjVJNVR2VmplUHp1L1VyN0tRdTUwdnFDVzUvSVhPYXhEUFlKeXBCY1c1LzJTNWdudVVycFVMT1ZVSlQ1YkxDakhYbU52L3dmSUlsVGQ1QklBQUE9PSJ9 -->
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["Ozone"],"name":[1],"type":["int"],"align":["right"]},{"label":["Solar.R"],"name":[2],"type":["int"],"align":["right"]},{"label":["Wind"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Temp"],"name":[4],"type":["int"],"align":["right"]},{"label":["Month"],"name":[5],"type":["int"],"align":["right"]},{"label":["Day"],"name":[6],"type":["int"],"align":["right"]}],"data":[{"1":"41","2":"190","3":"7.4","4":"67","5":"5","6":"1"},{"1":"36","2":"118","3":"8.0","4":"72","5":"5","6":"2"},{"1":"12","2":"149","3":"12.6","4":"74","5":"5","6":"3"},{"1":"18","2":"313","3":"11.5","4":"62","5":"5","6":"4"},{"1":"NA","2":"NA","3":"14.3","4":"56","5":"5","6":"5"},{"1":"28","2":"NA","3":"14.9","4":"66","5":"5","6":"6"},{"1":"23","2":"299","3":"8.6","4":"65","5":"5","6":"7"},{"1":"19","2":"99","3":"13.8","4":"59","5":"5","6":"8"},{"1":"8","2":"19","3":"20.1","4":"61","5":"5","6":"9"},{"1":"NA","2":"194","3":"8.6","4":"69","5":"5","6":"10"},{"1":"7","2":"NA","3":"6.9","4":"74","5":"5","6":"11"},{"1":"16","2":"256","3":"9.7","4":"69","5":"5","6":"12"},{"1":"11","2":"290","3":"9.2","4":"66","5":"5","6":"13"},{"1":"14","2":"274","3":"10.9","4":"68","5":"5","6":"14"},{"1":"18","2":"65","3":"13.2","4":"58","5":"5","6":"15"},{"1":"14","2":"334","3":"11.5","4":"64","5":"5","6":"16"},{"1":"34","2":"307","3":"12.0","4":"66","5":"5","6":"17"},{"1":"6","2":"78","3":"18.4","4":"57","5":"5","6":"18"},{"1":"30","2":"322","3":"11.5","4":"68","5":"5","6":"19"},{"1":"11","2":"44","3":"9.7","4":"62","5":"5","6":"20"},{"1":"1","2":"8","3":"9.7","4":"59","5":"5","6":"21"},{"1":"11","2":"320","3":"16.6","4":"73","5":"5","6":"22"},{"1":"4","2":"25","3":"9.7","4":"61","5":"5","6":"23"},{"1":"32","2":"92","3":"12.0","4":"61","5":"5","6":"24"},{"1":"NA","2":"66","3":"16.6","4":"57","5":"5","6":"25"},{"1":"NA","2":"266","3":"14.9","4":"58","5":"5","6":"26"},{"1":"NA","2":"NA","3":"8.0","4":"57","5":"5","6":"27"},{"1":"23","2":"13","3":"12.0","4":"67","5":"5","6":"28"},{"1":"45","2":"252","3":"14.9","4":"81","5":"5","6":"29"},{"1":"115","2":"223","3":"5.7","4":"79","5":"5","6":"30"},{"1":"37","2":"279","3":"7.4","4":"76","5":"5","6":"31"},{"1":"NA","2":"286","3":"8.6","4":"78","5":"6","6":"1"},{"1":"NA","2":"287","3":"9.7","4":"74","5":"6","6":"2"},{"1":"NA","2":"242","3":"16.1","4":"67","5":"6","6":"3"},{"1":"NA","2":"186","3":"9.2","4":"84","5":"6","6":"4"},{"1":"NA","2":"220","3":"8.6","4":"85","5":"6","6":"5"},{"1":"NA","2":"264","3":"14.3","4":"79","5":"6","6":"6"},{"1":"29","2":"127","3":"9.7","4":"82","5":"6","6":"7"},{"1":"NA","2":"273","3":"6.9","4":"87","5":"6","6":"8"},{"1":"71","2":"291","3":"13.8","4":"90","5":"6","6":"9"},{"1":"39","2":"323","3":"11.5","4":"87","5":"6","6":"10"},{"1":"NA","2":"259","3":"10.9","4":"93","5":"6","6":"11"},{"1":"NA","2":"250","3":"9.2","4":"92","5":"6","6":"12"},{"1":"23","2":"148","3":"8.0","4":"82","5":"6","6":"13"},{"1":"NA","2":"332","3":"13.8","4":"80","5":"6","6":"14"},{"1":"NA","2":"322","3":"11.5","4":"79","5":"6","6":"15"},{"1":"21","2":"191","3":"14.9","4":"77","5":"6","6":"16"},{"1":"37","2":"284","3":"20.7","4":"72","5":"6","6":"17"},{"1":"20","2":"37","3":"9.2","4":"65","5":"6","6":"18"},{"1":"12","2":"120","3":"11.5","4":"73","5":"6","6":"19"},{"1":"13","2":"137","3":"10.3","4":"76","5":"6","6":"20"},{"1":"NA","2":"150","3":"6.3","4":"77","5":"6","6":"21"},{"1":"NA","2":"59","3":"1.7","4":"76","5":"6","6":"22"},{"1":"NA","2":"91","3":"4.6","4":"76","5":"6","6":"23"},{"1":"NA","2":"250","3":"6.3","4":"76","5":"6","6":"24"},{"1":"NA","2":"135","3":"8.0","4":"75","5":"6","6":"25"},{"1":"NA","2":"127","3":"8.0","4":"78","5":"6","6":"26"},{"1":"NA","2":"47","3":"10.3","4":"73","5":"6","6":"27"},{"1":"NA","2":"98","3":"11.5","4":"80","5":"6","6":"28"},{"1":"NA","2":"31","3":"14.9","4":"77","5":"6","6":"29"},{"1":"NA","2":"138","3":"8.0","4":"83","5":"6","6":"30"},{"1":"135","2":"269","3":"4.1","4":"84","5":"7","6":"1"},{"1":"49","2":"248","3":"9.2","4":"85","5":"7","6":"2"},{"1":"32","2":"236","3":"9.2","4":"81","5":"7","6":"3"},{"1":"NA","2":"101","3":"10.9","4":"84","5":"7","6":"4"},{"1":"64","2":"175","3":"4.6","4":"83","5":"7","6":"5"},{"1":"40","2":"314","3":"10.9","4":"83","5":"7","6":"6"},{"1":"77","2":"276","3":"5.1","4":"88","5":"7","6":"7"},{"1":"97","2":"267","3":"6.3","4":"92","5":"7","6":"8"},{"1":"97","2":"272","3":"5.7","4":"92","5":"7","6":"9"},{"1":"85","2":"175","3":"7.4","4":"89","5":"7","6":"10"},{"1":"NA","2":"139","3":"8.6","4":"82","5":"7","6":"11"},{"1":"10","2":"264","3":"14.3","4":"73","5":"7","6":"12"},{"1":"27","2":"175","3":"14.9","4":"81","5":"7","6":"13"},{"1":"NA","2":"291","3":"14.9","4":"91","5":"7","6":"14"},{"1":"7","2":"48","3":"14.3","4":"80","5":"7","6":"15"},{"1":"48","2":"260","3":"6.9","4":"81","5":"7","6":"16"},{"1":"35","2":"274","3":"10.3","4":"82","5":"7","6":"17"},{"1":"61","2":"285","3":"6.3","4":"84","5":"7","6":"18"},{"1":"79","2":"187","3":"5.1","4":"87","5":"7","6":"19"},{"1":"63","2":"220","3":"11.5","4":"85","5":"7","6":"20"},{"1":"16","2":"7","3":"6.9","4":"74","5":"7","6":"21"},{"1":"NA","2":"258","3":"9.7","4":"81","5":"7","6":"22"},{"1":"NA","2":"295","3":"11.5","4":"82","5":"7","6":"23"},{"1":"80","2":"294","3":"8.6","4":"86","5":"7","6":"24"},{"1":"108","2":"223","3":"8.0","4":"85","5":"7","6":"25"},{"1":"20","2":"81","3":"8.6","4":"82","5":"7","6":"26"},{"1":"52","2":"82","3":"12.0","4":"86","5":"7","6":"27"},{"1":"82","2":"213","3":"7.4","4":"88","5":"7","6":"28"},{"1":"50","2":"275","3":"7.4","4":"86","5":"7","6":"29"},{"1":"64","2":"253","3":"7.4","4":"83","5":"7","6":"30"},{"1":"59","2":"254","3":"9.2","4":"81","5":"7","6":"31"},{"1":"39","2":"83","3":"6.9","4":"81","5":"8","6":"1"},{"1":"9","2":"24","3":"13.8","4":"81","5":"8","6":"2"},{"1":"16","2":"77","3":"7.4","4":"82","5":"8","6":"3"},{"1":"78","2":"NA","3":"6.9","4":"86","5":"8","6":"4"},{"1":"35","2":"NA","3":"7.4","4":"85","5":"8","6":"5"},{"1":"66","2":"NA","3":"4.6","4":"87","5":"8","6":"6"},{"1":"122","2":"255","3":"4.0","4":"89","5":"8","6":"7"},{"1":"89","2":"229","3":"10.3","4":"90","5":"8","6":"8"},{"1":"110","2":"207","3":"8.0","4":"90","5":"8","6":"9"},{"1":"NA","2":"222","3":"8.6","4":"92","5":"8","6":"10"},{"1":"NA","2":"137","3":"11.5","4":"86","5":"8","6":"11"},{"1":"44","2":"192","3":"11.5","4":"86","5":"8","6":"12"},{"1":"28","2":"273","3":"11.5","4":"82","5":"8","6":"13"},{"1":"65","2":"157","3":"9.7","4":"80","5":"8","6":"14"},{"1":"NA","2":"64","3":"11.5","4":"79","5":"8","6":"15"},{"1":"22","2":"71","3":"10.3","4":"77","5":"8","6":"16"},{"1":"59","2":"51","3":"6.3","4":"79","5":"8","6":"17"},{"1":"23","2":"115","3":"7.4","4":"76","5":"8","6":"18"},{"1":"31","2":"244","3":"10.9","4":"78","5":"8","6":"19"},{"1":"44","2":"190","3":"10.3","4":"78","5":"8","6":"20"},{"1":"21","2":"259","3":"15.5","4":"77","5":"8","6":"21"},{"1":"9","2":"36","3":"14.3","4":"72","5":"8","6":"22"},{"1":"NA","2":"255","3":"12.6","4":"75","5":"8","6":"23"},{"1":"45","2":"212","3":"9.7","4":"79","5":"8","6":"24"},{"1":"168","2":"238","3":"3.4","4":"81","5":"8","6":"25"},{"1":"73","2":"215","3":"8.0","4":"86","5":"8","6":"26"},{"1":"NA","2":"153","3":"5.7","4":"88","5":"8","6":"27"},{"1":"76","2":"203","3":"9.7","4":"97","5":"8","6":"28"},{"1":"118","2":"225","3":"2.3","4":"94","5":"8","6":"29"},{"1":"84","2":"237","3":"6.3","4":"96","5":"8","6":"30"},{"1":"85","2":"188","3":"6.3","4":"94","5":"8","6":"31"},{"1":"96","2":"167","3":"6.9","4":"91","5":"9","6":"1"},{"1":"78","2":"197","3":"5.1","4":"92","5":"9","6":"2"},{"1":"73","2":"183","3":"2.8","4":"93","5":"9","6":"3"},{"1":"91","2":"189","3":"4.6","4":"93","5":"9","6":"4"},{"1":"47","2":"95","3":"7.4","4":"87","5":"9","6":"5"},{"1":"32","2":"92","3":"15.5","4":"84","5":"9","6":"6"},{"1":"20","2":"252","3":"10.9","4":"80","5":"9","6":"7"},{"1":"23","2":"220","3":"10.3","4":"78","5":"9","6":"8"},{"1":"21","2":"230","3":"10.9","4":"75","5":"9","6":"9"},{"1":"24","2":"259","3":"9.7","4":"73","5":"9","6":"10"},{"1":"44","2":"236","3":"14.9","4":"81","5":"9","6":"11"},{"1":"21","2":"259","3":"15.5","4":"76","5":"9","6":"12"},{"1":"28","2":"238","3":"6.3","4":"77","5":"9","6":"13"},{"1":"9","2":"24","3":"10.9","4":"71","5":"9","6":"14"},{"1":"13","2":"112","3":"11.5","4":"71","5":"9","6":"15"},{"1":"46","2":"237","3":"6.9","4":"78","5":"9","6":"16"},{"1":"18","2":"224","3":"13.8","4":"67","5":"9","6":"17"},{"1":"13","2":"27","3":"10.3","4":"76","5":"9","6":"18"},{"1":"24","2":"238","3":"10.3","4":"68","5":"9","6":"19"},{"1":"16","2":"201","3":"8.0","4":"82","5":"9","6":"20"},{"1":"13","2":"238","3":"12.6","4":"64","5":"9","6":"21"},{"1":"23","2":"14","3":"9.2","4":"71","5":"9","6":"22"},{"1":"36","2":"139","3":"10.3","4":"81","5":"9","6":"23"},{"1":"7","2":"49","3":"10.3","4":"69","5":"9","6":"24"},{"1":"14","2":"20","3":"16.6","4":"63","5":"9","6":"25"},{"1":"30","2":"193","3":"6.9","4":"70","5":"9","6":"26"},{"1":"NA","2":"145","3":"13.2","4":"77","5":"9","6":"27"},{"1":"14","2":"191","3":"14.3","4":"75","5":"9","6":"28"},{"1":"18","2":"131","3":"8.0","4":"76","5":"9","6":"29"},{"1":"20","2":"223","3":"11.5","4":"68","5":"9","6":"30"}],"options":{"columns":{"min":{},"max":[10],"total":[6]},"rows":{"min":[10],"max":[10],"total":[153]},"pages":{}}}
-  </script>
-</div>
-<!-- rnb-frame-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Add some missingness:</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYWlycXVhbGl0eVs0OjEwLCAzXSA8LSByZXAoTkEsIDcpXG5haXJxdWFsaXR5WzE6NSwgNF0gPC0gTkFcbmFpcnF1YWxpdHkgPC0gYWlycXVhbGl0eVstYyg1LCA2KV1cbmBgYCJ9 -->
-<pre class="r"><code>airquality[4:10, 3] &lt;- rep(NA, 7)
-airquality[1:5, 4] &lt;- NA
-airquality &lt;- airquality[-c(5, 6)]</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Impute five times:</p>
-<!-- rnb-text-end -->
-<!-- rnb-text-begin -->
-<p>Fit the model:</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubW9kZWxGaXQxIDwtIHdpdGgoaW1wZGF0YTEsIGxtKFRlbXAgfiBPem9uZSArIFNvbGFyLlIgKyBXaW5kKSlcbmBgYCJ9 -->
-<pre class="r"><code>modelFit1 &lt;- with(impdata1, lm(Temp ~ Ozone + Solar.R + Wind))</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubW9kZWxGaXQxIHw+IHBvb2woKSB8PiBzdW1tYXJ5KClcbmBgYCJ9 -->
-<pre class="r"><code>modelFit1 |&gt; pool() |&gt; summary()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgdGVybSAgICBlc3RpbWF0ZSAgIHN0ZC5lcnJvciBzdGF0aXN0aWMgICAgICAgIGRmICAgICAgcC52YWx1ZVxuMSAoSW50ZXJjZXB0KSA3My4wMTM3ODkwMSAyLjg0NDA0ODY3OCAyNS42NzI0ODIgMTAyLjc5ODMwIDEuNjM1NzgwZS00NlxuMiAgICAgICBPem9uZSAgMC4xNTkyMTAwOCAwLjAyNjU4NzM5MiAgNS45ODgxODAgIDc5LjMyMDg0IDUuODcwODE1ZS0wOFxuMyAgICAgU29sYXIuUiAgMC4wMTIzMDUyNCAwLjAwNzYyMTM5NCAgMS42MTQ1NjYgIDg1LjQwMjEwIDEuMTAwOTM2ZS0wMVxuNCAgICAgICAgV2luZCAtMC4zNjcxNDU1MiAwLjIxODQ1MDk1NCAtMS42ODA2NzcgMTA0LjAzNjYyIDkuNTgyNTc3ZS0wMlxuIn0= -->
-<pre><code>         term    estimate   std.error statistic        df      p.value
-1 (Intercept) 73.01378901 2.844048678 25.672482 102.79830 1.635780e-46
-2       Ozone  0.15921008 0.026587392  5.988180  79.32084 5.870815e-08
-3     Solar.R  0.01230524 0.007621394  1.614566  85.40210 1.100936e-01
-4        Wind -0.36714552 0.218450954 -1.680677 104.03662 9.582577e-02</code></pre>
+Result for: Unconditional effect size
+$Intervention1
+       Estimate 95% LB 95% UB
+Within      0.7   0.04   1.37
+Total       0.6   0.02   1.17</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaG93X21hbnlfaW1wdXRhdGlvbnMobW9kZWxGaXQxKVxuYGBgIn0= -->
-<pre class="r"><code>how_many_imputations(modelFit1)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDM2XG4ifQ== -->
-<pre><code>[1] 36</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubW9kZWxGaXQyIDwtIHdpdGgoaW1wZGF0YTIsIGxtKFRlbXAgfiBPem9uZSArIFNvbGFyLlIgKyBXaW5kKSlcbmBgYCJ9 -->
-<pre class="r"><code>modelFit2 &lt;- with(impdata2, lm(Temp ~ Ozone + Solar.R + Wind))</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubW9kZWxGaXQxIHw+IHBvb2woKSB8PiBzdW1tYXJ5KClcbmBgYCJ9 -->
-<pre class="r"><code>modelFit1 |&gt; pool() |&gt; summary()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgdGVybSAgICBlc3RpbWF0ZSAgIHN0ZC5lcnJvciBzdGF0aXN0aWMgICAgICAgIGRmICAgICAgcC52YWx1ZVxuMSAoSW50ZXJjZXB0KSA3My4wMTM3ODkwMSAyLjg0NDA0ODY3OCAyNS42NzI0ODIgMTAyLjc5ODMwIDEuNjM1NzgwZS00NlxuMiAgICAgICBPem9uZSAgMC4xNTkyMTAwOCAwLjAyNjU4NzM5MiAgNS45ODgxODAgIDc5LjMyMDg0IDUuODcwODE1ZS0wOFxuMyAgICAgU29sYXIuUiAgMC4wMTIzMDUyNCAwLjAwNzYyMTM5NCAgMS42MTQ1NjYgIDg1LjQwMjEwIDEuMTAwOTM2ZS0wMVxuNCAgICAgICAgV2luZCAtMC4zNjcxNDU1MiAwLjIxODQ1MDk1NCAtMS42ODA2NzcgMTA0LjAzNjYyIDkuNTgyNTc3ZS0wMlxuIn0= -->
-<pre><code>         term    estimate   std.error statistic        df      p.value
-1 (Intercept) 73.01378901 2.844048678 25.672482 102.79830 1.635780e-46
-2       Ozone  0.15921008 0.026587392  5.988180  79.32084 5.870815e-08
-3     Solar.R  0.01230524 0.007621394  1.614566  85.40210 1.100936e-01
-4        Wind -0.36714552 0.218450954 -1.680677 104.03662 9.582577e-02</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubW9kZWxGaXQyIHw+IHBvb2woKSB8PiBzdW1tYXJ5KClcbmBgYCJ9 -->
-<pre class="r"><code>modelFit2 |&gt; pool() |&gt; summary()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgdGVybSAgIGVzdGltYXRlICAgc3RkLmVycm9yIHN0YXRpc3RpYyAgICAgICBkZiAgICAgIHAudmFsdWVcbjEgKEludGVyY2VwdCkgNzIuNzgwNTQ5MyAyLjg0MzYyMjU1MSAyNS41OTQzMDcgMTExLjEwNTUgMi4xMTUzNDhlLTQ4XG4yICAgICAgIE96b25lICAwLjE2MzM1ODYgMC4wMjUxMjcxMTYgIDYuNTAxMjg3IDEwNi4wNzk5IDIuNjY4MDMwZS0wOVxuMyAgICAgU29sYXIuUiAgMC4wMTEzOTQwIDAuMDA3MDU0NTk2ICAxLjYxNTExNyAxMjAuOTIxMSAxLjA4ODkxN2UtMDFcbjQgICAgICAgIFdpbmQgLTAuMzQ2NDU4MCAwLjIxNTkxNzAzMCAtMS42MDQ1ODkgMTE0LjY4NjIgMS4xMTMzNDdlLTAxXG4ifQ== -->
-<pre><code>         term   estimate   std.error statistic       df      p.value
-1 (Intercept) 72.7805493 2.843622551 25.594307 111.1055 2.115348e-48
-2       Ozone  0.1633586 0.025127116  6.501287 106.0799 2.668030e-09
-3     Solar.R  0.0113940 0.007054596  1.615117 120.9211 1.088917e-01
-4        Wind -0.3464580 0.215917030 -1.604589 114.6862 1.113347e-01</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubG1lX251bSA8LSBsbWUoXG4gIGZpeGVkID0gUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24gKyBQcmV0dGVzdCxcbiAgcmFuZG9tID0gfiAxIHwgU2Nob29sLFxuICBkYXRhID0gY3J0RGF0YSxcbiAgbWV0aG9kID0gXCJNTFwiXG4pXG5cbmxtZV9kZW4gPC0gbG1lKFxuICBmaXhlZCA9IFBvc3R0ZXN0IH4gMSxcbiAgcmFuZG9tID0gfiAxIHwgU2Nob29sLFxuICBkYXRhID0gY3J0RGF0YSxcbiAgbWV0aG9kID0gXCJNTFwiXG4pXG5gYGAifQ== -->
+<pre class="r"><code>lme_num &lt;- lme(
+  fixed = Posttest ~ Intervention + Prettest,
+  random = ~ 1 | School,
+  data = crtData,
+  method = &quot;ML&quot;
+)
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQoNCmBgYHtyfQ0KbGlicmFyeShtaWNlKQ0KbGlicmFyeShob3dNYW55SW1wdXRhdGlvbnMpDQpgYGANCg0KDQpgYGB7cn0NCmFpcnF1YWxpdHkNCmBgYA0KDQoNCkFkZCBzb21lIG1pc3NpbmduZXNzOg0KDQoNCmBgYHtyfQ0KYWlycXVhbGl0eVs0OjEwLCAzXSA8LSByZXAoTkEsIDcpDQphaXJxdWFsaXR5WzE6NSwgNF0gPC0gTkENCmFpcnF1YWxpdHkgPC0gYWlycXVhbGl0eVstYyg1LCA2KV0NCmBgYA0KDQpJbXB1dGUgZml2ZSB0aW1lczoNCg0KYGBge3IgaW5jbHVkZT1GQUxTRX0NCmltcGRhdGExIDwtIG1pY2UoYWlycXVhbGl0eSwgbSA9IDIwLCBtYXhpdCA9IDEwLCBtZXRob2QgPSAncG1tJywgc2VlZCA9IDUwMCkNCmBgYA0KDQoNCkZpdCB0aGUgbW9kZWw6DQoNCmBgYHtyfQ0KbW9kZWxGaXQxIDwtIHdpdGgoaW1wZGF0YTEsIGxtKFRlbXAgfiBPem9uZSArIFNvbGFyLlIgKyBXaW5kKSkNCmBgYA0KDQoNCmBgYHtyfQ0KbW9kZWxGaXQxIHw+IHBvb2woKSB8PiBzdW1tYXJ5KCkNCmBgYA0KDQoNCmBgYHtyfQ0KaG93X21hbnlfaW1wdXRhdGlvbnMobW9kZWxGaXQxKQ0KYGBgDQoNCg0KYGBge3IgaW5jbHVkZT1GQUxTRX0NCmltcGRhdGEyIDwtIG1pY2UoYWlycXVhbGl0eSwgbSA9IDM2LCBtYXhpdCA9IDEwLCBtZXRob2QgPSAncG1tJywgc2VlZCA9IDUwMCkNCmBgYA0KDQoNCg0KYGBge3J9DQptb2RlbEZpdDIgPC0gd2l0aChpbXBkYXRhMiwgbG0oVGVtcCB+IE96b25lICsgU29sYXIuUiArIFdpbmQpKQ0KYGBgDQoNCg0KYGBge3J9DQptb2RlbEZpdDEgfD4gcG9vbCgpIHw+IHN1bW1hcnkoKQ0KYGBgDQoNCg0KYGBge3J9DQptb2RlbEZpdDIgfD4gcG9vbCgpIHw+IHN1bW1hcnkoKQ0KYGBgDQo=</div>
+lme_den &lt;- lme(
+  fixed = Posttest ~ 1,
+  random = ~ 1 | School,
+  data = crtData,
+  method = &quot;ML&quot;
+)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VtbWFyeShsbWVfbW9kKVxuYGBgIn0= -->
+<pre class="r"><code>summary(lme_mod)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiTGluZWFyIG1peGVkLWVmZmVjdHMgbW9kZWwgZml0IGJ5IFJFTUxcbiAgRGF0YTogY3J0RGF0YSBcbiAgICAgICBBSUMgICAgICBCSUMgICAgbG9nTGlrXG4gIDE1MDMuODExIDE1MjEuNjUzIC03NDYuOTA1N1xuXG5SYW5kb20gZWZmZWN0czpcbiBGb3JtdWxhOiB+MSB8IFNjaG9vbFxuICAgICAgICAoSW50ZXJjZXB0KSBSZXNpZHVhbFxuU3RkRGV2OiAgICAyLjM4MTk1OSAzLjg0NDM5OFxuXG5GaXhlZCBlZmZlY3RzOiAgUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24gKyBQcmV0dGVzdCBcbiAgICAgICAgICAgICAgICAgVmFsdWUgU3RkLkVycm9yICBERiAgdC12YWx1ZSBwLXZhbHVlXG4oSW50ZXJjZXB0KSAgMTEuMjI4NjEwICAxLjEyNTAwMCAyNDIgOS45ODA5ODkgIDAuMDAwMFxuSW50ZXJ2ZW50aW9uICAzLjEwOTcwOSAgMS4yMDkzODMgIDIwIDIuNTcxMzE4ICAwLjAxODJcblByZXR0ZXN0ICAgICAgMS43ODg5MzEgIDAuMjAwMzgxIDI0MiA4LjkyNzY0OSAgMC4wMDAwXG4gQ29ycmVsYXRpb246IFxuICAgICAgICAgICAgIChJbnRyKSBJbnRydm5cbkludGVydmVudGlvbiAtMC40OTMgICAgICAgXG5QcmV0dGVzdCAgICAgLTAuNjgxIC0wLjAxMFxuXG5TdGFuZGFyZGl6ZWQgV2l0aGluLUdyb3VwIFJlc2lkdWFsczpcbiAgICAgICAgTWluICAgICAgICAgIFExICAgICAgICAgTWVkICAgICAgICAgIFEzICAgICAgICAgTWF4IFxuLTIuNDYyNDkzNDAgLTAuNjQxNjU3NTIgIDAuMDE2MjU1OTggIDAuNTk2NTQ2NjEgIDIuNjAyNzcwNDggXG5cbk51bWJlciBvZiBPYnNlcnZhdGlvbnM6IDI2NVxuTnVtYmVyIG9mIEdyb3VwczogMjIgXG4ifQ== -->
+<pre><code>Linear mixed-effects model fit by REML
+  Data: crtData 
+       AIC      BIC    logLik
+  1503.811 1521.653 -746.9057
+
+Random effects:
+ Formula: ~1 | School
+        (Intercept) Residual
+StdDev:    2.381959 3.844398
+
+Fixed effects:  Posttest ~ Intervention + Prettest 
+                 Value Std.Error  DF  t-value p-value
+(Intercept)  11.228610  1.125000 242 9.980989  0.0000
+Intervention  3.109709  1.209383  20 2.571318  0.0182
+Prettest      1.788931  0.200381 242 8.927649  0.0000
+ Correlation: 
+             (Intr) Intrvn
+Intervention -0.493       
+Prettest     -0.681 -0.010
+
+Standardized Within-Group Residuals:
+        Min          Q1         Med          Q3         Max 
+-2.46249340 -0.64165752  0.01625598  0.59654661  2.60277048 
+
+Number of Observations: 265
+Number of Groups: 22 </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGhlX2cgPC0gZ19tbG0oXG4gIGxtZV9udW0sXG4gIHBfY29uc3QgPSBjKDAsMSwwKSxcbiAgbW9kX2Rlbm9tID0gbG1lX2RlbixcbiAgcl9jb25zdCA9IGMoMSwxKSxcbiAgaW5mb3R5cGUgPSBcImV4cGVjdGVkXCIsXG4gIHNlcGFyYXRlX3ZhcmlhbmNlcyA9IEZBTFNFXG4pXG5cbnRoZV9nXG5gYGAifQ== -->
+<pre class="r"><code>the_g &lt;- g_mlm(
+  lme_num,
+  p_const = c(0,1,0),
+  mod_denom = lme_den,
+  r_const = c(1,1),
+  infotype = &quot;expected&quot;,
+  separate_variances = FALSE
+)
+
+the_g</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICAgICAgICAgICAgICAgICAgZXN0ICAgIHNlXG51bmFkanVzdGVkIGVmZmVjdCBzaXplICAgMC42MTIgMC4yMjlcbmFkanVzdGVkIGVmZmVjdCBzaXplICAgICAwLjYwOSAwLjIyN1xuZGVncmVlIG9mIGZyZWVkb20gICAgICAxNDIuMTI1ICAgICAgXG4ifQ== -->
+<pre><code>                           est    se
+unadjusted effect size   0.612 0.229
+adjusted effect size     0.609 0.227
+degree of freedom      142.125      </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQ0lfZyh0aGVfZykgfD4gcm91bmQoMilcbmBgYCJ9 -->
+<pre class="r"><code>CI_g(the_g) |&gt; round(2)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDAuMTYgMS4wNlxuIn0= -->
+<pre><code>[1] 0.16 1.06</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpgYGB7cn0NCmxpYnJhcnkobG1lSW5mbykNCmxpYnJhcnkobmxtZSkNCmxpYnJhcnkoZWVmQW5hbHl0aWNzKQ0KYGBgDQoNCg0KDQpgYGB7ciBwYWdlZC5wcmludD1GQUxTRX0NCm91dHB1dDEgPC0gY3J0RlJFUSgNCiAgUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24gKyBQcmV0dGVzdCwNCiAgcmFuZG9tID0gIlNjaG9vbCIsDQogIGludGVydmVudGlvbiA9ICJJbnRlcnZlbnRpb24iLA0KICBkYXRhID0gY3J0RGF0YQ0KKQ0KDQpzdW1tYXJ5KG91dHB1dDEpDQpgYGANCg0KDQoNCmBgYHtyfQ0KbG1lX251bSA8LSBsbWUoDQogIGZpeGVkID0gUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24gKyBQcmV0dGVzdCwNCiAgcmFuZG9tID0gfiAxIHwgU2Nob29sLA0KICBkYXRhID0gY3J0RGF0YSwNCiAgbWV0aG9kID0gIk1MIg0KKQ0KDQpsbWVfZGVuIDwtIGxtZSgNCiAgZml4ZWQgPSBQb3N0dGVzdCB+IDEsDQogIHJhbmRvbSA9IH4gMSB8IFNjaG9vbCwNCiAgZGF0YSA9IGNydERhdGEsDQogIG1ldGhvZCA9ICJNTCINCikNCmBgYA0KDQoNCmBgYHtyIHBhZ2VkLnByaW50PUZBTFNFfQ0Kc3VtbWFyeShsbWVfbW9kKQ0KYGBgDQoNCg0KDQpgYGB7cn0NCnRoZV9nIDwtIGdfbWxtKA0KICBsbWVfbnVtLA0KICBwX2NvbnN0ID0gYygwLDEsMCksDQogIG1vZF9kZW5vbSA9IGxtZV9kZW4sDQogIHJfY29uc3QgPSBjKDEsMSksDQogIGluZm90eXBlID0gImV4cGVjdGVkIiwNCiAgc2VwYXJhdGVfdmFyaWFuY2VzID0gRkFMU0UNCikNCg0KdGhlX2cNCmBgYA0KDQoNCg0KYGBge3J9DQpDSV9nKHRoZV9nKSB8PiByb3VuZCgyKQ0KYGBgDQoNCg0K</div>
 
 
 
@@ -1917,7 +1941,7 @@ $(document).ready(function () {
 <!-- code folding -->
 <script>
 $(document).ready(function () {
-  window.initializeSourceEmbed("mi.Rmd");
+  window.initializeSourceEmbed("hedges.Rmd");
   window.initializeCodeFolding("show" === "show");
 });
 </script>

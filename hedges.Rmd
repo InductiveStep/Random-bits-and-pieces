@@ -1,0 +1,69 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(lmeInfo)
+library(nlme)
+library(eefAnalytics)
+```
+
+
+
+```{r paged.print=FALSE}
+output1 <- crtFREQ(
+  Posttest ~ Intervention + Prettest,
+  random = "School",
+  intervention = "Intervention",
+  data = crtData
+)
+
+summary(output1)
+```
+
+
+
+```{r}
+lme_num <- lme(
+  fixed = Posttest ~ Intervention + Prettest,
+  random = ~ 1 | School,
+  data = crtData,
+  method = "ML"
+)
+
+lme_den <- lme(
+  fixed = Posttest ~ 1,
+  random = ~ 1 | School,
+  data = crtData,
+  method = "ML"
+)
+```
+
+
+```{r paged.print=FALSE}
+summary(lme_mod)
+```
+
+
+
+```{r}
+the_g <- g_mlm(
+  lme_num,
+  p_const = c(0,1,0),
+  mod_denom = lme_den,
+  r_const = c(1,1),
+  infotype = "expected",
+  separate_variances = FALSE
+)
+
+the_g
+```
+
+
+
+```{r}
+CI_g(the_g) |> round(2)
+```
+
+

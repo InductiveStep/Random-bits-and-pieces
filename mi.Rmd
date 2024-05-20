@@ -26,8 +26,8 @@ airquality <- airquality[-c(5, 6)]
 
 Impute five times:
 
-```{r}
-impdata1 <- mice(airquality, m = 5, maxit = 10, method = 'pmm', seed = 500)
+```{r include=FALSE}
+impdata1 <- mice(airquality, m = 20, maxit = 10, method = 'pmm', seed = 500)
 ```
 
 
@@ -48,14 +48,19 @@ how_many_imputations(modelFit1)
 ```
 
 
-```{r}
-impdata2 <- mice(airquality, m = 57, maxit = 10, method = 'pmm', seed = 500)
+```{r include=FALSE}
+impdata2 <- mice(airquality, m = 36, maxit = 10, method = 'pmm', seed = 500)
 ```
 
 
 
 ```{r}
 modelFit2 <- with(impdata2, lm(Temp ~ Ozone + Solar.R + Wind))
+```
+
+
+```{r}
+modelFit1 |> pool() |> summary()
 ```
 
 
