@@ -1,0 +1,41 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(random)
+```
+
+
+
+```{r}
+really_random <- randomNumbers(
+  n = 100,
+  min = 0,
+  max = 255,
+  col = 1,
+  base = 10,
+  check = TRUE
+) |> as.vector()
+```
+
+```{r}
+pseudo_random <- sample(0:255, size = 100, replace = TRUE)
+```
+
+
+```{r}
+res <- acf(really_random)
+```
+
+
+```{r}
+res
+```
+
+
+```{r}
+acf(pseudo_random)
+```
+

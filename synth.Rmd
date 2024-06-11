@@ -4,14 +4,27 @@ output: html_notebook
 ---
 
 ```{r}
+library(conflicted)
+library(tidyverse)
 library(tidysynth)
+library(WeightIt)
+library(marginaleffects)
+conflicts_prefer(dplyr::filter)
 ```
 
 ```{r}
-smoking
+smoking |>
+  arrange(state, year)
 ```
 
 
+```{r}
+View(smoking)
+```
+
+
+```{r}
+```
 
 
 ```{r}
@@ -60,49 +73,132 @@ smoking_out <-
 
 
 ```{r}
+smoking_out |> grab_synthetic_control() |>
+  mutate(att = real_y - synth_y)
+```
+
+
+
+
+
+
+
+```{r}
 smoking_out
 ```
 
 
-
 ```{r}
-smoking_out %>% plot_trends()
-```
-
-
-```{r}
-smoking_out %>% plot_differences()
+the_dat <- (smoking_out %>% plot_differences())$data
+the_dat
 ```
 
 
 
 ```{r}
-smoking_out %>% plot_weights()
-```
-
-
-```{r}
-smoking_out %>% grab_balance_table()
-```
-
-```{r}
-smoking_out %>% plot_placebos()
-```
-
-
-```{r}
-smoking_out %>% plot_placebos(prune = FALSE)
+plot_weights(smoking_out)
 ```
 
 
 
+
+# Try entropy matching
+
+
+
 ```{r}
-smoking_out %>% plot_mspe_ratio()
+control_preds <- smoking_out |>
+  grab_predictors(type = "controls") |>
+  pivot_longer(cols = Alabama:Wyoming) |>
+  pivot_wider(names_from = variable, values_from = value) |>
+  mutate(treat = 0)
+treat_preds <- smoking_out |> 
+  grab_predictors() |> 
+  pivot_longer(cols = "California") |>
+  pivot_wider(names_from = variable, values_from = value) |>
+  mutate(treat = 1)
+
+covs <- bind_rows(control_preds, treat_preds) |>
+  rename(state = name)
+covs
+```
+
+
+
+
+```{r}
+outcome_dat <- smoking |>
+  filter(year >= 1989) |>
+  select(state, year, cigsale) |>
+  mutate(treat = as.numeric(state == "California")) |>
+  pivot_wider(
+    id_cols = c(state, treat),
+    names_from = year,
+    values_from = cigsale,
+    names_prefix = "cigsale_"
+  )
+outcome_dat
+```
+
+
+```{r}
+dat_to_weight <- left_join(covs, outcome_dat)
+dat_to_weight
 ```
 
 
 
 ```{r}
-smoking_out %>% grab_significance()
+smoking_ebal
+```
+
+
+
+```{r}
+dat_to_weight |> view()
+```
+
+
+
+
+```{r}
+smoking_ebal <- weightit(
+  treat ~ youth + beer_sales + cigsale_1975 + cigsale_1980 + cigsale_1988,
+  data = dat_to_weight,
+  estimand = "ATT",
+  method = "ebal"
+)
+```
+
+```{r}
+lm_weightit(
+  cigsale_1989 ~ treat,
+  data = dat_to_weight,
+  weightit = smoking_ebal
+) |> coef()
+
+lm_weightit(
+  cigsale_1990 ~ treat,
+  data = dat_to_weight,
+  weightit = smoking_ebal
+) |> coef()
+
+lm_weightit(
+  cigsale_1991 ~ treat,
+  data = dat_to_weight,
+  weightit = smoking_ebal
+) |> coef()
+
+lm_weightit(
+  cigsale_1992 ~ treat,
+  data = dat_to_weight,
+  weightit = smoking_ebal
+) |> coef()
+
+lm_weightit(
+  cigsale_1993 ~ treat,
+  data = dat_to_weight,
+  weightit = smoking_ebal
+) |> coef()
 ```
 

@@ -1,0 +1,84 @@
+---
+title: "R Notebook"
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+```{r}
+library(conflicted)
+library(tidyverse)
+conflicts_prefer(dplyr::filter)
+```
+
+
+```{r}
+rand_cards <- function(n = 6, shape = c("square", "circle"), colour = c("red", "blue")) {
+  stopifnot(n != 0)
+  stopifnot(length(shape) == 2)
+  stopifnot(length(colour) == 2)
+  stopifnot(n %% 2 == 0)
+
+  data.frame(shape = sample(rep(shape, n / 2)),
+             colour = sample(rep(colour, n / 2))) |>
+    arrange(shape, colour)
+}
+```
+
+```{r}
+rand_cards(n = 10)
+```
+
+
+```{r}
+reason_cards <- function(cards_dat, prob_cond = 0.5, antecedent, consequent) {
+  denom <- NA
+  numer <- NA
+  
+  if (rbinom(1, 1, prob_cond)) {
+    focus_cards <- cards_dat |>
+      filter(shape == antecedent)
+    
+    denom <- nrow(focus_cards)
+    numer <- sum(focus_cards$colour == consequent)
+  } else {
+    focus_cards <- cards_dat |>
+      filter(shape == antecedent & colour == consequent)
+    
+    numer <- nrow(focus_cards)
+    denom <- nrow(cards_dat)
+  }
+  
+  numer/denom
+}
+```
+
+
+```{r}
+test_cards <- rand_cards(n = 10)
+test_cards
+```
+
+
+```{r}
+reason_cards(
+  test_cards,
+  prob_cond = .5,
+  antecedent = "square",
+  consequent = "blue"
+)
+```
+
+
+
+
+
+```{r}
+and
+```
+
+
+
+
+
+
