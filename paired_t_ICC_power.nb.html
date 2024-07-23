@@ -1754,282 +1754,21 @@ display: none;
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShsbWVJbmZvKVxubGlicmFyeShubG1lKVxubGlicmFyeShsbWU0KVxuYGBgIn0= -->
-<pre class="r"><code>library(lmeInfo)
-library(nlme)
-library(lme4)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBNYXRyaXhcblxuQXR0YWNoaW5nIHBhY2thZ2U6IOKAmGxtZTTigJlcblxuVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20g4oCYcGFja2FnZTpubG1l4oCZOlxuXG4gICAgbG1MaXN0XG4ifQ== -->
-<pre><code>Loading required package: Matrix
-
-Attaching package: ‘lme4’
-
-The following object is masked from ‘package:nlme’:
-
-    lmList</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShlZWZBbmFseXRpY3MpXG5gYGAifQ== -->
-<pre class="r"><code>library(eefAnalytics)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiUmVnaXN0ZXJlZCBTMyBtZXRob2RzIG92ZXJ3cml0dGVuIGJ5ICdodG1sdG9vbHMnOlxuICBtZXRob2QgICAgICAgICAgICAgICBmcm9tICAgICAgICAgXG4gIHByaW50Lmh0bWwgICAgICAgICAgIHRvb2xzOnJzdHVkaW9cbiAgcHJpbnQuc2hpbnkudGFnICAgICAgdG9vbHM6cnN0dWRpb1xuICBwcmludC5zaGlueS50YWcubGlzdCB0b29sczpyc3R1ZGlvXG5SZWdpc3RlcmVkIFMzIG1ldGhvZCBvdmVyd3JpdHRlbiBieSAnaHRtbHdpZGdldHMnOlxuICBtZXRob2QgICAgICAgICAgIGZyb20gICAgICAgICBcbiAgcHJpbnQuaHRtbHdpZGdldCB0b29sczpyc3R1ZGlvXG4ifQ== -->
-<pre><code>Registered S3 methods overwritten by &#39;htmltools&#39;:
-  method               from         
-  print.html           tools:rstudio
-  print.shiny.tag      tools:rstudio
-  print.shiny.tag.list tools:rstudio
-Registered S3 method overwritten by &#39;htmlwidgets&#39;:
-  method           from         
-  print.htmlwidget tools:rstudio</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxub3V0cHV0MSA8LSBjcnRGUkVRKFxuICBQb3N0dGVzdCB+IEludGVydmVudGlvbiArIFByZXR0ZXN0LFxuICByYW5kb20gPSBcIlNjaG9vbFwiLFxuICBpbnRlcnZlbnRpb24gPSBcIkludGVydmVudGlvblwiLFxuICBkYXRhID0gY3J0RGF0YVxuKVxuYGBgIn0= -->
-<pre class="r"><code>output1 &lt;- crtFREQ(
-  Posttest ~ Intervention + Prettest,
-  random = &quot;School&quot;,
-  intervention = &quot;Intervention&quot;,
-  data = crtData
-)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHdyLnQudGVzdChkID0gMC41LCBwb3dlciA9IDAuODE2LCB0eXBlID0gXCJwYWlyZWRcIikkbiAqICgxIC0gLjIpXG5gYGAifQ== -->
+<pre class="r"><code>pwr.t.test(d = 0.5, power = 0.816, type = &quot;paired&quot;)$n * (1 - .2)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiQ29tcHV0aW5nIHByb2ZpbGUgY29uZmlkZW5jZSBpbnRlcnZhbHMgLi4uXG4ifQ== -->
-<pre><code>Computing profile confidence intervals ...</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VtbWFyeShvdXRwdXQxKVxuYGBgIn0= -->
-<pre class="r"><code>summary(output1)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG4gbWV0aG9kOiAgICAgICAgTUxNXG4gRGVzaWduOiAgICAgICAgY3J0RlJFUVxuICAgICAgICAgICAgICBFc3RpbWF0ZSA5NSUgTEIgIDk1JSBVQlxuSW50ZXJjZXB0ICAgICAgICAxMS4yMyAgICA5LjA1ICAxMy40MlxuSW50ZXJ2ZW50aW9uMSAgICAgMy4xMSAgICAwLjc1ICAgNS40N1xuUHJldHRlc3QgICAgICAgICAgMS43OSAgICAxLjM5ICAgMi4xOFxuXG5SZXN1bHQgZm9yOiBDb25kaXRpb25hbCBlZmZlY3Qgc2l6ZVxuJEludGVydmVudGlvbjFcbiAgICAgICBFc3RpbWF0ZSA5NSUgTEIgOTUlIFVCXG5XaXRoaW4gICAgIDAuODEgICAwLjEwICAgMS41MlxuVG90YWwgICAgICAwLjY3ICAgMC4wNyAgIDEuMjhcblxuXG5SZXN1bHQgZm9yOiBVbmNvbmRpdGlvbmFsIGVmZmVjdCBzaXplXG4kSW50ZXJ2ZW50aW9uMVxuICAgICAgIEVzdGltYXRlIDk1JSBMQiA5NSUgVUJcbldpdGhpbiAgICAgIDAuNyAgIDAuMDQgICAxLjM3XG5Ub3RhbCAgICAgICAwLjYgICAwLjAyICAgMS4xN1xuIn0= -->
-<pre><code>
- method:        MLM
- Design:        crtFREQ
-              Estimate 95% LB  95% UB
-Intercept        11.23    9.05  13.42
-Intervention1     3.11    0.75   5.47
-Prettest          1.79    1.39   2.18
-
-Result for: Conditional effect size
-$Intervention1
-       Estimate 95% LB 95% UB
-Within     0.81   0.10   1.52
-Total      0.67   0.07   1.28
-
-
-Result for: Unconditional effect size
-$Intervention1
-       Estimate 95% LB 95% UB
-Within      0.7   0.04   1.37
-Total       0.6   0.02   1.17</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDI3Ljc1NDgxXG4ifQ== -->
+<pre><code>[1] 27.75481</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGVzdF9tb2QgPC0gbG1lcihQb3N0dGVzdCB+IEludGVydmVudGlvbiArIFByZXR0ZXN0ICsgKDF8U2Nob29sKSwgZGF0YSA9IGNydERhdGEpXG50ZXN0X21vZCB8PiBzdW1tYXJ5KClcbmBgYCJ9 -->
-<pre class="r"><code>test_mod &lt;- lmer(Posttest ~ Intervention + Prettest + (1|School), data = crtData)
-test_mod |&gt; summary()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiTGluZWFyIG1peGVkIG1vZGVsIGZpdCBieSBSRU1MIFsnbG1lck1vZCddXG5Gb3JtdWxhOiBQb3N0dGVzdCB+IEludGVydmVudGlvbiArIFByZXR0ZXN0ICsgKDEgfCBTY2hvb2wpXG4gICBEYXRhOiBjcnREYXRhXG5cblJFTUwgY3JpdGVyaW9uIGF0IGNvbnZlcmdlbmNlOiAxNDkzLjhcblxuU2NhbGVkIHJlc2lkdWFsczogXG4gICAgIE1pbiAgICAgICAxUSAgIE1lZGlhbiAgICAgICAzUSAgICAgIE1heCBcbi0yLjQ2MjQ5IC0wLjY0MTY2ICAwLjAxNjI2ICAwLjU5NjU1ICAyLjYwMjc3IFxuXG5SYW5kb20gZWZmZWN0czpcbiBHcm91cHMgICBOYW1lICAgICAgICBWYXJpYW5jZSBTdGQuRGV2LlxuIFNjaG9vbCAgIChJbnRlcmNlcHQpICA1LjY3NCAgIDIuMzgyICAgXG4gUmVzaWR1YWwgICAgICAgICAgICAgMTQuNzc5ICAgMy44NDQgICBcbk51bWJlciBvZiBvYnM6IDI2NSwgZ3JvdXBzOiAgU2Nob29sLCAyMlxuXG5GaXhlZCBlZmZlY3RzOlxuICAgICAgICAgICAgIEVzdGltYXRlIFN0ZC4gRXJyb3IgdCB2YWx1ZVxuKEludGVyY2VwdCkgICAxMS4yMjg2ICAgICAxLjEyNTAgICA5Ljk4MVxuSW50ZXJ2ZW50aW9uICAgMy4xMDk3ICAgICAxLjIwOTQgICAyLjU3MVxuUHJldHRlc3QgICAgICAgMS43ODg5ICAgICAwLjIwMDQgICA4LjkyOFxuXG5Db3JyZWxhdGlvbiBvZiBGaXhlZCBFZmZlY3RzOlxuICAgICAgICAgICAgKEludHIpIEludHJ2blxuSW50ZXJ2ZW50aW4gLTAuNDkzICAgICAgIFxuUHJldHRlc3QgICAgLTAuNjgxIC0wLjAxMFxuIn0= -->
-<pre><code>Linear mixed model fit by REML [&#39;lmerMod&#39;]
-Formula: Posttest ~ Intervention + Prettest + (1 | School)
-   Data: crtData
 
-REML criterion at convergence: 1493.8
-
-Scaled residuals: 
-     Min       1Q   Median       3Q      Max 
--2.46249 -0.64166  0.01626  0.59655  2.60277 
-
-Random effects:
- Groups   Name        Variance Std.Dev.
- School   (Intercept)  5.674   2.382   
- Residual             14.779   3.844   
-Number of obs: 265, groups:  School, 22
-
-Fixed effects:
-             Estimate Std. Error t value
-(Intercept)   11.2286     1.1250   9.981
-Intervention   3.1097     1.2094   2.571
-Prettest       1.7889     0.2004   8.928
-
-Correlation of Fixed Effects:
-            (Intr) Intrvn
-Interventin -0.493       
-Prettest    -0.681 -0.010</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGVzdF9tb2RfMCA8LSBsbWVyKFBvc3R0ZXN0IH4gSW50ZXJ2ZW50aW9uICsgKDF8U2Nob29sKSwgZGF0YSA9IGNydERhdGEpXG5gYGAifQ== -->
-<pre class="r"><code>test_mod_0 &lt;- lmer(Posttest ~ Intervention + (1|School), data = crtData)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudmFycyA8LSBWYXJDb3JyKHRlc3RfbW9kXzApIHw+IGFzLmRhdGEuZnJhbWUoKVxudGhlX3NkIDwtIHZhcnMkdmNvdiB8PiBzdW0oKSB8PiBzcXJ0KClcbnRoZV9zZFxuYGBgIn0= -->
-<pre class="r"><code>vars &lt;- VarCorr(test_mod_0) |&gt; as.data.frame()
-the_sd &lt;- vars$vcov |&gt; sum() |&gt; sqrt()
-the_sd</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDQuOTEzMjA0XG4ifQ== -->
-<pre><code>[1] 4.913204</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudmFycyBcbmBgYCJ9 -->
-<pre class="r"><code>vars </code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImRhdGEuZnJhbWUiXSwibnJvdyI6MiwibmNvbCI6NSwic3VtbWFyeSI6eyJEZXNjcmlwdGlvbiI6WyJkZiBbMiDDlyA1XSJdfX0sInJkZiI6Ikg0c0lBQUFBQUFBQUJsMVJ1VTdFTUJCMVRrZ1F5eVVhQ2dvcURpVVNySVFvVXlBa0tIZEJTb0dRakdPeUVjR09IR2ZoWjJqb3FPZ28rUVErZ24rZ1FscHdkajBCSE1tYU4yK092SmtaSEtmOU1BMFJRZzV5WFFzNW5vTEl1emcvaVk0UWNtM2xXTWhGUVdzZlZOSmFHMVZ2V1QxYkIvd2hHWEZlYW05K1FPc2lhM0JwWkMxc256SkpCYUdWM0ZGdThLMitMdVhYQjl0citXUjE0MlB2NVhNOTZUL2FaOE0zdCtNdGIvTXEzYjFNVmw2L3RwN2VudzJsSHNOM3ROYk5QVTA2dWFnMGRNZFk3UC9CQngwbWZBdzk2b3h3WVRRT0JMK1BvZm1pVm03TjdIOEZwTVExS0FBeXpMREU4WTFROWNxYkdDVnp2SklGWjZySWJwZnNHOFdXTUlpbGhyVktzb2lNR25ZYkhScGhwMko1KzA4dEVHbkJXbXlIdlprS0cwN2h3MDBweXd0R1lad1NYMU00c0pOUldGSlA3V082anJnU0JaTXdwMkxyV0hLSm9TUWt2QVJtT2ptYS9BQncvK0FWZVFJQUFBPT0ifQ== -->
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["grp"],"name":[1],"type":["chr"],"align":["left"]},{"label":["var1"],"name":[2],"type":["chr"],"align":["left"]},{"label":["var2"],"name":[3],"type":["chr"],"align":["left"]},{"label":["vcov"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["sdcor"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"School","2":"(Intercept)","3":"NA","4":"4.526253","5":"2.127499"},{"1":"Residual","2":"NA","3":"NA","4":"19.613316","5":"4.428692"}],"options":{"columns":{"min":{},"max":[10],"total":[5]},"rows":{"min":[10],"max":[10],"total":[2]},"pages":{}}}
-  </script>
-</div>
-<!-- rnb-frame-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubG1lX251bSA8LSBsbWUoXG4gIGZpeGVkID0gUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24gKyBQcmV0dGVzdCxcbiAgcmFuZG9tID0gfiAxIHwgU2Nob29sLFxuICBkYXRhID0gY3J0RGF0YSxcbiAgbWV0aG9kID0gXCJSRU1MXCJcbilcblxubG1lX2RlbiA8LSBsbWUoXG4gIGZpeGVkID0gUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24sXG4gIHJhbmRvbSA9IH4gMSB8IFNjaG9vbCxcbiAgZGF0YSA9IGNydERhdGEsXG4gIG1ldGhvZCA9IFwiUkVNTFwiXG4pXG5gYGAifQ== -->
-<pre class="r"><code>lme_num &lt;- lme(
-  fixed = Posttest ~ Intervention + Prettest,
-  random = ~ 1 | School,
-  data = crtData,
-  method = &quot;REML&quot;
-)
-
-lme_den &lt;- lme(
-  fixed = Posttest ~ Intervention,
-  random = ~ 1 | School,
-  data = crtData,
-  method = &quot;REML&quot;
-)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VtbWFyeShsbWVfbnVtKVxuYGBgIn0= -->
-<pre class="r"><code>summary(lme_num)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiTGluZWFyIG1peGVkLWVmZmVjdHMgbW9kZWwgZml0IGJ5IFJFTUxcbiAgRGF0YTogY3J0RGF0YSBcbiAgICAgICBBSUMgICAgICBCSUMgICAgbG9nTGlrXG4gIDE1MDMuODExIDE1MjEuNjUzIC03NDYuOTA1N1xuXG5SYW5kb20gZWZmZWN0czpcbiBGb3JtdWxhOiB+MSB8IFNjaG9vbFxuICAgICAgICAoSW50ZXJjZXB0KSBSZXNpZHVhbFxuU3RkRGV2OiAgICAyLjM4MTk1OSAzLjg0NDM5OFxuXG5GaXhlZCBlZmZlY3RzOiAgUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24gKyBQcmV0dGVzdCBcbiAgICAgICAgICAgICAgICAgVmFsdWUgU3RkLkVycm9yICBERiAgdC12YWx1ZSBwLXZhbHVlXG4oSW50ZXJjZXB0KSAgMTEuMjI4NjEwICAxLjEyNTAwMCAyNDIgOS45ODA5ODkgIDAuMDAwMFxuSW50ZXJ2ZW50aW9uICAzLjEwOTcwOSAgMS4yMDkzODMgIDIwIDIuNTcxMzE4ICAwLjAxODJcblByZXR0ZXN0ICAgICAgMS43ODg5MzEgIDAuMjAwMzgxIDI0MiA4LjkyNzY0OSAgMC4wMDAwXG4gQ29ycmVsYXRpb246IFxuICAgICAgICAgICAgIChJbnRyKSBJbnRydm5cbkludGVydmVudGlvbiAtMC40OTMgICAgICAgXG5QcmV0dGVzdCAgICAgLTAuNjgxIC0wLjAxMFxuXG5TdGFuZGFyZGl6ZWQgV2l0aGluLUdyb3VwIFJlc2lkdWFsczpcbiAgICAgICAgTWluICAgICAgICAgIFExICAgICAgICAgTWVkICAgICAgICAgIFEzICAgICAgICAgTWF4IFxuLTIuNDYyNDkzNDAgLTAuNjQxNjU3NTIgIDAuMDE2MjU1OTggIDAuNTk2NTQ2NjEgIDIuNjAyNzcwNDggXG5cbk51bWJlciBvZiBPYnNlcnZhdGlvbnM6IDI2NVxuTnVtYmVyIG9mIEdyb3VwczogMjIgXG4ifQ== -->
-<pre><code>Linear mixed-effects model fit by REML
-  Data: crtData 
-       AIC      BIC    logLik
-  1503.811 1521.653 -746.9057
-
-Random effects:
- Formula: ~1 | School
-        (Intercept) Residual
-StdDev:    2.381959 3.844398
-
-Fixed effects:  Posttest ~ Intervention + Prettest 
-                 Value Std.Error  DF  t-value p-value
-(Intercept)  11.228610  1.125000 242 9.980989  0.0000
-Intervention  3.109709  1.209383  20 2.571318  0.0182
-Prettest      1.788931  0.200381 242 8.927649  0.0000
- Correlation: 
-             (Intr) Intrvn
-Intervention -0.493       
-Prettest     -0.681 -0.010
-
-Standardized Within-Group Residuals:
-        Min          Q1         Med          Q3         Max 
--2.46249340 -0.64165752  0.01625598  0.59654661  2.60277048 
-
-Number of Observations: 265
-Number of Groups: 22 </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGhlX2cgPC0gZ19tbG0oXG4gIGxtZV9udW0sXG4gIHBfY29uc3QgPSBjKDAsMSwwKSxcbiAgbW9kX2Rlbm9tID0gbG1lX2RlbixcbiAgcl9jb25zdCA9IGMoMSwxKSxcbiAgaW5mb3R5cGUgPSBcImV4cGVjdGVkXCIsXG4gIHNlcGFyYXRlX3ZhcmlhbmNlcyA9IEZBTFNFXG4pXG5cbnRoZV9nXG5gYGAifQ== -->
-<pre class="r"><code>the_g &lt;- g_mlm(
-  lme_num,
-  p_const = c(0,1,0),
-  mod_denom = lme_den,
-  r_const = c(1,1),
-  infotype = &quot;expected&quot;,
-  separate_variances = FALSE
-)
-
-the_g</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICAgICAgICAgICAgICAgICAgZXN0ICAgIHNlXG51bmFkanVzdGVkIGVmZmVjdCBzaXplICAgMC42MzMgMC4yNTBcbmFkanVzdGVkIGVmZmVjdCBzaXplICAgICAwLjYzMCAwLjI0OVxuZGVncmVlIG9mIGZyZWVkb20gICAgICAxNTguMzU1ICAgICAgXG4ifQ== -->
-<pre><code>                           est    se
-unadjusted effect size   0.633 0.250
-adjusted effect size     0.630 0.249
-degree of freedom      158.355      </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGhlX2ckZGVsdGFfQUJcbmBgYCJ9 -->
-<pre class="r"><code>the_g$delta_AB</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDAuNjMyOTI4OFxuIn0= -->
-<pre><code>[1] 0.6329288</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZml4ZWYodGVzdF9tb2QpW1wiSW50ZXJ2ZW50aW9uXCJdIC8gdGhlX3NkXG5gYGAifQ== -->
-<pre class="r"><code>fixef(test_mod)[&quot;Intervention&quot;] / the_sd</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiSW50ZXJ2ZW50aW9uIFxuICAgMC42MzI5Mjg5IFxuIn0= -->
-<pre><code>Intervention 
-   0.6329289 </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYl92YXIgPC0gdmNvdih0ZXN0X21vZClbXCJJbnRlcnZlbnRpb25cIiwgXCJJbnRlcnZlbnRpb25cIl1cbmJfdmFyXG5gYGAifQ== -->
-<pre class="r"><code>b_var &lt;- vcov(test_mod)[&quot;Intervention&quot;, &quot;Intervention&quot;]
-b_var</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDEuNDYyNjA2XG4ifQ== -->
-<pre><code>[1] 1.462606</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShtZXJEZXJpdilcbmBgYCJ9 -->
-<pre class="r"><code>library(merDeriv)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBub25uZXN0MlxuVGhpcyBpcyBub25uZXN0MiAwLjUtNy5cbm5vbm5lc3QyIGhhcyBub3QgYmVlbiB0ZXN0ZWQgd2l0aCBhbGwgY29tYmluYXRpb25zIG9mIHN1cHBvcnRlZCBtb2RlbCBjbGFzc2VzLlxuTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBzYW5kd2ljaFxuTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBsYXZhYW5cblRoaXMgaXMgbGF2YWFuIDAuNi0xOFxubGF2YWFuIGlzIEZSRUUgc29mdHdhcmUhIFBsZWFzZSByZXBvcnQgYW55IGJ1Z3MuXG4ifQ== -->
-<pre><code>Loading required package: nonnest2
-This is nonnest2 0.5-7.
-nonnest2 has not been tested with all combinations of supported model classes.
-Loading required package: sandwich
-Loading required package: lavaan
-This is lavaan 0.6-18
-lavaan is FREE software! Please report any bugs.</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmFuZWZfdmFyIDwtIHZjb3YodGVzdF9tb2RfMCxcbiAgICAgICAgICAgICAgICAgIGZ1bGwgPSBUUlVFLFxuICAgICAgICAgICAgICAgICAgcmFucGFyID0gXCJ2YXJcIixcbiAgICAgICAgICAgICAgICAgIGluZm9ybWF0aW9uID0gXCJleHBlY3RlZFwiKVszLCAzXVxuXG5zdW1fdmFycyA8LSB2YXJzJHZjb3YgfD4gc3VtKClcbnNxcnQoKGJfdmFyIC8gc3VtX3ZhcnMpICtcbiAgICAgICAoKGZpeGVmKHRlc3RfbW9kKVtcIkludGVydmVudGlvblwiXV4yICogcmFuZWZfdmFyKSAvICg0ICogKHN1bV92YXJzKV4zKSkpXG5gYGAifQ== -->
-<pre class="r"><code>ranef_var &lt;- vcov(test_mod_0,
-                  full = TRUE,
-                  ranpar = &quot;var&quot;,
-                  information = &quot;expected&quot;)[3, 3]
-
-sum_vars &lt;- vars$vcov |&gt; sum()
-sqrt((b_var / sum_vars) +
-       ((fixef(test_mod)[&quot;Intervention&quot;]^2 * ranef_var) / (4 * (sum_vars)^3)))</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiSW50ZXJ2ZW50aW9uIFxuICAgMC4yNDc4NDI1IFxuIn0= -->
-<pre><code>Intervention 
-   0.2478425 </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Not far off.</p>
-<!-- rnb-text-end -->
-
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpgYGB7cn0NCmxpYnJhcnkobG1lSW5mbykNCmxpYnJhcnkobmxtZSkNCmxpYnJhcnkobG1lNCkNCmxpYnJhcnkoZWVmQW5hbHl0aWNzKQ0KYGBgDQoNCg0KDQpgYGB7ciBwYWdlZC5wcmludD1GQUxTRX0NCm91dHB1dDEgPC0gY3J0RlJFUSgNCiAgUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24gKyBQcmV0dGVzdCwNCiAgcmFuZG9tID0gIlNjaG9vbCIsDQogIGludGVydmVudGlvbiA9ICJJbnRlcnZlbnRpb24iLA0KICBkYXRhID0gY3J0RGF0YQ0KKQ0KDQpzdW1tYXJ5KG91dHB1dDEpDQpgYGANCg0KDQpgYGB7cn0NCnRlc3RfbW9kIDwtIGxtZXIoUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24gKyBQcmV0dGVzdCArICgxfFNjaG9vbCksIGRhdGEgPSBjcnREYXRhKQ0KdGVzdF9tb2QgfD4gc3VtbWFyeSgpDQpgYGANCg0KYGBge3J9DQp0ZXN0X21vZF8wIDwtIGxtZXIoUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24gKyAoMXxTY2hvb2wpLCBkYXRhID0gY3J0RGF0YSkNCmBgYA0KDQpgYGB7cn0NCnZhcnMgPC0gVmFyQ29ycih0ZXN0X21vZF8wKSB8PiBhcy5kYXRhLmZyYW1lKCkNCnRoZV9zZCA8LSB2YXJzJHZjb3YgfD4gc3VtKCkgfD4gc3FydCgpDQp0aGVfc2QNCmBgYA0KDQpgYGB7cn0NCnZhcnMgDQpgYGANCg0KDQoNCg0KDQoNCg0KDQpgYGB7cn0NCmxtZV9udW0gPC0gbG1lKA0KICBmaXhlZCA9IFBvc3R0ZXN0IH4gSW50ZXJ2ZW50aW9uICsgUHJldHRlc3QsDQogIHJhbmRvbSA9IH4gMSB8IFNjaG9vbCwNCiAgZGF0YSA9IGNydERhdGEsDQogIG1ldGhvZCA9ICJSRU1MIg0KKQ0KDQpsbWVfZGVuIDwtIGxtZSgNCiAgZml4ZWQgPSBQb3N0dGVzdCB+IEludGVydmVudGlvbiwNCiAgcmFuZG9tID0gfiAxIHwgU2Nob29sLA0KICBkYXRhID0gY3J0RGF0YSwNCiAgbWV0aG9kID0gIlJFTUwiDQopDQpgYGANCg0KDQpgYGB7ciBwYWdlZC5wcmludD1GQUxTRX0NCnN1bW1hcnkobG1lX251bSkNCmBgYA0KDQoNCg0KYGBge3J9DQp0aGVfZyA8LSBnX21sbSgNCiAgbG1lX251bSwNCiAgcF9jb25zdCA9IGMoMCwxLDApLA0KICBtb2RfZGVub20gPSBsbWVfZGVuLA0KICByX2NvbnN0ID0gYygxLDEpLA0KICBpbmZvdHlwZSA9ICJleHBlY3RlZCIsDQogIHNlcGFyYXRlX3ZhcmlhbmNlcyA9IEZBTFNFDQopDQoNCnRoZV9nDQp0aGVfZyRkZWx0YV9BQg0KYGBgDQoNCg0KYGBge3J9DQpmaXhlZih0ZXN0X21vZClbIkludGVydmVudGlvbiJdIC8gdGhlX3NkDQpgYGANCg0KDQoNCg0KDQpgYGB7cn0NCmJfdmFyIDwtIHZjb3YodGVzdF9tb2QpWyJJbnRlcnZlbnRpb24iLCAiSW50ZXJ2ZW50aW9uIl0NCmJfdmFyDQpgYGANCg0KDQpgYGB7cn0NCmxpYnJhcnkobWVyRGVyaXYpDQpyYW5lZl92YXIgPC0gdmNvdih0ZXN0X21vZF8wLA0KICAgICAgICAgICAgICAgICAgZnVsbCA9IFRSVUUsDQogICAgICAgICAgICAgICAgICByYW5wYXIgPSAidmFyIiwNCiAgICAgICAgICAgICAgICAgIGluZm9ybWF0aW9uID0gImV4cGVjdGVkIilbMywgM10NCg0Kc3VtX3ZhcnMgPC0gdmFycyR2Y292IHw+IHN1bSgpDQpzcXJ0KChiX3ZhciAvIHN1bV92YXJzKSArDQogICAgICAgKChmaXhlZih0ZXN0X21vZClbIkludGVydmVudGlvbiJdXjIgKiByYW5lZl92YXIpIC8gKDQgKiAoc3VtX3ZhcnMpXjMpKSkNCmBgYA0KDQpOb3QgZmFyIG9mZi4NCg0KDQo=</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQoNCg0KYGBge3J9DQpsaWJyYXJ5KHB3cikNCmBgYA0KDQoNCg0KYGBge3J9DQpwd3IudC50ZXN0KGQgPSAwLjUsIHBvd2VyID0gMC44MTYsIHR5cGUgPSAicGFpcmVkIikkbiAqICgxIC0gLjIpDQpgYGANCg0K</div>
 
 
 
@@ -2076,7 +1815,7 @@ $(document).ready(function () {
 <!-- code folding -->
 <script>
 $(document).ready(function () {
-  window.initializeSourceEmbed("hedges.Rmd");
+  window.initializeSourceEmbed("paired_t_ICC_power.Rmd");
   window.initializeCodeFolding("show" === "show");
 });
 </script>

@@ -1,0 +1,17 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+```{r}
+library(pwr)
+```
+
+
+
+```{r}
+pwr.t.test(d = 0.5, power = 0.816, type = "paired")$n * (1 - .5)
+```
+

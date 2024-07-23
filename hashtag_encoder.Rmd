@@ -6,7 +6,7 @@ output:
     code_folding: none
 ---
 
-**Problem:** you want to encode arbitrary binary data as a hashtag on Mastodon or another popular platform.
+**Problem:** you want to encode arbitrary binary data as a hashtag on Mastodon.
 
 **A solution:** transform to a hex string and shift the 0..f up to a..p so all the bytes are lowercase Latin characters.
 

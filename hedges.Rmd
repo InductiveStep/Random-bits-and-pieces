@@ -6,6 +6,7 @@ output: html_notebook
 ```{r}
 library(lmeInfo)
 library(nlme)
+library(lme4)
 library(eefAnalytics)
 ```
 
@@ -23,26 +24,51 @@ summary(output1)
 ```
 
 
+```{r}
+test_mod <- lmer(Posttest ~ Intervention + Prettest + (1|School), data = crtData)
+test_mod |> summary()
+```
+
+```{r}
+test_mod_0 <- lmer(Posttest ~ Intervention + (1|School), data = crtData)
+```
+
+```{r}
+vars <- VarCorr(test_mod_0) |> as.data.frame()
+the_sd <- vars$vcov |> sum() |> sqrt()
+the_sd
+```
+
+```{r}
+vars 
+```
+
+
+
+
+
+
+
 
 ```{r}
 lme_num <- lme(
   fixed = Posttest ~ Intervention + Prettest,
   random = ~ 1 | School,
   data = crtData,
-  method = "ML"
+  method = "REML"
 )
 
 lme_den <- lme(
-  fixed = Posttest ~ 1,
+  fixed = Posttest ~ Intervention,
   random = ~ 1 | School,
   data = crtData,
-  method = "ML"
+  method = "REML"
 )
 ```
 
 
 ```{r paged.print=FALSE}
-summary(lme_mod)
+summary(lme_num)
 ```
 
 
@@ -58,12 +84,36 @@ the_g <- g_mlm(
 )
 
 the_g
+the_g$delta_AB
 ```
+
+
+```{r}
+fixef(test_mod)["Intervention"] / the_sd
+```
+
+
 
 
 
 ```{r}
-CI_g(the_g) |> round(2)
+b_var <- vcov(test_mod)["Intervention", "Intervention"]
+b_var
 ```
+
+
+```{r}
+library(merDeriv)
+ranef_var <- vcov(test_mod_0,
+                  full = TRUE,
+                  ranpar = "var",
+                  information = "expected")[3, 3]
+
+sum_vars <- vars$vcov |> sum()
+sqrt((b_var / sum_vars) +
+       ((fixef(test_mod)["Intervention"]^2 * ranef_var) / (4 * (sum_vars)^3)))
+```
+
+Not far off.
 
 
