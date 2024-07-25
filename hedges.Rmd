@@ -8,6 +8,7 @@ library(lmeInfo)
 library(nlme)
 library(lme4)
 library(eefAnalytics)
+library(tictoc)
 ```
 
 
@@ -25,12 +26,20 @@ summary(output1)
 
 
 ```{r}
-test_mod <- lmer(Posttest ~ Intervention + Prettest + (1|School), data = crtData)
+output1$Unconditional$ES$Intervention1
+```
+
+
+
+```{r}
+test_mod <- lmer(Posttest ~ Intervention + Prettest +
+                   (1|School), data = crtData)
 test_mod |> summary()
 ```
 
 ```{r}
 test_mod_0 <- lmer(Posttest ~ Intervention + (1|School), data = crtData)
+test_mod_0
 ```
 
 ```{r}
@@ -42,13 +51,6 @@ the_sd
 ```{r}
 vars 
 ```
-
-
-
-
-
-
-
 
 ```{r}
 lme_num <- lme(
@@ -85,22 +87,30 @@ the_g <- g_mlm(
 
 the_g
 the_g$delta_AB
+c(the_g$delta_AB - 1.96 * (the_g$SE_g_AB / the_g$J_nu),
+  the_g$delta_AB + 1.96 * (the_g$SE_g_AB / the_g$J_nu))
+the_g$g_AB
+c(the_g$g_AB - 1.96 * the_g$SE_g_AB,
+  the_g$g_AB + 1.96 * the_g$SE_g_AB)
+
 ```
+
+```{r}
+
+```
+
 
 
 ```{r}
-fixef(test_mod)["Intervention"] / the_sd
+my_g <- fixef(test_mod)["Intervention"] / the_sd
+my_g
 ```
-
-
-
 
 
 ```{r}
 b_var <- vcov(test_mod)["Intervention", "Intervention"]
 b_var
 ```
-
 
 ```{r}
 library(merDeriv)
@@ -110,10 +120,119 @@ ranef_var <- vcov(test_mod_0,
                   information = "expected")[3, 3]
 
 sum_vars <- vars$vcov |> sum()
-sqrt((b_var / sum_vars) +
+the_se <- sqrt((b_var / sum_vars) +
        ((fixef(test_mod)["Intervention"]^2 * ranef_var) / (4 * (sum_vars)^3)))
 ```
 
+```{r}
+the_se
+```
+
+
 Not far off.
+
+```{r}
+c(my_g - 1.96 * the_se, my_g + 1.96 * the_se)
+```
+
+
+
+```{r}
+library(lmeresampler)
+```
+
+
+
+```{r}
+to_boot <- lmer(Posttest ~ Intervention + Prettest +
+                  (1 | School), data = crtData)
+```
+
+
+
+```{r}
+each_boot <- function(mod) {
+  denom_mod <- lmer(Posttest ~ Intervention + (1 | School),
+                    data = model.frame(mod))
+  
+  vars   <- VarCorr(denom_mod) |> as.data.frame()
+  the_sd <- vars$vcov |> sum() |> sqrt()
+  
+  the_b  <- fixef(mod)["Intervention"]
+  the_es <- the_b / the_sd
+  
+  c(b = the_b, sd = the_sd, g = the_es)
+}
+```
+
+
+```{r}
+each_boot(to_boot)
+```
+
+```{r}
+how_many_boots <- 5000
+```
+
+
+
+```{r}
+tic()
+boo_para <- bootstrap(
+  model = to_boot,
+  .f    = each_boot,
+  type  = "parametric",
+  B = how_many_boots 
+)
+toc()
+```
+
+
+```{r}
+tic()
+boo_resid <- bootstrap(
+  model = to_boot,
+  .f    = each_boot,
+  type  = "residual",
+  B = how_many_boots 
+)
+toc()
+```
+
+
+```{r}
+tic()
+boo_case <- bootstrap(
+  model = to_boot,
+  .f    = each_boot,
+  type  = "case",
+  B = how_many_boots ,
+  resample = c(TRUE, TRUE)
+)
+toc()
+```
+
+
+```{r}
+confint(boo_para, type = "perc")
+```
+
+
+```{r}
+confint(boo_resid, type = "perc")
+```
+
+
+```{r}
+confint(boo_case, type = "perc")
+```
+
+
+
+```{r}
+boo_para$replicates$g.Intervention  |> mean() |> round(3)
+boo_resid$replicates$g.Intervention |> mean() |> round(3)
+boo_case$replicates$g.Intervention  |> mean() |> round(3)
+```
 
 
