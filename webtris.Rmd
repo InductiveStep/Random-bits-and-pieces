@@ -1,0 +1,160 @@
+---
+title: "Replicate POPE analysis"
+author: "Andi Fugard"
+output:
+  html_notebook:
+    code_folding: none
+  html_document:
+    df_print: paged
+---
+
+```{r}
+#devtools::install_github("RACFoundation/webTRISr")
+library(conflicted)
+library(webTRISr)
+library(tidyverse)
+library(tsibble)
+library(fable)
+library(tictoc)
+```
+
+```{r}
+all_the_sites <- webtris_sites()
+```
+
+```{r}
+nrow(all_the_sites)
+```
+
+
+Try to get the same data as https://nationalhighways.co.uk/media/04hovg0z/a43-abthorpe-roundabout-one-year-post-opening-evaluation.pdf
+
+We're looking for A43 northbound between A413 and A5, Sept 2015 (22,000) and Sept 2019 (23,600).
+
+Get the site ID (I built this up line by line to check I understood what I was doing):
+
+```{r}
+the_site <- all_the_sites |>
+  dplyr::filter(str_detect(Name, "A43")) |>
+  dplyr::filter(str_detect(Name, "A413")) |>
+  dplyr::filter(str_detect(Name, "A5")) |>
+  dplyr::filter(str_detect(Name, "north"))
+```
+
+
+Check it's the right one:
+
+```{r}
+the_site |> glimpse()
+```
+
+
+```{r}
+the_site$Id
+```
+
+2015:
+
+```{r}
+webtris_report(
+  sites = the_site$Id,
+  start_date = "01-09-2015",
+  end_date = "30-09-2015",
+  report_type = "monthly-summary"
+) |> glimpse()
+```
+
+2019:
+
+```{r}
+webtris_report(
+  sites = the_site$Id,
+  start_date = "01-09-2019",
+  end_date = "30-09-2019",
+  report_type = "monthly-summary"
+) |> glimpse()
+```
+
+
+Fairly sure we're after AWT24Hour.
+
+
+Try to grab some more data:
+
+
+```{r}
+load_of_dat <- webtris_report(
+  sites = the_site$Id,
+  start_date = "01-09-2015",
+  end_date = "31-12-2023",
+  report_type = "monthly-summary"
+)
+```
+
+
+```{r}
+load_of_dat |>
+  select(Month, AWT24Hour)
+```
+
+
+
+```{r}
+load_of_dat$yearmonth <- load_of_dat$Month |> yearmonth()
+dat_ts <- tsibble(load_of_dat, index = yearmonth)
+```
+
+
+
+```{r dpi=300}
+autoplot(dat_ts, .vars = AWT24Hour) +
+  labs(x = "Date", y = "Average weekly traffic", caption = the_site$Name)
+```
+
+Pretty clear when Covid-19 had an impact there.
+
+
+```{r}
+more_sites <- all_the_sites |>
+  #dplyr::filter(str_detect(Name, "A43")) |>
+  dplyr::filter(str_detect(Name, "A413"))
+more_sites$Name
+```
+
+
+```{r}
+tic()
+more_dat <- webtris_report(
+  sites = more_sites$Id,
+  start_date = "01-09-2015",
+  end_date = "31-12-2023",
+  report_type = "monthly-summary"
+)
+toc()
+more_dat
+```
+
+```{r}
+more_dat$yearmonth <- yearmonth(more_dat$Month)
+moredat_ts <- tsibble(more_dat, index = yearmonth, key = SiteId)
+```
+
+
+```{r}
+moredat_ts |> 
+  dplyr::select(yearmonth, AWT24Hour) |>
+  drop_na(AWT24Hour) |>
+  as_tibble() |>
+  group_by(yearmonth) |>
+  tally() |>
+  arrange(n)
+```
+
+
+```{r dpi=300}
+moredat_ts |>
+  dplyr::filter(yearmonth < yearmonth("Jan 2020")) |>
+autoplot(.vars = AWT24Hour) +
+  labs(x = "Date", y = "Average weekly traffic")
+```
+
