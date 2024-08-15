@@ -41,3 +41,7 @@ These are incomplete code fragments:
 [Simulate RCT](https://inductivestep.github.io/Random-bits-and-pieces/sim_RCT.nb.html)
 
 [Examples from Senn's LinkedIn post, The Main Chance](https://inductivestep.github.io/Random-bits-and-pieces/senn.html)
+
+[Fixed effects silliness](https://inductivestep.github.io/Random-bits-and-pieces/fixed_effects_sillines.nb.html)
+
+
