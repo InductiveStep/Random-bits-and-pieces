@@ -1,0 +1,30 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+```{r}
+sleep2 <- reshape(sleep, direction = "wide",
+                  idvar = "ID", timevar = "group")
+sleep2[c("ID", "extra.1", "extra.2")]
+```
+
+
+```{r}
+t.test(Pair(extra.1, extra.2) ~ 1, data = sleep2)
+```
+
+
+```{r}
+sleep$group1 <- as.numeric(sleep$group == 1)
+sleep$group1
+```
+
+
+```{r}
+lm(extra ~ 0 + group1 + ID, data = sleep) |> summary()
+```
+
+

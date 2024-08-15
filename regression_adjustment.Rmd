@@ -1,0 +1,56 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(conflicted)
+library(tidyverse)
+library(haven)
+```
+
+```{r}
+dat <- read_dta("https://www.stata-press.com/data/r14/cattaneo2.dta")
+```
+
+
+Try to replicate the example at:
+
+https://www.stata.com/manuals/teteffectsra.pdf#teteffectsra
+
+
+```{r}
+dat0 <- dat |> dplyr::filter(mbsmoke == 0)
+dat1 <- dat |> dplyr::filter(mbsmoke == 1)
+lm0 <- lm(bweight ~ prenatal1 + mmarried + mage + fbaby, data = dat0)
+lm1 <- lm(bweight ~ prenatal1 + mmarried + mage + fbaby, data = dat1)
+
+dat0 <- dat0 |>
+  mutate(bweight_0 = bweight,
+         bweight_1 = predict(lm1, newdata = dat0))
+
+dat1 <- dat1 |>
+  mutate(bweight_1 = bweight,
+         bweight_0 = predict(lm0, newdata = dat1))
+
+dat_all <- bind_rows(dat0, dat1) |>
+  mutate(te = bweight_1 - bweight_0)
+```
+
+
+Example 1 (ATE):
+
+```{r}
+dat_all |>
+  summarise(ate_mean = mean(te))
+```
+
+
+Example 2 (ATT):
+
+```{r}
+dat_all |>
+  dplyr::filter(mbsmoke == 1) |>
+  summarise(ate_mean = mean(te))
+```
+
