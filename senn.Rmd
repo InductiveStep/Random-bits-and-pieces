@@ -1,0 +1,219 @@
+---
+title: "Examples from Senn's LinkedIn post, The Main Chance"
+author: Andi Fugard
+date: 13 Aug 2024
+output:
+  html_document:
+    df_print: paged
+---
+
+
+
+```{r}
+library(conflicted)
+library(tidyverse)
+library(tidymodels)
+```
+
+## Datasets to explore
+
+This one is from https://www.linkedin.com/pulse/main-chance-stephen-senn-c0u2e/
+
+
+```{r}
+senn_dat <- read.csv(text = "treat,sex,events,patients
+Ctr,F,18,100
+Int,F,5,100
+Ctr,M,5,50
+Int,M,4,50")  |>
+  mutate(sex = as.factor(sex), treat = as.factor(treat))
+senn_dat
+```
+
+
+
+```{r}
+no_interaction <- read.csv(text = "treat,sex,events,patients
+Ctr,F,20,100
+Int,F,4,100
+Ctr,M,10,50
+Int,M,2,50") |>
+  mutate(sex = as.factor(sex), treat = as.factor(treat))
+no_interaction
+```
+
+
+```{r}
+strong_interaction <- read.csv(text = "treat,sex,events,patients
+Ctr,F,20,100
+Int,F,4,100
+Ctr,M,2,50
+Int,M,10,50") |>
+  mutate(sex = as.factor(sex), treat = as.factor(treat))
+strong_interaction
+```
+
+
+## Select one of the datasets
+
+```{r}
+dat <- senn_dat
+```
+
+
+
+## Explore models
+
+Statistician A:
+
+```{r}
+modA <- glm(cbind(events, patients - events) ~ treat * sex,
+            data = dat,
+            family = binomial)
+summary(modA)
+```
+
+
+Statistician B:
+
+```{r}
+modB <- glm(
+  cbind(events, patients - events) ~ treat * relevel(sex, "M"),
+  data = dat,
+  family = binomial
+)
+summary(modB)
+```
+
+
+Statistician C:
+
+```{r}
+dat$sexC <- dat$sex
+contrasts(dat$sexC) <- c(-1, 1)
+contrasts(dat$sexC)
+```
+
+
+```{r}
+modC <- glm(
+  cbind(events, patients - events) ~ treat * sexC,
+  data = dat,
+  family = binomial
+)
+summary(modC)
+```
+
+Statistician D:
+
+```{r}
+modD_M <- glm(
+  cbind(events, patients - events) ~ treat,
+  data = dat,
+  family = binomial,
+  subset = sex == "M"
+)
+modD_F <- glm(
+  cbind(events, patients - events) ~ treat,
+  data = dat,
+  family = binomial,
+  subset = sex == "F"
+)
+```
+
+```{r}
+res <- bind_rows(tidy(modD_M) |> mutate(sex = "M"),
+                 tidy(modD_F) |> mutate(sex = "F")) |>
+  dplyr::filter(term == "treatInt") |>
+  mutate(var    = std.error ^ 2,
+         weight = 1 / var) |>
+  dplyr::select(-c(statistic, p.value))
+
+res
+```
+
+Pooled effect, SE, and z
+
+```{r}
+pooled_mod <- tibble(
+  term = "treatInt",
+  estimate = sum(res$estimate * res$weight) / sum(res$weight),
+  std.error = sqrt(1/sum(res$weight)),
+  statistic = estimate / std.error,
+  p.value = pnorm(abs(statistic), lower.tail = FALSE) * 2
+)
+
+pooled_mod
+```
+
+
+## Compare all the estimates:
+
+```{r}
+bind_rows(
+tidy(modA) |> mutate(mod = "A"),
+tidy(modB) |> mutate(mod = "B"),
+tidy(modC) |> mutate(mod = "C"),
+pooled_mod |> mutate(mod = "D")
+) |>
+  dplyr::filter(term == "treatInt") |>
+  select(mod, estimate, std.error, statistic, p.value) |>
+  mutate(across(where(is.numeric), \(x) round(x,3)))
+```
+
+
+
+## Another approach -- check the interaction
+
+Check the interaction for model A, B, or C -- all give the same answer:
+
+```{r}
+bind_rows(
+  drop1(modA, test = "Chi") |> tidy() |> mutate(mod = "A"),
+  drop1(modB, test = "Chi") |> tidy() |> mutate(mod = "B"),
+  drop1(modC, test = "Chi") |> tidy() |> mutate(mod = "C")
+) |>
+  dplyr::filter(term != "<none>") |>
+  dplyr::select(mod, df, LRT, p.value)
+```
+
+
+When looking only at main effects of treatment, it doesn't matter how sex is coded:
+
+```{r}
+modG1 <- glm(
+  cbind(events, patients - events) ~ treat + relevel(sex, "F"),
+  data = dat,
+  family = binomial
+)
+modG2 <- glm(
+  cbind(events, patients - events) ~ treat + relevel(sex, "M"),
+  data = dat,
+  family = binomial
+)
+
+modG3 <- glm(
+  cbind(events, patients - events) ~ treat + sexC,
+  data = dat,
+  family = binomial
+)
+```
+
+```{r}
+bind_rows(modG1 |> tidy() |> mutate(mod = "G1"),
+          modG2 |> tidy() |> mutate(mod = "G2"),
+          modG3 |> tidy() |> mutate(mod = "G3")) |>
+  mutate(term = ifelse(str_detect(term, "sex"), "sex", term)) |>
+  mutate(across(where(is.numeric), \(x) round(x, 3))) |>
+  select(mod, term, estimate, std.error) |>
+  arrange(term)
+```
+
+
+
+
+
+
+
+
+
