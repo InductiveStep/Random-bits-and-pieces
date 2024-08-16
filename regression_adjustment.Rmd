@@ -1,12 +1,20 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: "teffects ra, with bootstrapped SE, in R"
+author: "Andi Fugard ([@andi@sciences.social](https://sciences.social/@andi))"
+date: 16 August 2024
+output: 
+  html_notebook: 
+    code_folding: none
 ---
 
 ```{r}
 library(conflicted)
 library(tidyverse)
 library(haven)
+library(boot)
+library(tictoc)
+library(beepr)
+library(car)
 ```
 
 ```{r}
@@ -18,39 +26,59 @@ Try to replicate the example at:
 
 https://www.stata.com/manuals/teteffectsra.pdf#teteffectsra
 
+ATE is -239.6392, SE = 23.82402, z = -10.06, 95% CI = [-286.3334, -192.945].
+
+ATT is -223.3017, SE = 22.7422, z = -9.82, 95% CI = [-267.8755, -178.7278].
 
 ```{r}
-dat0 <- dat |> dplyr::filter(mbsmoke == 0)
-dat1 <- dat |> dplyr::filter(mbsmoke == 1)
-lm0 <- lm(bweight ~ prenatal1 + mmarried + mage + fbaby, data = dat0)
-lm1 <- lm(bweight ~ prenatal1 + mmarried + mage + fbaby, data = dat1)
-
-dat0 <- dat0 |>
-  mutate(bweight_0 = bweight,
-         bweight_1 = predict(lm1, newdata = dat0))
-
-dat1 <- dat1 |>
-  mutate(bweight_1 = bweight,
-         bweight_0 = predict(lm0, newdata = dat1))
-
-dat_all <- bind_rows(dat0, dat1) |>
-  mutate(te = bweight_1 - bweight_0)
+boot_ate <- function(d, i) {
+  the_dat <- d[i,]
+  dat0 <- the_dat |> dplyr::filter(mbsmoke == 0)
+  dat1 <- the_dat |> dplyr::filter(mbsmoke == 1)
+  lm0 <- lm(bweight ~ prenatal1 + mmarried + mage + fbaby, data = dat0)
+  lm1 <- lm(bweight ~ prenatal1 + mmarried + mage + fbaby, data = dat1)
+  
+  dat0 <- dat0 |>
+    mutate(bweight_0 = bweight,
+           bweight_1 = predict(lm1, newdata = dat0))
+  
+  dat1 <- dat1 |>
+    mutate(bweight_1 = bweight,
+           bweight_0 = predict(lm0, newdata = dat1))
+  
+  dat_all <- bind_rows(dat0, dat1) |>
+    mutate(te = bweight_1 - bweight_0)
+  
+  res_ATE <- dat_all |>
+    summarise(ate = mean(te))
+  
+  res_ATT <- dat_all |>
+    dplyr::filter(mbsmoke == 1) |>
+    summarise(att = mean(te))
+  
+  c(ate = res_ATE$ate, att = res_ATT$att)
+}
 ```
 
 
-Example 1 (ATE):
+```{r}
+boot_ate(dat, 1:nrow(dat))
+```
 
 ```{r}
-dat_all |>
-  summarise(ate_mean = mean(te))
+tic()
+boots <- boot(data = dat, statistic = boot_ate, R = 1001)
+toc()
+beep(2)
 ```
 
 
-Example 2 (ATT):
-
 ```{r}
-dat_all |>
-  dplyr::filter(mbsmoke == 1) |>
-  summarise(ate_mean = mean(te))
+res <- summary(boots) |> as.data.frame()
+rownames(res) <- names(boots$t0)
+res
 ```
+
+
+
 

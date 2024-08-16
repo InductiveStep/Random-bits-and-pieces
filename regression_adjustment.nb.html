@@ -9,9 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="Andi Fugard (@andi@sciences.social)" />
 
+<meta name="date" content="2024-08-16" />
 
-<title>R Notebook</title>
+<title>teffects ra, with bootstrapped SE, in R</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1737,16 +1739,16 @@ display: none;
 <div class="btn-group pull-right float-right">
 <button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
 <ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
-<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
-<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
-<li role="separator" class="divider"></li>
 <li><a id="rmd-download-source" href="#">Download Rmd</a></li>
 </ul>
 </div>
 
 
 
-<h1 class="title toc-ignore">R Notebook</h1>
+<h1 class="title toc-ignore">teffects ra, with bootstrapped SE, in
+R</h1>
+<h4 class="author">Andi Fugard (<a href="https://sciences.social/@andi"><span class="citation">@andi</span><span class="citation">@sciences.social</span></a>)</h4>
+<h4 class="date">16 August 2024</h4>
 
 </div>
 
@@ -1758,11 +1760,117 @@ display: none;
 <pre class="r"><code>library(conflicted)
 library(tidyverse)</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoi4pSA4pSAIEF0dGFjaGluZyBjb3JlIHRpZHl2ZXJzZSBwYWNrYWdlcyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgdGlkeXZlcnNlIDIuMC4wIOKUgOKUgFxu4pyUIGRwbHlyICAgICAxLjEuNCAgICAg4pyUIHJlYWRyICAgICAyLjEuNVxu4pyUIGZvcmNhdHMgICAxLjAuMCAgICAg4pyUIHN0cmluZ3IgICAxLjUuMVxu4pyUIGdncGxvdDIgICAzLjUuMSAgICAg4pyUIHRpYmJsZSAgICAzLjIuMVxu4pyUIGx1YnJpZGF0ZSAxLjkuMyAgICAg4pyUIHRpZHlyICAgICAxLjMuMVxu4pyUIHB1cnJyICAgICAxLjAuMiAgICAgXG4ifQ== -->
+<pre><code>── Attaching core tidyverse packages ────────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShoYXZlbilcbmxpYnJhcnkoYm9vdClcbmxpYnJhcnkodGljdG9jKVxubGlicmFyeShiZWVwcilcbmxpYnJhcnkoY2FyKVxuYGBgIn0= -->
+<pre class="r"><code>library(haven)
+library(boot)
+library(tictoc)
+library(beepr)
+library(car)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBjYXJEYXRhXG4ifQ== -->
+<pre><code>Loading required package: carData</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGF0IDwtIHJlYWRfZHRhKFwiaHR0cHM6Ly93d3cuc3RhdGEtcHJlc3MuY29tL2RhdGEvcjE0L2NhdHRhbmVvMi5kdGFcIilcbmBgYCJ9 -->
+<pre class="r"><code>dat &lt;- read_dta(&quot;https://www.stata-press.com/data/r14/cattaneo2.dta&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Try to replicate the example at:</p>
+<p><a href="https://www.stata.com/manuals/teteffectsra.pdf#teteffectsra" class="uri">https://www.stata.com/manuals/teteffectsra.pdf#teteffectsra</a></p>
+<p>ATE is -239.6392, SE = 23.82402, z = -10.06, 95% CI = [-286.3334,
+-192.945].</p>
+<p>ATT is -223.3017, SE = 22.7422, z = -9.82, 95% CI = [-267.8755,
+-178.7278].</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYm9vdF9hdGUgPC0gZnVuY3Rpb24oZCwgaSkge1xuICB0aGVfZGF0IDwtIGRbaSxdXG4gIGRhdDAgPC0gdGhlX2RhdCB8PiBkcGx5cjo6ZmlsdGVyKG1ic21va2UgPT0gMClcbiAgZGF0MSA8LSB0aGVfZGF0IHw+IGRwbHlyOjpmaWx0ZXIobWJzbW9rZSA9PSAxKVxuICBsbTAgPC0gbG0oYndlaWdodCB+IHByZW5hdGFsMSArIG1tYXJyaWVkICsgbWFnZSArIGZiYWJ5LCBkYXRhID0gZGF0MClcbiAgbG0xIDwtIGxtKGJ3ZWlnaHQgfiBwcmVuYXRhbDEgKyBtbWFycmllZCArIG1hZ2UgKyBmYmFieSwgZGF0YSA9IGRhdDEpXG4gIFxuICBkYXQwIDwtIGRhdDAgfD5cbiAgICBtdXRhdGUoYndlaWdodF8wID0gYndlaWdodCxcbiAgICAgICAgICAgYndlaWdodF8xID0gcHJlZGljdChsbTEsIG5ld2RhdGEgPSBkYXQwKSlcbiAgXG4gIGRhdDEgPC0gZGF0MSB8PlxuICAgIG11dGF0ZShid2VpZ2h0XzEgPSBid2VpZ2h0LFxuICAgICAgICAgICBid2VpZ2h0XzAgPSBwcmVkaWN0KGxtMCwgbmV3ZGF0YSA9IGRhdDEpKVxuICBcbiAgZGF0X2FsbCA8LSBiaW5kX3Jvd3MoZGF0MCwgZGF0MSkgfD5cbiAgICBtdXRhdGUodGUgPSBid2VpZ2h0XzEgLSBid2VpZ2h0XzApXG4gIFxuICByZXNfQVRFIDwtIGRhdF9hbGwgfD5cbiAgICBzdW1tYXJpc2UoYXRlID0gbWVhbih0ZSkpXG4gIFxuICByZXNfQVRUIDwtIGRhdF9hbGwgfD5cbiAgICBkcGx5cjo6ZmlsdGVyKG1ic21va2UgPT0gMSkgfD5cbiAgICBzdW1tYXJpc2UoYXR0ID0gbWVhbih0ZSkpXG4gIFxuICBjKGF0ZSA9IHJlc19BVEUkYXRlLCBhdHQgPSByZXNfQVRUJGF0dClcbn1cbmBgYCJ9 -->
+<pre class="r"><code>boot_ate &lt;- function(d, i) {
+  the_dat &lt;- d[i,]
+  dat0 &lt;- the_dat |&gt; dplyr::filter(mbsmoke == 0)
+  dat1 &lt;- the_dat |&gt; dplyr::filter(mbsmoke == 1)
+  lm0 &lt;- lm(bweight ~ prenatal1 + mmarried + mage + fbaby, data = dat0)
+  lm1 &lt;- lm(bweight ~ prenatal1 + mmarried + mage + fbaby, data = dat1)
+  
+  dat0 &lt;- dat0 |&gt;
+    mutate(bweight_0 = bweight,
+           bweight_1 = predict(lm1, newdata = dat0))
+  
+  dat1 &lt;- dat1 |&gt;
+    mutate(bweight_1 = bweight,
+           bweight_0 = predict(lm0, newdata = dat1))
+  
+  dat_all &lt;- bind_rows(dat0, dat1) |&gt;
+    mutate(te = bweight_1 - bweight_0)
+  
+  res_ATE &lt;- dat_all |&gt;
+    summarise(ate = mean(te))
+  
+  res_ATT &lt;- dat_all |&gt;
+    dplyr::filter(mbsmoke == 1) |&gt;
+    summarise(att = mean(te))
+  
+  c(ate = res_ATE$ate, att = res_ATT$att)
+}</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYm9vdF9hdGUoZGF0LCAxOm5yb3coZGF0KSlcbmBgYCJ9 -->
+<pre class="r"><code>boot_ate(dat, 1:nrow(dat))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgYXRlICAgICAgIGF0dCBcbi0yMzkuNjM5MiAtMjIzLjMwMTcgXG4ifQ== -->
+<pre><code>      ate       att 
+-239.6392 -223.3017 </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGljKClcbmJvb3RzIDwtIGJvb3QoZGF0YSA9IGRhdCwgc3RhdGlzdGljID0gYm9vdF9hdGUsIFIgPSAxMDAxKVxudG9jKClcbmBgYCJ9 -->
+<pre class="r"><code>tic()
+boots &lt;- boot(data = dat, statistic = boot_ate, R = 1001)
+toc()</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiMTguNzIgc2VjIGVsYXBzZWRcbiJ9 -->
+<pre><code>18.72 sec elapsed</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYmVlcCgyKVxuYGBgIn0= -->
+<pre class="r"><code>beep(2)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVzIDwtIHN1bW1hcnkoYm9vdHMpIHw+IGFzLmRhdGEuZnJhbWUoKVxucm93bmFtZXMocmVzKSA8LSBuYW1lcyhib290cyR0MClcbnJlc1xuYGBgIn0= -->
+<pre class="r"><code>res &lt;- summary(boots) |&gt; as.data.frame()
+rownames(res) &lt;- names(boots$t0)
+res</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImRhdGEuZnJhbWUiXSwibnJvdyI6MiwibmNvbCI6NSwic3VtbWFyeSI6eyJEZXNjcmlwdGlvbiI6WyJkZiBbMiDDlyA1XSJdfX0sInJkZiI6Ikg0c0lBQUFBQUFBQUJndHlpVERtaXVCaVlHQmdabUJoWVdSZ1pnVXlHVmhEUTl4MExSZ1lXSmlBSEVZR0ZnWk9FRjBCVkNRTWtnVmlQaUJtY3VqM0FLbG1nTkV3OFFPNVgwcXlaMTVVUHBEOWNybjhpclBMWWVMMnAzYkV5K3B0WWRqL3dLdnp6UDlZdUhvSDg5dXhKdnk1Z2c3bTRyZS9WeGxNUkpqeklpa2xnbkhCZ1J3SktlZG9oVncwQjdIbUplYW1GZ01aQW1CSFFWMFpCR1Z3NUJkbHBtZm1KZWJBK0VuNStTVk9tWW5GVUQ0YmlCL3NDdVd4ZzNpK3FTbG9WbkFXNVpmcklWdkRCSlZnVGl4SlJUQkwwRjJXbkpOWUROTUNFK1JLU1N4SjFFc3JBcG9HNVAxRDA4S2VYMUNTbVo4SDFNUUVDbU0yTk0yTVJXZ0MvS1Y1SUhlbDZDWm5sT1psNjVxaFNUTVg1S1dEN0FRTFFUQXZsR1pDWXJOQ1hNSDBINnFkRFJZNHFYbkFzSVA1a0RVbk1Ta1ZGbzdNS2FsbFVDWWZNSFRBZ2FOWFVKU1pWd0x6SjFDMFdLOGt2d1FlOUZ6SitUa3dFYkRQR2Y0QkFGeWVYQ2Q0QWdBQSJ9 -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["R"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["original"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["bootBias"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["bootSE"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["bootMed"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"1001","2":"-239.6392","3":"0.2087516","4":"23.85689","5":"-239.2620","_rn_":"ate"},{"1":"1001","2":"-223.3017","3":"-0.5090989","4":"23.09320","5":"-224.7532","_rn_":"att"}],"options":{"columns":{"min":{},"max":[10],"total":[5]},"rows":{"min":[10],"max":[10],"total":[2]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpgYGB7cn0NCmxpYnJhcnkoY29uZmxpY3RlZCkNCmxpYnJhcnkodGlkeXZlcnNlKQ0KYGBgDQoNCg==</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogInRlZmZlY3RzIHJhLCB3aXRoIGJvb3RzdHJhcHBlZCBTRSwgaW4gUiINCmF1dGhvcjogIkFuZGkgRnVnYXJkIChbQGFuZGlAc2NpZW5jZXMuc29jaWFsXShodHRwczovL3NjaWVuY2VzLnNvY2lhbC9AYW5kaSkpIg0KZGF0ZTogMTYgQXVndXN0IDIwMjQNCm91dHB1dDogDQogIGh0bWxfbm90ZWJvb2s6IA0KICAgIGNvZGVfZm9sZGluZzogbm9uZQ0KLS0tDQoNCmBgYHtyfQ0KbGlicmFyeShjb25mbGljdGVkKQ0KbGlicmFyeSh0aWR5dmVyc2UpDQpsaWJyYXJ5KGhhdmVuKQ0KbGlicmFyeShib290KQ0KbGlicmFyeSh0aWN0b2MpDQpsaWJyYXJ5KGJlZXByKQ0KbGlicmFyeShjYXIpDQpgYGANCg0KYGBge3J9DQpkYXQgPC0gcmVhZF9kdGEoImh0dHBzOi8vd3d3LnN0YXRhLXByZXNzLmNvbS9kYXRhL3IxNC9jYXR0YW5lbzIuZHRhIikNCmBgYA0KDQoNClRyeSB0byByZXBsaWNhdGUgdGhlIGV4YW1wbGUgYXQ6DQoNCmh0dHBzOi8vd3d3LnN0YXRhLmNvbS9tYW51YWxzL3RldGVmZmVjdHNyYS5wZGYjdGV0ZWZmZWN0c3JhDQoNCkFURSBpcyAtMjM5LjYzOTIsIFNFID0gMjMuODI0MDIsIHogPSAtMTAuMDYsIDk1JSBDSSA9IFstMjg2LjMzMzQsIC0xOTIuOTQ1XS4NCg0KQVRUIGlzIC0yMjMuMzAxNywgU0UgPSAyMi43NDIyLCB6ID0gLTkuODIsIDk1JSBDSSA9IFstMjY3Ljg3NTUsIC0xNzguNzI3OF0uDQoNCmBgYHtyfQ0KYm9vdF9hdGUgPC0gZnVuY3Rpb24oZCwgaSkgew0KICB0aGVfZGF0IDwtIGRbaSxdDQogIGRhdDAgPC0gdGhlX2RhdCB8PiBkcGx5cjo6ZmlsdGVyKG1ic21va2UgPT0gMCkNCiAgZGF0MSA8LSB0aGVfZGF0IHw+IGRwbHlyOjpmaWx0ZXIobWJzbW9rZSA9PSAxKQ0KICBsbTAgPC0gbG0oYndlaWdodCB+IHByZW5hdGFsMSArIG1tYXJyaWVkICsgbWFnZSArIGZiYWJ5LCBkYXRhID0gZGF0MCkNCiAgbG0xIDwtIGxtKGJ3ZWlnaHQgfiBwcmVuYXRhbDEgKyBtbWFycmllZCArIG1hZ2UgKyBmYmFieSwgZGF0YSA9IGRhdDEpDQogIA0KICBkYXQwIDwtIGRhdDAgfD4NCiAgICBtdXRhdGUoYndlaWdodF8wID0gYndlaWdodCwNCiAgICAgICAgICAgYndlaWdodF8xID0gcHJlZGljdChsbTEsIG5ld2RhdGEgPSBkYXQwKSkNCiAgDQogIGRhdDEgPC0gZGF0MSB8Pg0KICAgIG11dGF0ZShid2VpZ2h0XzEgPSBid2VpZ2h0LA0KICAgICAgICAgICBid2VpZ2h0XzAgPSBwcmVkaWN0KGxtMCwgbmV3ZGF0YSA9IGRhdDEpKQ0KICANCiAgZGF0X2FsbCA8LSBiaW5kX3Jvd3MoZGF0MCwgZGF0MSkgfD4NCiAgICBtdXRhdGUodGUgPSBid2VpZ2h0XzEgLSBid2VpZ2h0XzApDQogIA0KICByZXNfQVRFIDwtIGRhdF9hbGwgfD4NCiAgICBzdW1tYXJpc2UoYXRlID0gbWVhbih0ZSkpDQogIA0KICByZXNfQVRUIDwtIGRhdF9hbGwgfD4NCiAgICBkcGx5cjo6ZmlsdGVyKG1ic21va2UgPT0gMSkgfD4NCiAgICBzdW1tYXJpc2UoYXR0ID0gbWVhbih0ZSkpDQogIA0KICBjKGF0ZSA9IHJlc19BVEUkYXRlLCBhdHQgPSByZXNfQVRUJGF0dCkNCn0NCmBgYA0KDQoNCmBgYHtyfQ0KYm9vdF9hdGUoZGF0LCAxOm5yb3coZGF0KSkNCmBgYA0KDQpgYGB7cn0NCnRpYygpDQpib290cyA8LSBib290KGRhdGEgPSBkYXQsIHN0YXRpc3RpYyA9IGJvb3RfYXRlLCBSID0gMTAwMSkNCnRvYygpDQpiZWVwKDIpDQpgYGANCg0KDQpgYGB7cn0NCnJlcyA8LSBzdW1tYXJ5KGJvb3RzKSB8PiBhcy5kYXRhLmZyYW1lKCkNCnJvd25hbWVzKHJlcykgPC0gbmFtZXMoYm9vdHMkdDApDQpyZXMNCmBgYA0KDQoNCg0KDQo=</div>
 
 
 
@@ -1810,7 +1918,6 @@ $(document).ready(function () {
 <script>
 $(document).ready(function () {
   window.initializeSourceEmbed("regression_adjustment.Rmd");
-  window.initializeCodeFolding("show" === "show");
 });
 </script>
 
