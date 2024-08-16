@@ -44,4 +44,6 @@ These are incomplete code fragments:
 
 [Fixed effects silliness](https://inductivestep.github.io/Random-bits-and-pieces/fixed_effects_sillines.nb.html)
 
+[teffects ra, with bootstrapped SE, in R](https://inductivestep.github.io/Random-bits-and-pieces/regression_adjustment.nb.html)
+
 
