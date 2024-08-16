@@ -67,7 +67,7 @@ boot_ate(dat, 1:nrow(dat))
 
 ```{r}
 tic()
-boots <- boot(data = dat, statistic = boot_ate, R = 1001)
+boots <- boot(data = dat, statistic = boot_ate, R = 1499)
 toc()
 beep(2)
 ```
