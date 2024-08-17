@@ -1,5 +1,5 @@
 ---
-title: "Scape books"
+title: "Scrape books"
 author: "Andi Fugard ([@andi@sciences.social](https://sciences.social/@andi))"
 date: "Last updated 17 August 2024"
 output:
@@ -35,38 +35,61 @@ scraped <- dat |>
 Separate author and title into a tibble:
 
 ```{r}
-title_authormess <- str_split_fixed(scraped$raw, ", by ", n = 2)
-author <- str_split_fixed(title_authormess[, 2], " – ", n = 2)
-my_books <- tibble(Author = author[, 1] |> trimws(),
-                   Title = title_authormess[, 1] |> trimws()) |>
-  dplyr::filter(Author != "" & Title != "")
+title_authormess <- str_split_fixed(scraped$raw, ", by | – ", n = 3)
+my_books <- tibble(Author = title_authormess[, 2] |> trimws(),
+                   Title  = title_authormess[, 1] |> trimws())
+
+current_heading <- NA
+my_books$Category <- rep(NA, nrow(my_books))
+for (r in 1:nrow(my_books)) {
+  if (my_books$Title[r] != "" && my_books$Author[r] == "")
+    current_heading <- my_books$Title[r]
+  
+  if (my_books$Title[r] != "" && my_books$Author[r] != "")
+    my_books$Category[r] <- current_heading  
+}
+
+my_books <- na.omit(my_books)
 ```
+
+
+
+## Big list
+
 
 Ta-da:
 
 ```{r}
 my_books |>
-kable(format = "html") |>
+  arrange(Category) |>
+  kable(format = "html") |>
   kable_styling() |>
   column_spec(1, width = "10em") |>
-  column_spec(2, width = "20em")
+  column_spec(2, width = "20em") |>
+  column_spec(3, width = "5em")
 ```
 
+
+## Fav authors
 
 These are apparently my favourite authors (two books or more; todo: split coauthored books):
 
 ```{r}
 my_books |>
-  group_by(Author) |>
+  group_by(Author, Category) |>
   tally() |>
   arrange(desc(n)) |>
+  arrange(Category) |>
   dplyr::filter(n > 1) |>
   kable(format = "html") |>
   kable_styling()
 ```
 
 
-I used this to fix a few issues:
+
+## Check for typos
+
+I used this to look for mild one-off misspellings of authors' names mentioned twice or more:
 
 ```{r}
 all_author_pairs <- my_books$Author |>
@@ -78,12 +101,82 @@ colnames(all_author_pairs) <- c("a1", "a2")
 all_author_pairs |>
   as_tibble() |>
   mutate(dist = stringdist(a1, a2)) |>
-  arrange(dist)
+  arrange(dist) |>
+  slice_head(n =10)
 ```
 
 
-I'll use this one day:
+## Export to csv
+
+I'll use this one day to export csv for a BookWyrm instance.
 
 ```{r}
 var_names <- c("title", "author_text", "remote_id", "openlibrary_key", "inventaire_id", "librarything_key", "goodreads_key", "bnf_id", "viaf", "wikidata", "asin", "aasin", "isfdb", "isbn_10", "isbn_13", "oclc_number", "start_date", "finish_date", "stopped_date", "rating", "review_name", "review_cw", "review_content", "review_published", "shelf", "shelf_name", "shelf_date")
 ```
+
+
+
+
+## Play around with APIs (to be continued)
+
+```{r}
+library(httr2)
+library(jsonlite)
+```
+
+
+```{r}
+lookup_isbn <- function(author, title) {
+  base_url <- "https://www.googleapis.com/books/v1/volumes"
+  query <- paste0("inauthor:",
+                  URLencode(author),
+                  "+intitle:",
+                  URLencode(title))
+  url <- paste0(base_url, "?q=", query)
+  
+  req <- request(url) %>%
+    req_headers("Accept" = "application/json")
+  
+  resp <- req_perform(req)
+  
+  if (resp_status(resp) == 200) {
+    book_data <- resp_body_json(resp)
+    if (length(book_data$items) > 0) {
+      isbn_list <- book_data$items[[1]]$volumeInfo$industryIdentifiers
+      return(isbn_list)
+    } else {
+      return(NULL)
+    }
+  } else {
+    return(NULL)
+  }
+}
+
+lookup_info <- function(isbn) {
+  url <- paste0("https://openlibrary.org/api/books?bibkeys=ISBN:", isbn, "&format=json&jscmd=data")
+  req <- request(url) |>
+    req_headers("Accept" = "application/json")
+  
+  resp <- req_perform(req)
+  
+  if (resp_status(resp) == 200) {
+    book_data <- resp_body_json(resp)
+    return(book_data)
+  } else {
+    return(NULL)
+  }
+}
+```
+
+
+
+```{r}
+book_num <- 8
+
+the_isbn <- lookup_isbn(my_books$Author[book_num], 
+                        my_books$Title[book_num])[[1]]$identifier
+book_info <- lookup_info(the_isbn)
+book_info[[1]]$subjects
+```
+
+
