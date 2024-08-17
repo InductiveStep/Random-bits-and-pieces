@@ -1,0 +1,65 @@
+---
+title: "Scape books"
+author: "Andi Fugard ([@andi@sciences.social](https://sciences.social/@andi))"
+date: "Last updated 17 August 2024"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r}
+library(conflicted)
+library(rvest)
+library(kableExtra)
+library(tidyverse)
+```
+
+
+
+
+
+
+```{r}
+web_lines <- read_html("https://andifugard.info/misc/books/") |>
+  html_text() |>
+  read_lines()
+```
+
+```{r}
+dat <- tibble(raw = web_lines)
+```
+
+
+```{r}
+start_row <- which(dat$raw == "Note to self: start scraping here!") + 1
+end_row   <- which(dat$raw == "Note to self: stop scraping here!")  - 1
+
+scraped <- dat |>
+  slice(start_row:end_row)
+scraped
+```
+
+```{r}
+title_authormess <- str_split_fixed(scraped$raw, ", by ", n = 2)
+author <- str_split_fixed(title_authormess[,2], " – ", n = 2)
+my_books <- data.frame(author = author[,1] |> trimws(),
+                       title = title_authormess[,1] |> trimws()) |>
+  dplyr::filter(author != "" & title != "")
+```
+
+```{r}
+my_books |>
+kable(format = "html") |>
+  kable_styling() |>
+  column_spec(1, width = "10em") |>
+  column_spec(2, width = "20em")
+```
+
+
+
+I'll use this one day:
+
+```{r}
+var_names <- c("title", "author_text", "remote_id", "openlibrary_key", "inventaire_id", "librarything_key", "goodreads_key", "bnf_id", "viaf", "wikidata", "asin", "aasin", "isfdb", "isbn_10", "isbn_13", "oclc_number", "start_date", "finish_date", "stopped_date", "rating", "review_name", "review_cw", "review_content", "review_published", "shelf", "shelf_name", "shelf_date")
+```
