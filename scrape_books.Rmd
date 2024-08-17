@@ -12,6 +12,7 @@ output:
 library(conflicted)
 library(rvest)
 library(kableExtra)
+library(stringdist)
 library(tidyverse)
 ```
 
@@ -52,16 +53,33 @@ kable(format = "html") |>
 ```
 
 
-These are apparently my favourite authors (two books or more):
+These are apparently my favourite authors (two books or more; todo: split coauthored books):
 
 ```{r}
 my_books |>
   group_by(Author) |>
   tally() |>
   arrange(desc(n)) |>
-  dplyr::filter(n > 1)
+  dplyr::filter(n > 1) |>
+  kable(format = "html") |>
+  kable_styling()
 ```
 
+
+I used this to fix a few issues:
+
+```{r}
+all_author_pairs <- my_books$Author |>
+  unique() |>
+  combn(m = 2) |>
+  t()
+colnames(all_author_pairs) <- c("a1", "a2")
+
+all_author_pairs |>
+  as_tibble() |>
+  mutate(dist = stringdist(a1, a2)) |>
+  arrange(dist)
+```
 
 
 I'll use this one day:
