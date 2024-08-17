@@ -72,14 +72,30 @@ my_books |>
 
 ## Fav authors
 
-These are apparently my favourite authors (two books or more; todo: split coauthored books):
+First split out coauthored books into single authors:
 
 ```{r}
-my_books |>
+authors_mat <- str_split_fixed(my_books$Author, "&|,|,&", n = Inf)
+colnames(authors_mat) <- paste0("Author_", 1:ncol(authors_mat))
+
+authors_tib <- as_tibble(authors_mat)
+
+my_books_coauth <- bind_cols(my_books, authors_tib) |>
+  dplyr::select(-Author) |>
+  pivot_longer(cols = starts_with("Author_"),
+               values_to = "Author") |>
+  dplyr::filter(Author != "") |>
+  mutate(Author = trimws(Author))
+```
+
+
+These are apparently my favourite authors (two books or more):
+
+```{r}
+my_books_coauth |>
   group_by(Author, Category) |>
   tally() |>
-  arrange(desc(n)) |>
-  arrange(Category) |>
+  arrange(Category, desc(n), Author) |>
   dplyr::filter(n > 1) |>
   kable(format = "html") |>
   kable_styling()
@@ -92,7 +108,7 @@ my_books |>
 I used this to look for mild one-off misspellings of authors' names mentioned twice or more:
 
 ```{r}
-all_author_pairs <- my_books$Author |>
+all_author_pairs <- my_books_coauth$Author |>
   unique() |>
   combn(m = 2) |>
   t()
@@ -166,17 +182,6 @@ lookup_info <- function(isbn) {
     return(NULL)
   }
 }
-```
-
-
-
-```{r}
-book_num <- 8
-
-the_isbn <- lookup_isbn(my_books$Author[book_num], 
-                        my_books$Title[book_num])[[1]]$identifier
-book_info <- lookup_info(the_isbn)
-book_info[[1]]$subjects
 ```
 
 

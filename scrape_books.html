@@ -3352,13 +3352,23 @@ Non-fiction
 </div>
 <div id="fav-authors" class="section level2">
 <h2>Fav authors</h2>
-<p>These are apparently my favourite authors (two books or more; todo:
-split coauthored books):</p>
-<pre class="r"><code>my_books |&gt;
+<p>First split out coauthored books into single authors:</p>
+<pre class="r"><code>authors_mat &lt;- str_split_fixed(my_books$Author, &quot;&amp;|,|,&amp;&quot;, n = Inf)
+colnames(authors_mat) &lt;- paste0(&quot;Author_&quot;, 1:ncol(authors_mat))
+
+authors_tib &lt;- as_tibble(authors_mat)
+
+my_books_coauth &lt;- bind_cols(my_books, authors_tib) |&gt;
+  dplyr::select(-Author) |&gt;
+  pivot_longer(cols = starts_with(&quot;Author_&quot;),
+               values_to = &quot;Author&quot;) |&gt;
+  dplyr::filter(Author != &quot;&quot;) |&gt;
+  mutate(Author = trimws(Author))</code></pre>
+<p>These are apparently my favourite authors (two books or more):</p>
+<pre class="r"><code>my_books_coauth |&gt;
   group_by(Author, Category) |&gt;
   tally() |&gt;
-  arrange(desc(n)) |&gt;
-  arrange(Category) |&gt;
+  arrange(Category, desc(n), Author) |&gt;
   dplyr::filter(n &gt; 1) |&gt;
   kable(format = &quot;html&quot;) |&gt;
   kable_styling()</code></pre>
@@ -3478,6 +3488,28 @@ Non-fiction
 </tr>
 <tr>
 <td style="text-align:left;">
+Adam Phillips
+</td>
+<td style="text-align:left;">
+Non-fiction
+</td>
+<td style="text-align:right;">
+2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Darian Leader
+</td>
+<td style="text-align:left;">
+Non-fiction
+</td>
+<td style="text-align:right;">
+2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 Ludwig Wittgenstein
 </td>
 <td style="text-align:left;">
@@ -3505,7 +3537,7 @@ Non-fiction
 <h2>Check for typos</h2>
 <p>I used this to look for mild one-off misspellings of authors’ names
 mentioned twice or more:</p>
-<pre class="r"><code>all_author_pairs &lt;- my_books$Author |&gt;
+<pre class="r"><code>all_author_pairs &lt;- my_books_coauth$Author |&gt;
   unique() |&gt;
   combn(m = 2) |&gt;
   t()
@@ -3518,7 +3550,7 @@ all_author_pairs |&gt;
   slice_head(n =10)</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["a1"],"name":[1],"type":["chr"],"align":["left"]},{"label":["a2"],"name":[2],"type":["chr"],"align":["left"]},{"label":["dist"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"Nick Cohen","2":"Mick Power","3":"4"},{"1":"Ian Bone","2":"Ray Monk","3":"4"},{"1":"Nick Cohen","2":"G. A. Cohen","3":"5"},{"1":"Nick Cohen","2":"Nick Hornby","3":"5"},{"1":"Ian Bone","2":"Ian Rankin","3":"5"},{"1":"Ian McEwan","2":"Ian Rankin","3":"5"},{"1":"Rob Dover","2":"Ian Bone","3":"6"},{"1":"Rob Dover","2":"Mick Power","3":"6"},{"1":"Rob Dover","2":"Ray Monk","3":"6"},{"1":"Andrew Wilson","2":"Andrew Hodges","3":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["a1"],"name":[1],"type":["chr"],"align":["left"]},{"label":["a2"],"name":[2],"type":["chr"],"align":["left"]},{"label":["dist"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"Richard Layard","2":"Richard Milward","3":"4"},{"1":"David Clark","2":"David Smail","3":"4"},{"1":"Nick Cohen","2":"Mick Power","3":"4"},{"1":"Ian Bone","2":"Ray Monk","3":"4"},{"1":"Nick Cohen","2":"G. A. Cohen","3":"5"},{"1":"Nick Cohen","2":"Nick Hornby","3":"5"},{"1":"Ian Bone","2":"Ian Rankin","3":"5"},{"1":"Ian McEwan","2":"Ian Rankin","3":"5"},{"1":"Rob Dover","2":"Ian Bone","3":"6"},{"1":"Rob Dover","2":"Mick Power","3":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 </div>
@@ -3571,90 +3603,6 @@ lookup_info &lt;- function(isbn) {
     return(NULL)
   }
 }</code></pre>
-<pre class="r"><code>book_num &lt;- 8
-
-the_isbn &lt;- lookup_isbn(my_books$Author[book_num], 
-                        my_books$Title[book_num])[[1]]$identifier
-book_info &lt;- lookup_info(the_isbn)
-book_info[[1]]$subjects</code></pre>
-<pre><code>## [[1]]
-## [[1]]$name
-## [1] &quot;Class consciousness&quot;
-## 
-## [[1]]$url
-## [1] &quot;https://openlibrary.org/subjects/class_consciousness&quot;
-## 
-## 
-## [[2]]
-## [[2]]$name
-## [1] &quot;Social mobility&quot;
-## 
-## [[2]]$url
-## [1] &quot;https://openlibrary.org/subjects/social_mobility&quot;
-## 
-## 
-## [[3]]
-## [[3]]$name
-## [1] &quot;Social classes&quot;
-## 
-## [[3]]$url
-## [1] &quot;https://openlibrary.org/subjects/social_classes&quot;
-## 
-## 
-## [[4]]
-## [[4]]$name
-## [1] &quot;Socialism&quot;
-## 
-## [[4]]$url
-## [1] &quot;https://openlibrary.org/subjects/socialism&quot;
-## 
-## 
-## [[5]]
-## [[5]]$name
-## [1] &quot;Communism&quot;
-## 
-## [[5]]$url
-## [1] &quot;https://openlibrary.org/subjects/communism&quot;
-## 
-## 
-## [[6]]
-## [[6]]$name
-## [1] &quot;Social Class&quot;
-## 
-## [[6]]$url
-## [1] &quot;https://openlibrary.org/subjects/social_class&quot;
-## 
-## 
-## [[7]]
-## [[7]]$name
-## [1] &quot;Classes sociales&quot;
-## 
-## [[7]]$url
-## [1] &quot;https://openlibrary.org/subjects/classes_sociales&quot;
-## 
-## 
-## [[8]]
-## [[8]]$name
-## [1] &quot;Mobilité sociale&quot;
-## 
-## [[8]]$url
-## [1] &quot;https://openlibrary.org/subjects/mobilité_sociale&quot;
-## 
-## 
-## [[9]]
-## [[9]]$name
-## [1] &quot;Conscience de classe&quot;
-## 
-## [[9]]$url
-## [1] &quot;https://openlibrary.org/subjects/conscience_de_classe&quot;
-## 
-## 
-## [[10]]
-## [[10]]$name
-## [1] &quot;SOCIAL SCIENCE&quot;
-## 
-## [[10]]$url
-## [1] &quot;https://openlibrary.org/subjects/social_science&quot;</code></pre>
 </div>
 
 
