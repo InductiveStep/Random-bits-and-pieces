@@ -16,37 +16,32 @@ library(tidyverse)
 ```
 
 
-
-
-
+Scrape plain text:
 
 ```{r}
 web_lines <- read_html("https://andifugard.info/misc/books/") |>
   html_text() |>
   read_lines()
-```
-
-```{r}
 dat <- tibble(raw = web_lines)
-```
 
-
-```{r}
 start_row <- which(dat$raw == "Note to self: start scraping here!") + 1
 end_row   <- which(dat$raw == "Note to self: stop scraping here!")  - 1
 
 scraped <- dat |>
   slice(start_row:end_row)
-scraped
 ```
+
+Separate author and title into a tibble:
 
 ```{r}
 title_authormess <- str_split_fixed(scraped$raw, ", by ", n = 2)
-author <- str_split_fixed(title_authormess[,2], " – ", n = 2)
-my_books <- data.frame(author = author[,1] |> trimws(),
-                       title = title_authormess[,1] |> trimws()) |>
-  dplyr::filter(author != "" & title != "")
+author <- str_split_fixed(title_authormess[, 2], " – ", n = 2)
+my_books <- tibble(Author = author[, 1] |> trimws(),
+                   Title = title_authormess[, 1] |> trimws()) |>
+  dplyr::filter(Author != "" & Title != "")
 ```
+
+Ta-da:
 
 ```{r}
 my_books |>
@@ -55,8 +50,6 @@ kable(format = "html") |>
   column_spec(1, width = "10em") |>
   column_spec(2, width = "20em")
 ```
-
-
 
 I'll use this one day:
 
