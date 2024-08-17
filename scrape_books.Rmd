@@ -16,7 +16,7 @@ library(tidyverse)
 ```
 
 
-Scrape plain text:
+Scrape, with a little help from clues I've added to the page:
 
 ```{r}
 web_lines <- read_html("https://andifugard.info/misc/books/") |>
@@ -50,6 +50,19 @@ kable(format = "html") |>
   column_spec(1, width = "10em") |>
   column_spec(2, width = "20em")
 ```
+
+
+These are apparently my favourite authors (two books or more):
+
+```{r}
+my_books |>
+  group_by(Author) |>
+  tally() |>
+  arrange(desc(n)) |>
+  dplyr::filter(n > 1)
+```
+
+
 
 I'll use this one day:
 

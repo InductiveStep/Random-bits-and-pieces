@@ -1861,7 +1861,7 @@ library(tidyverse)</code></pre>
 ## ✔ ggplot2   3.5.1     ✔ tibble    3.2.1
 ## ✔ lubridate 1.9.3     ✔ tidyr     1.3.1
 ## ✔ purrr     1.0.2</code></pre>
-<p>Scrape plain text:</p>
+<p>Scrape, with a little help from clues I’ve added to the page:</p>
 <pre class="r"><code>web_lines &lt;- read_html(&quot;https://andifugard.info/misc/books/&quot;) |&gt;
   html_text() |&gt;
   read_lines()
@@ -2909,6 +2909,17 @@ The Happy Prince and Other Tales
 </tr>
 </tbody>
 </table>
+<p>These are apparently my favourite authors (two books or more):</p>
+<pre class="r"><code>my_books |&gt;
+  group_by(Author) |&gt;
+  tally() |&gt;
+  arrange(desc(n)) |&gt;
+  dplyr::filter(n &gt; 1)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["Author"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"Stella Rimington","2":"12"},{"1":"John le Carré","2":"5"},{"1":"Ian McEwan","2":"3"},{"1":"Jean Baudrillard","2":"3"},{"1":"R. D. Laing","2":"3"},{"1":"Alma Katsu","2":"2"},{"1":"Ludwig Wittgenstein","2":"2"},{"1":"Oscar Wilde","2":"2"},{"1":"Richard Bentall","2":"2"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
 <p>I’ll use this one day:</p>
 <pre class="r"><code>var_names &lt;- c(&quot;title&quot;, &quot;author_text&quot;, &quot;remote_id&quot;, &quot;openlibrary_key&quot;, &quot;inventaire_id&quot;, &quot;librarything_key&quot;, &quot;goodreads_key&quot;, &quot;bnf_id&quot;, &quot;viaf&quot;, &quot;wikidata&quot;, &quot;asin&quot;, &quot;aasin&quot;, &quot;isfdb&quot;, &quot;isbn_10&quot;, &quot;isbn_13&quot;, &quot;oclc_number&quot;, &quot;start_date&quot;, &quot;finish_date&quot;, &quot;stopped_date&quot;, &quot;rating&quot;, &quot;review_name&quot;, &quot;review_cw&quot;, &quot;review_content&quot;, &quot;review_published&quot;, &quot;shelf&quot;, &quot;shelf_name&quot;, &quot;shelf_date&quot;)</code></pre>
 
