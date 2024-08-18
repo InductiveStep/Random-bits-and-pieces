@@ -152,7 +152,6 @@ all_author_pairs |>
 
 ## Export to csv
 
-
 For importing into a BookWyrm instance:
 
 ```{r}
