@@ -3366,9 +3366,9 @@ my_books_coauth &lt;- bind_cols(my_books, authors_tib) |&gt;
   mutate(Author = trimws(Author))</code></pre>
 <p>These are apparently my favourite authors (two books or more):</p>
 <pre class="r"><code>my_books_coauth |&gt;
-  group_by(Author, Category) |&gt;
+  group_by(Author) |&gt;
   tally() |&gt;
-  arrange(Category, desc(n), Author) |&gt;
+  arrange(desc(n), Author) |&gt;
   dplyr::filter(n &gt; 1) |&gt;
   kable(format = &quot;html&quot;) |&gt;
   kable_styling()</code></pre>
@@ -3377,9 +3377,6 @@ my_books_coauth &lt;- bind_cols(my_books, authors_tib) |&gt;
 <tr>
 <th style="text-align:left;">
 Author
-</th>
-<th style="text-align:left;">
-Category
 </th>
 <th style="text-align:right;">
 n
@@ -3391,19 +3388,13 @@ n
 <td style="text-align:left;">
 Stella Rimington
 </td>
-<td style="text-align:left;">
-Fiction (including plays)
-</td>
 <td style="text-align:right;">
-11
+12
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Douglas Adams
-</td>
-<td style="text-align:left;">
-Fiction (including plays)
 </td>
 <td style="text-align:right;">
 5
@@ -3413,9 +3404,6 @@ Fiction (including plays)
 <td style="text-align:left;">
 John le Carré
 </td>
-<td style="text-align:left;">
-Fiction (including plays)
-</td>
 <td style="text-align:right;">
 5
 </td>
@@ -3424,52 +3412,13 @@ Fiction (including plays)
 <td style="text-align:left;">
 Ian McEwan
 </td>
-<td style="text-align:left;">
-Fiction (including plays)
-</td>
 <td style="text-align:right;">
 3
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Alma Katsu
-</td>
-<td style="text-align:left;">
-Fiction (including plays)
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-J. M. Coetzee
-</td>
-<td style="text-align:left;">
-Fiction (including plays)
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Oscar Wilde
-</td>
-<td style="text-align:left;">
-Fiction (including plays)
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 Jean Baudrillard
-</td>
-<td style="text-align:left;">
-Non-fiction
 </td>
 <td style="text-align:right;">
 3
@@ -3479,9 +3428,6 @@ Non-fiction
 <td style="text-align:left;">
 R. D. Laing
 </td>
-<td style="text-align:left;">
-Non-fiction
-</td>
 <td style="text-align:right;">
 3
 </td>
@@ -3490,8 +3436,13 @@ Non-fiction
 <td style="text-align:left;">
 Adam Phillips
 </td>
+<td style="text-align:right;">
+2
+</td>
+</tr>
+<tr>
 <td style="text-align:left;">
-Non-fiction
+Alma Katsu
 </td>
 <td style="text-align:right;">
 2
@@ -3501,8 +3452,13 @@ Non-fiction
 <td style="text-align:left;">
 Darian Leader
 </td>
+<td style="text-align:right;">
+2
+</td>
+</tr>
+<tr>
 <td style="text-align:left;">
-Non-fiction
+J. M. Coetzee
 </td>
 <td style="text-align:right;">
 2
@@ -3512,8 +3468,13 @@ Non-fiction
 <td style="text-align:left;">
 Ludwig Wittgenstein
 </td>
+<td style="text-align:right;">
+2
+</td>
+</tr>
+<tr>
 <td style="text-align:left;">
-Non-fiction
+Oscar Wilde
 </td>
 <td style="text-align:right;">
 2
@@ -3523,11 +3484,539 @@ Non-fiction
 <td style="text-align:left;">
 Richard Bentall
 </td>
-<td style="text-align:left;">
-Non-fiction
-</td>
 <td style="text-align:right;">
 2
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>fav_authors &lt;- my_books_coauth |&gt;
+  group_by(Author) |&gt;
+  tally() |&gt;
+  arrange(desc(n), Author) |&gt;
+  dplyr::filter(n &gt; 1) |&gt;
+  pull(Author)
+
+titles_of_authors &lt;- my_books_coauth |&gt;
+  dplyr::filter(Author %in% fav_authors) |&gt;
+  pull(Title)</code></pre>
+<p>Books by these authors:</p>
+<pre class="r"><code>my_books |&gt;
+  dplyr::filter(Title %in% titles_of_authors) |&gt;
+  dplyr::arrange(Author, Title) |&gt;
+  kable(format = &quot;html&quot;) |&gt;
+  kable_styling() |&gt;
+  column_spec(1, width = &quot;10em&quot;) |&gt;
+  column_spec(2, width = &quot;20em&quot;) |&gt;
+  column_spec(3, width = &quot;5em&quot;)</code></pre>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Title
+</th>
+<th style="text-align:left;">
+Category
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Adam Phillips
+</td>
+<td style="text-align:left;width: 20em; ">
+Monogamy
+</td>
+<td style="text-align:left;width: 5em; ">
+Non-fiction
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Alma Katsu
+</td>
+<td style="text-align:left;width: 20em; ">
+Red London
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Alma Katsu
+</td>
+<td style="text-align:left;width: 20em; ">
+Red Widow
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Darian Leader
+</td>
+<td style="text-align:left;width: 20em; ">
+Why do women write more letters than they post?
+</td>
+<td style="text-align:left;width: 5em; ">
+Non-fiction
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Darian Leader &amp; David Corfield
+</td>
+<td style="text-align:left;width: 20em; ">
+Why Do People Get Ill?
+</td>
+<td style="text-align:left;width: 5em; ">
+Non-fiction
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Douglas Adams
+</td>
+<td style="text-align:left;width: 20em; ">
+Life the Universe and Everything
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Douglas Adams
+</td>
+<td style="text-align:left;width: 20em; ">
+Mostly Harmless
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Douglas Adams
+</td>
+<td style="text-align:left;width: 20em; ">
+So Long, and Thanks for All the Fish
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Douglas Adams
+</td>
+<td style="text-align:left;width: 20em; ">
+The Hitchhiker’s Guide to the Galaxy
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Douglas Adams
+</td>
+<td style="text-align:left;width: 20em; ">
+The Restaurant at the End of the Universe
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Ian McEwan
+</td>
+<td style="text-align:left;width: 20em; ">
+On Chesil Beach
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Ian McEwan
+</td>
+<td style="text-align:left;width: 20em; ">
+Sweet Tooth
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Ian McEwan
+</td>
+<td style="text-align:left;width: 20em; ">
+The Comfort of Strangers
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+J. M. Coetzee
+</td>
+<td style="text-align:left;width: 20em; ">
+Elizabeth Costello
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+J. M. Coetzee
+</td>
+<td style="text-align:left;width: 20em; ">
+Youth
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Jean Baudrillard
+</td>
+<td style="text-align:left;width: 20em; ">
+Fragments: Cool Memories III 1990-1995
+</td>
+<td style="text-align:left;width: 5em; ">
+Non-fiction
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Jean Baudrillard
+</td>
+<td style="text-align:left;width: 20em; ">
+In the Shadow of the Silent Majorities
+</td>
+<td style="text-align:left;width: 5em; ">
+Non-fiction
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Jean Baudrillard
+</td>
+<td style="text-align:left;width: 20em; ">
+Simulations
+</td>
+<td style="text-align:left;width: 5em; ">
+Non-fiction
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+John le Carré
+</td>
+<td style="text-align:left;width: 20em; ">
+A Delicate Truth
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+John le Carré
+</td>
+<td style="text-align:left;width: 20em; ">
+Call for the Dead
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+John le Carré
+</td>
+<td style="text-align:left;width: 20em; ">
+Our Kind of Traitor
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+John le Carré
+</td>
+<td style="text-align:left;width: 20em; ">
+The Spy Who Came in from the Cold
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+John le Carré
+</td>
+<td style="text-align:left;width: 20em; ">
+Tinker Tailor Solider Spy
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Leo Bersani &amp; Adam Phillips
+</td>
+<td style="text-align:left;width: 20em; ">
+Intimacies
+</td>
+<td style="text-align:left;width: 5em; ">
+Non-fiction
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Ludwig Wittgenstein
+</td>
+<td style="text-align:left;width: 20em; ">
+Blue &amp; Brown Books
+</td>
+<td style="text-align:left;width: 5em; ">
+Non-fiction
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Ludwig Wittgenstein
+</td>
+<td style="text-align:left;width: 20em; ">
+Tractatus Logico-philosophicus
+</td>
+<td style="text-align:left;width: 5em; ">
+Non-fiction
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Oscar Wilde
+</td>
+<td style="text-align:left;width: 20em; ">
+The Happy Prince and Other Tales
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Oscar Wilde
+</td>
+<td style="text-align:left;width: 20em; ">
+The Picture of Dorian Gray
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+R. D. Laing
+</td>
+<td style="text-align:left;width: 20em; ">
+Knots
+</td>
+<td style="text-align:left;width: 5em; ">
+Non-fiction
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+R. D. Laing
+</td>
+<td style="text-align:left;width: 20em; ">
+Self and Others
+</td>
+<td style="text-align:left;width: 5em; ">
+Non-fiction
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+R. D. Laing
+</td>
+<td style="text-align:left;width: 20em; ">
+The Politics of Experience and The Bird of Paradise
+</td>
+<td style="text-align:left;width: 5em; ">
+Non-fiction
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Richard Bentall
+</td>
+<td style="text-align:left;width: 20em; ">
+Doctoring the Mind: Why Psychiatric Treatments Fail
+</td>
+<td style="text-align:left;width: 5em; ">
+Non-fiction
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Richard Bentall
+</td>
+<td style="text-align:left;width: 20em; ">
+Madness Explained
+</td>
+<td style="text-align:left;width: 5em; ">
+Non-fiction
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Stella Rimington
+</td>
+<td style="text-align:left;width: 20em; ">
+At Risk
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Stella Rimington
+</td>
+<td style="text-align:left;width: 20em; ">
+Breaking Cover
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Stella Rimington
+</td>
+<td style="text-align:left;width: 20em; ">
+Close Call
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Stella Rimington
+</td>
+<td style="text-align:left;width: 20em; ">
+Dead Line
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Stella Rimington
+</td>
+<td style="text-align:left;width: 20em; ">
+Illegal Action
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Stella Rimington
+</td>
+<td style="text-align:left;width: 20em; ">
+Open Secret
+</td>
+<td style="text-align:left;width: 5em; ">
+(Auto)Biographies
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Stella Rimington
+</td>
+<td style="text-align:left;width: 20em; ">
+Present Danger
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Stella Rimington
+</td>
+<td style="text-align:left;width: 20em; ">
+Rip Tide
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Stella Rimington
+</td>
+<td style="text-align:left;width: 20em; ">
+Secret Asset
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Stella Rimington
+</td>
+<td style="text-align:left;width: 20em; ">
+The Devil’s Bargain
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Stella Rimington
+</td>
+<td style="text-align:left;width: 20em; ">
+The Geneva Trap
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Stella Rimington
+</td>
+<td style="text-align:left;width: 20em; ">
+The Moscow Sleepers
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
 </td>
 </tr>
 </tbody>
@@ -3556,53 +4045,13 @@ all_author_pairs |&gt;
 </div>
 <div id="export-to-csv" class="section level2">
 <h2>Export to csv</h2>
-<p>I’ll use this one day to export csv for a BookWyrm instance.</p>
-<pre class="r"><code>var_names &lt;- c(&quot;title&quot;, &quot;author_text&quot;, &quot;remote_id&quot;, &quot;openlibrary_key&quot;, &quot;inventaire_id&quot;, &quot;librarything_key&quot;, &quot;goodreads_key&quot;, &quot;bnf_id&quot;, &quot;viaf&quot;, &quot;wikidata&quot;, &quot;asin&quot;, &quot;aasin&quot;, &quot;isfdb&quot;, &quot;isbn_10&quot;, &quot;isbn_13&quot;, &quot;oclc_number&quot;, &quot;start_date&quot;, &quot;finish_date&quot;, &quot;stopped_date&quot;, &quot;rating&quot;, &quot;review_name&quot;, &quot;review_cw&quot;, &quot;review_content&quot;, &quot;review_published&quot;, &quot;shelf&quot;, &quot;shelf_name&quot;, &quot;shelf_date&quot;)</code></pre>
-</div>
-<div id="play-around-with-apis-to-be-continued" class="section level2">
-<h2>Play around with APIs (to be continued)</h2>
-<pre class="r"><code>library(httr2)
-library(jsonlite)</code></pre>
-<pre class="r"><code>lookup_isbn &lt;- function(author, title) {
-  base_url &lt;- &quot;https://www.googleapis.com/books/v1/volumes&quot;
-  query &lt;- paste0(&quot;inauthor:&quot;,
-                  URLencode(author),
-                  &quot;+intitle:&quot;,
-                  URLencode(title))
-  url &lt;- paste0(base_url, &quot;?q=&quot;, query)
-  
-  req &lt;- request(url) %&gt;%
-    req_headers(&quot;Accept&quot; = &quot;application/json&quot;)
-  
-  resp &lt;- req_perform(req)
-  
-  if (resp_status(resp) == 200) {
-    book_data &lt;- resp_body_json(resp)
-    if (length(book_data$items) &gt; 0) {
-      isbn_list &lt;- book_data$items[[1]]$volumeInfo$industryIdentifiers
-      return(isbn_list)
-    } else {
-      return(NULL)
-    }
-  } else {
-    return(NULL)
-  }
-}
-
-lookup_info &lt;- function(isbn) {
-  url &lt;- paste0(&quot;https://openlibrary.org/api/books?bibkeys=ISBN:&quot;, isbn, &quot;&amp;format=json&amp;jscmd=data&quot;)
-  req &lt;- request(url) |&gt;
-    req_headers(&quot;Accept&quot; = &quot;application/json&quot;)
-  
-  resp &lt;- req_perform(req)
-  
-  if (resp_status(resp) == 200) {
-    book_data &lt;- resp_body_json(resp)
-    return(book_data)
-  } else {
-    return(NULL)
-  }
-}</code></pre>
+<p>For importing into a BookWyrm instance:</p>
+<pre class="r"><code>for_csv &lt;- my_books_coauth |&gt;
+  group_by(Title) |&gt;
+  summarise(author = paste(Author, collapse = &quot;, &quot;)) |&gt;
+  rename(title = Title) |&gt;
+  mutate(shelf = &quot;read&quot;)
+#write_csv(for_csv, &quot;books.csv&quot;)</code></pre>
 </div>
 
 

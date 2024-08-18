@@ -93,13 +93,41 @@ These are apparently my favourite authors (two books or more):
 
 ```{r}
 my_books_coauth |>
-  group_by(Author, Category) |>
+  group_by(Author) |>
   tally() |>
-  arrange(Category, desc(n), Author) |>
+  arrange(desc(n), Author) |>
   dplyr::filter(n > 1) |>
   kable(format = "html") |>
   kable_styling()
 ```
+
+```{r}
+fav_authors <- my_books_coauth |>
+  group_by(Author) |>
+  tally() |>
+  arrange(desc(n), Author) |>
+  dplyr::filter(n > 1) |>
+  pull(Author)
+
+titles_of_authors <- my_books_coauth |>
+  dplyr::filter(Author %in% fav_authors) |>
+  pull(Title)
+```
+
+Books by these authors:
+
+```{r}
+my_books |>
+  dplyr::filter(Title %in% titles_of_authors) |>
+  dplyr::arrange(Author, Title) |>
+  kable(format = "html") |>
+  kable_styling() |>
+  column_spec(1, width = "10em") |>
+  column_spec(2, width = "20em") |>
+  column_spec(3, width = "5em")
+```
+
+
 
 
 
@@ -124,64 +152,14 @@ all_author_pairs |>
 
 ## Export to csv
 
-I'll use this one day to export csv for a BookWyrm instance.
+
+For importing into a BookWyrm instance:
 
 ```{r}
-var_names <- c("title", "author_text", "remote_id", "openlibrary_key", "inventaire_id", "librarything_key", "goodreads_key", "bnf_id", "viaf", "wikidata", "asin", "aasin", "isfdb", "isbn_10", "isbn_13", "oclc_number", "start_date", "finish_date", "stopped_date", "rating", "review_name", "review_cw", "review_content", "review_published", "shelf", "shelf_name", "shelf_date")
+for_csv <- my_books_coauth |>
+  group_by(Title) |>
+  summarise(author = paste(Author, collapse = ", ")) |>
+  rename(title = Title) |>
+  mutate(shelf = "read")
+#write_csv(for_csv, "books.csv")
 ```
-
-
-
-
-## Play around with APIs (to be continued)
-
-```{r}
-library(httr2)
-library(jsonlite)
-```
-
-
-```{r}
-lookup_isbn <- function(author, title) {
-  base_url <- "https://www.googleapis.com/books/v1/volumes"
-  query <- paste0("inauthor:",
-                  URLencode(author),
-                  "+intitle:",
-                  URLencode(title))
-  url <- paste0(base_url, "?q=", query)
-  
-  req <- request(url) %>%
-    req_headers("Accept" = "application/json")
-  
-  resp <- req_perform(req)
-  
-  if (resp_status(resp) == 200) {
-    book_data <- resp_body_json(resp)
-    if (length(book_data$items) > 0) {
-      isbn_list <- book_data$items[[1]]$volumeInfo$industryIdentifiers
-      return(isbn_list)
-    } else {
-      return(NULL)
-    }
-  } else {
-    return(NULL)
-  }
-}
-
-lookup_info <- function(isbn) {
-  url <- paste0("https://openlibrary.org/api/books?bibkeys=ISBN:", isbn, "&format=json&jscmd=data")
-  req <- request(url) |>
-    req_headers("Accept" = "application/json")
-  
-  resp <- req_perform(req)
-  
-  if (resp_status(resp) == 200) {
-    book_data <- resp_body_json(resp)
-    return(book_data)
-  } else {
-    return(NULL)
-  }
-}
-```
-
-
