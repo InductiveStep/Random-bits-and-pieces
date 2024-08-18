@@ -1,7 +1,7 @@
 ---
 title: "Scrape books"
 author: "Andi Fugard ([@andi@sciences.social](https://sciences.social/@andi))"
-date: "Last updated 17 August 2024"
+date: "Last knitted `r format(Sys.Date(), '%d %B %Y')`"
 output:
   html_document:
     df_print: paged
@@ -101,6 +101,10 @@ my_books_coauth |>
   kable_styling()
 ```
 
+
+## Books by fav authors
+
+
 ```{r}
 fav_authors <- my_books_coauth |>
   group_by(Author) |>
@@ -112,14 +116,11 @@ fav_authors <- my_books_coauth |>
 titles_of_authors <- my_books_coauth |>
   dplyr::filter(Author %in% fav_authors) |>
   pull(Title)
-```
 
-Books by these authors:
-
-```{r}
 my_books |>
   dplyr::filter(Title %in% titles_of_authors) |>
-  dplyr::arrange(Author, Title) |>
+  group_by(Category) |>
+  dplyr::arrange(Category, Author) |>
   kable(format = "html") |>
   kable_styling() |>
   column_spec(1, width = "10em") |>
@@ -129,11 +130,16 @@ my_books |>
 
 
 
+## Miscellanea
 
+### Check for typos
 
-## Check for typos
+I used this to look for mild one-off misspellings and inconsistent rendering of authors' names mentioned twice or more, such as:
 
-I used this to look for mild one-off misspellings of authors' names mentioned twice or more:
+```{r}
+stringdist("JM Coetzee", "J. M. Coetzee")
+```
+Anything obvious has been fixed, but for future use:
 
 ```{r}
 all_author_pairs <- my_books_coauth$Author |>
@@ -150,7 +156,7 @@ all_author_pairs |>
 ```
 
 
-## Export to csv
+### Export to csv
 
 For importing into a BookWyrm instance:
 
