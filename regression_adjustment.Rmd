@@ -45,12 +45,11 @@ gmod <- lm(bweight ~ mbsmoke * (prenatal1 + mmarried + mage + fbaby), data = dat
 ATE:
 
 ```{r}
-avg_comparisons(gmod,
-                variables = "mbsmoke",
-                vcov = "HC3")
+avg_comparisons(gmod, variables = "mbsmoke", vcov = "HC1") |>
+  print(digits = 7, p_eps = .001)
 ```
 
-Not quite -239.6392 (SE = 23.82402), but very close.
+The estimate is spot on, the rest is very close, e.g., SE = 23.8086 vs 23.82402 (I think HC1 is the flavour of robust SE provided by Stata). Note the options passed to print to get more decimal places; the default gave me zero dp (the digits parameter is the number of significant figures).
 
 Check ATT:
 
@@ -60,11 +59,13 @@ avg_comparisons(
   variables = "mbsmoke",
   type = "response",
   newdata = subset(dat, mbsmoke == 1),
-  vcov = "HC3"
-)
+  vcov = "HC1"
+) |>
+  print(digits = 7, p_eps = .001)
 ```
 
-Again very close to -223.3017 (SE = 22.7422)!
+Again, the estimate is identical and SE close: 22.54283 vs. Stata's 22.7422.
+
 
 
 ## Replicate teffects "by hand"
@@ -100,7 +101,7 @@ boot_ate <- function(d, i) {
 ```
 
 
-I've packaged up a function ready for bootstrapping, which applied to the original data replicates teffects:
+I've packaged it all up a function ready for bootstrapping, which applied to the original data replicates teffects:
 
 ```{r}
 boot_ate(dat, 1:nrow(dat))
