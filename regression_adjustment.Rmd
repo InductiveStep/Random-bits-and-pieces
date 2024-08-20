@@ -1,5 +1,5 @@
 ---
-title: "teffects ra, with bootstrapped SE, in R"
+title: "teffects ra in R"
 author: "Andi Fugard ([@andi@sciences.social](https://sciences.social/@andi))"
 date: "Last knitted `r format(Sys.Date(), '%d %B %Y')`"
 output:
@@ -53,7 +53,7 @@ avg_comparisons(
   print(style = "data.frame")
 ```
 
-The estimate is spot on, the rest is very close to Stata's 23.82402 (I think HC1 is the flavour of robust SE provided by Stata).
+The estimate is spot on, the SE is very close to Stata's 23.82402 (I think HC1 is the flavour of robust SE provided by Stata).
 
 Check ATT:
 
@@ -123,12 +123,6 @@ beep(2)
 ```{r}
 res <- summary(boots) |> as.data.frame()
 rownames(res) <- names(boots$t0)
-res
-```
-
-
-
-```{r}
 resCI <- bind_cols(res, Confint(boots, type = "perc"))
 resCI
 ```
@@ -138,3 +132,5 @@ Stata said:
 ATE is -239.6392, SE = 23.82402, 95% CI = [-286.3334, -192.945].
 
 ATT is -223.3017, SE = 22.7422, 95% CI = [-267.8755, -178.7278].
+
+
