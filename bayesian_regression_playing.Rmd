@@ -159,13 +159,13 @@ all_posteriors_15_1500 <- bind_rows(
 
 ```{r fig.height=3, fig.width=7, dpi=300}
 final_plot <- all_posteriors_15_1500 |>
-  ggplot(aes(x = b_x, label = prior, mean = 5)) +
+  ggplot(aes(x = b_x)) +
   geom_density() +
   facet_grid(cols = vars(prior), rows = vars(paste("n =", n)), scales = "free_y") +
   theme_few() +
   labs(x = ~ beta[x],
        y = "Density") +
-  xlim(-2, 6)
+  xlim(2 - 3, 2 + 3)
 final_plot
 ```
 
@@ -176,7 +176,56 @@ ggsave("final_plot_bayes.png", final_plot, height = 3, width = 7, dpi = 300)
 
 
 
+Let's see if we can drag the posterior to cover 2 when the prior is N(0, 0.1), with n = 1,000,000.
+
+
+```{r}
+set.seed(1335)
+the_n <- 1e6
+dat_biggest <- tibble(x = rnorm(the_n, 0, 1),
+                      y = 2 * x + rnorm(the_n, 0, 10))
+
+ggplot(dat_bigger, aes(x, y)) +
+  geom_point()
+```
+
+```{r}
+tic()
+big_mod <- brm(
+  y ~ x,
+  data = dat_biggest,
+  prior = set_prior("normal(0, 0.1)", class = "b", coef = "x"),
+  silent = 0
+)
+toc()
+beep(3)
+```
 
 
 
+```{r}
+summary(big_mod)
+```
+
+```{r}
+big_mod_pic <- big_mod |>
+  spread_draws(b_x) |>
+  ggplot(aes(x = b_x)) +
+  geom_histogram(bins = 101) +
+  theme_few() +
+  labs(x = ~ beta[x], y = "Count") +
+  xlim(2 - .1, 2 + .1)
+big_mod_pic 
+```
+
+
+```{r}
+ggsave("big_mod_pic.png", big_mod_pic, height = 3, width = 7, dpi = 300)
+```
+
+
+
+```{r}
+lm(y ~ x, data = dat_biggest) |> confint()
+```
 
