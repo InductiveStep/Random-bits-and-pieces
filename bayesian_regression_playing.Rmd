@@ -1,0 +1,182 @@
+---
+title: "Explore the impact of prior distributions in a simple single predictor Bayesian regression model"
+author: "Andi Fugard ([@andi@sciences.social](https://sciences.social/@andi))"
+date: "Last knitted `r format(Sys.Date(), '%d %B %Y')`"
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+
+```{r}
+library(conflicted)
+library(brms)
+library(tidyverse)
+library(gtable)
+library(tidybayes)
+library(ggthemes)
+library(tictoc)
+library(beepr)
+conflicts_prefer(
+  brms::ar,
+  stats::filter,
+  stats::lag,
+  brms::dstudent_t,
+  brms::pstudent_t,
+  brms::qstudent_t,
+  brms::rstudent_t
+)
+```
+
+
+
+```{r}
+set.seed(1335)
+the_n <- 15
+dat <- tibble(x = rnorm(the_n, 0, 1),
+              y = 2 * x + rnorm(the_n, 0, 10))
+
+ggplot(dat, aes(x,y)) +
+  geom_point()
+```
+
+
+
+```{r}
+lm(y ~ x, data = dat) |> summary()
+```
+
+
+```{r}
+priors <- expand.grid(mean = c(0, 2), sd = c(0.1, 1, 10)) |>
+  mutate(prior = paste0("normal(", mean, ", ", sd, ")"))
+priors
+```
+
+
+
+```{r}
+tic()
+res <- map(
+         priors$prior,
+         \(p) brm(
+                y ~ x,
+                data = dat,
+                prior = set_prior(p, class = "b", coef = "x"),
+                silent = 0
+              )
+       )
+toc()
+beep(5)
+```
+
+
+```{r}
+names(res) <- priors$prior
+
+grab_posteriors <- function(prior) {
+  res[[prior]] |>
+    spread_draws(b_x) |>
+    mutate(prior = prior)
+}
+
+all_posteriors <- map(names(res), grab_posteriors) |> bind_rows()
+```
+
+
+```{r}
+set.seed(1335)
+the_n <- 1500
+dat_bigger <- tibble(x = rnorm(the_n, 0, 1),
+                     y = 2 * x + rnorm(the_n, 0, 10))
+
+ggplot(dat_bigger, aes(x, y)) +
+  geom_point()
+```
+
+```{r}
+lm(y ~ x, data = dat_bigger) |> summary()
+```
+
+```{r}
+tic()
+res_bigger <- map(
+  priors$prior,
+  \(p) brm(
+         y ~ x,
+         data = dat_bigger,
+         prior = set_prior(p, class = "b", coef = "x"),
+         silent = 0
+       )
+)
+toc()
+beep(3)
+```
+
+
+
+```{r}
+names(res_bigger) <- priors$prior
+grab_posteriors_bigger <- function(prior) {
+  res_bigger[[prior]] |>
+    spread_draws(b_x) |>
+    mutate(prior = prior)
+}
+all_posteriors_bigger <- map(names(res_bigger), grab_posteriors_bigger) |> bind_rows()
+```
+
+
+```{r}
+all_posteriors |>
+  ggplot(aes(x = b_x)) +
+  geom_histogram(bins = 75) +
+  facet_wrap(vars(prior), scales = "free_y") +
+  theme_few() +
+  labs(x = ~ beta[x],
+       y = "Count",
+       title = "Impact of prior distribution on posterior (N = 15)")
+```
+
+```{r}
+all_posteriors_bigger |>
+  ggplot(aes(x = b_x)) +
+  geom_histogram(bins = 75) +
+  facet_wrap(vars(prior), scales = "free_y") +
+  theme_few() +
+  labs(x = ~ beta[x],
+       y = "Count",
+       title = "Impact of prior distribution on posterior (N = 1500)")
+```
+
+
+```{r}
+all_posteriors_15_1500 <- bind_rows(
+  all_posteriors |> mutate(n = 15),
+  all_posteriors_bigger |>  mutate(n = 1500)
+)
+```
+
+
+```{r fig.height=3, fig.width=7, dpi=300}
+final_plot <- all_posteriors_15_1500 |>
+  ggplot(aes(x = b_x, label = prior, mean = 5)) +
+  geom_density() +
+  facet_grid(cols = vars(prior), rows = vars(paste("n =", n)), scales = "free_y") +
+  theme_few() +
+  labs(x = ~ beta[x],
+       y = "Density") +
+  xlim(-2, 6)
+final_plot
+```
+
+
+```{r}
+ggsave("final_plot_bayes.png", final_plot, height = 3, width = 7, dpi = 300)
+```
+
+
+
+
+
+
+
