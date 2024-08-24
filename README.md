@@ -46,4 +46,5 @@ These are incomplete code fragments:
 
 [teffects ra, with bootstrapped SE, in R](https://inductivestep.github.io/Random-bits-and-pieces/regression_adjustment.nb.html)
 
+[Explore the impact of prior distributions in a simple single predictor Bayesian regression model](https://inductivestep.github.io/Random-bits-and-pieces/bayesian_regression_playing.nb.html)
 
