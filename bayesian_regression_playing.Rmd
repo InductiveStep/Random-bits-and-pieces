@@ -8,6 +8,8 @@ output:
 ---
 
 
+Includes required packages:
+
 ```{r}
 library(conflicted)
 library(brms)
@@ -28,6 +30,7 @@ conflicts_prefer(
 )
 ```
 
+Simulate a tiny dataset with n = 15.
 
 
 ```{r}
@@ -41,11 +44,15 @@ ggplot(dat, aes(x,y)) +
 ```
 
 
-
 ```{r}
-lm(y ~ x, data = dat) |> summary()
+ols_tiny <- lm(y ~ x, data = dat)
+summary(ols_tiny)
 ```
 
+
+So the true slope for _x_ is 2, the OLS estimate from this sample is `r coef(ols_tiny)[2] |> round(2)`.
+
+Here are the prior distributions on _x_ I want to try:
 
 ```{r}
 priors <- expand.grid(mean = c(0, 2), sd = c(0.1, 1, 10)) |>
@@ -53,7 +60,7 @@ priors <- expand.grid(mean = c(0, 2), sd = c(0.1, 1, 10)) |>
 priors
 ```
 
-
+Fit the models:
 
 ```{r}
 tic()
@@ -71,6 +78,8 @@ beep(5)
 ```
 
 
+Save draws from the posteriors of all these models into one data frame:
+
 ```{r}
 names(res) <- priors$prior
 
@@ -83,6 +92,8 @@ grab_posteriors <- function(prior) {
 all_posteriors <- map(names(res), grab_posteriors) |> bind_rows()
 ```
 
+
+Go again with a bigger dataset:
 
 ```{r}
 set.seed(1335)
@@ -126,6 +137,8 @@ all_posteriors_bigger <- map(names(res_bigger), grab_posteriors_bigger) |> bind_
 ```
 
 
+Make some pictures:
+
 ```{r}
 all_posteriors |>
   ggplot(aes(x = b_x)) +
@@ -148,6 +161,8 @@ all_posteriors_bigger |>
        title = "Impact of prior distribution on posterior (N = 1500)")
 ```
 
+
+And all glued together:
 
 ```{r}
 all_posteriors_15_1500 <- bind_rows(
@@ -176,7 +191,7 @@ ggsave("final_plot_bayes.png", final_plot, height = 3, width = 7, dpi = 300)
 
 
 
-Let's see if we can drag the posterior to cover 2 when the prior is N(0, 0.1), with n = 1,000,000.
+Let's see if we can drag the posterior to cover 2 when the prior is N(0, 0.1), with a huge n = 1,000,000.
 
 
 ```{r}
@@ -217,6 +232,8 @@ big_mod_pic <- big_mod |>
   xlim(2 - .1, 2 + .1)
 big_mod_pic 
 ```
+
+It's getting there -- you need a big sample size to undo a silly prior.
 
 
 ```{r}
