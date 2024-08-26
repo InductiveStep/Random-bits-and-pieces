@@ -54,6 +54,8 @@ tibble_results <- function() {
 ```
 
 
+## eefAnalytics
+
 
 ```{r paged.print=FALSE}
 output1 <- crtFREQ(
@@ -92,6 +94,8 @@ tibble_results()
 
 
 
+## Naive approach using lme4
+
 
 ```{r}
 test_mod <- lmer(Posttest ~ Intervention + Prettest +
@@ -113,6 +117,20 @@ the_sd
 ```{r}
 vars 
 ```
+
+
+```{r}
+add_result("Naively divide CI by SD", 
+c(fixef(test_mod)["Intervention"], confint(test_mod)["Intervention",]) |> as.numeric() / the_sd)
+```
+
+```{r}
+tibble_results()
+```
+
+
+
+## g_mlm in {lmeInfo}
 
 ```{r}
 lme_num <- lme(
@@ -189,6 +207,8 @@ tibble_results()
 ```
 
 
+## Manually, with the help of {merDeriv}
+
 
 ```{r}
 my_g <- fixef(test_mod)["Intervention"] / the_sd
@@ -218,13 +238,6 @@ the_se
 ```
 
 
-Not far off.
-
-```{r}
-c(my_g - 1.96 * the_se, my_g + 1.96 * the_se)
-```
-
-
 ```{r}
 add_result("Manual using merDeriv (no df adjust)", c(my_g,
                                       my_g - 1.96 * the_se,
@@ -238,7 +251,7 @@ tibble_results()
 
 
 
-## Try some bootstrapping
+## Try some bootstrapping with {lmersampler}
 
 
 ```{r}
@@ -426,6 +439,8 @@ add_result("Bayesian HDCI (median)", combined_draws_Bayes_median[,1:3] |> as.num
 add_result("Bayesian HDCI (mode)",   combined_draws_Bayes_mode[,1:3] |> as.numeric())
 ```
 
+
+## Summary of all approaches
 
 ```{r rows.print = 20}
 tibble_results() |>
