@@ -1,6 +1,12 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: "Hedges' g for MLMs -- exploring different methods"
+author: "Andi Fugard ([@andi@sciences.social](https://sciences.social/@andi))"
+date: "Last knitted `r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_notebook:
+    code_folding: none
+  html_document:
+    df_print: paged
 ---
 
 ```{r}
@@ -9,6 +15,42 @@ library(nlme)
 library(lme4)
 library(eefAnalytics)
 library(tictoc)
+library(beepr)
+library(brms)
+library(tidybayes)
+library(tidyverse)
+```
+
+
+
+
+```{r}
+all_results <- list()
+
+# vec_res order is estimate, lower, and upper 95% interval
+add_result <- function(name, vec_res) {
+  stopifnot(is.vector(vec_res))
+  stopifnot(length(vec_res) == 3)
+  stopifnot(vec_res[1] >= vec_res[2])
+  stopifnot(vec_res[1] <= vec_res[3])
+  stopifnot(vec_res[2] <= vec_res[3])
+  res <- tibble(
+    source  = name,
+    est     = vec_res[1],
+    lower95 = vec_res[2],
+    upper95 = vec_res[3]
+  )
+  
+  all_results <<- append(all_results, list(res))
+}
+
+clear_results <- function() {
+  all_results <<- list()
+}
+
+tibble_results <- function() {
+  bind_rows(all_results)
+}
 ```
 
 
@@ -26,8 +68,28 @@ summary(output1)
 
 
 ```{r}
-output1$Unconditional$ES$Intervention1
+output1$ES$Intervention1[2,]
 ```
+
+```{r}
+output1$Unconditional$ES$Intervention1[2,]
+```
+
+
+```{r}
+add_result("eefAnalytics total conditional",
+           output1$ES$Intervention1[2, ] |> as.numeric())
+add_result(
+  "eefAnalytics total unconditional",
+  output1$Unconditional$ES$Intervention1[2, ] |> as.numeric()
+)
+```
+
+
+```{r}
+tibble_results()
+```
+
 
 
 
@@ -86,17 +148,44 @@ the_g <- g_mlm(
 )
 
 the_g
+```
+
+
+Without the df adjustment:
+
+```{r}
+unadj_SE <- sqrt(the_g$SE_g_AB^2 / the_g$J_nu^2)
 the_g$delta_AB
-c(the_g$delta_AB - 1.96 * (the_g$SE_g_AB / the_g$J_nu),
-  the_g$delta_AB + 1.96 * (the_g$SE_g_AB / the_g$J_nu))
+c(the_g$delta_AB - 1.96 * unadj_SE,
+  the_g$delta_AB + 1.96 * unadj_SE)
+```
+
+"Manual" df adjustment:
+
+```{r}
+the_g$J_nu * the_g$delta_AB
+```
+
+From the model:
+
+```{r}
 the_g$g_AB
 c(the_g$g_AB - 1.96 * the_g$SE_g_AB,
   the_g$g_AB + 1.96 * the_g$SE_g_AB)
-
 ```
 
 ```{r}
+add_result("lmeInfo Hedges df adjusted", c(the_g$g_AB,
+                                           the_g$g_AB - 1.96 * the_g$SE_g_AB,
+                                           the_g$g_AB + 1.96 * the_g$SE_g_AB))
+add_result("lmeInfo unadjusted", c(the_g$delta_AB,
+                                   the_g$delta_AB - 1.96 * unadj_SE,
+                                   the_g$delta_AB + 1.96 * unadj_SE))
+```
 
+
+```{r}
+tibble_results()
 ```
 
 
@@ -135,6 +224,21 @@ Not far off.
 c(my_g - 1.96 * the_se, my_g + 1.96 * the_se)
 ```
 
+
+```{r}
+add_result("Manual using merDeriv (no df adjust)", c(my_g,
+                                      my_g - 1.96 * the_se,
+                                      my_g + 1.96 * the_se))
+```
+
+
+```{r}
+tibble_results()
+```
+
+
+
+## Try some bootstrapping
 
 
 ```{r}
@@ -185,6 +289,7 @@ boo_para <- bootstrap(
   B = how_many_boots 
 )
 toc()
+beep(3)
 ```
 
 
@@ -197,6 +302,7 @@ boo_resid <- bootstrap(
   B = how_many_boots 
 )
 toc()
+beep(2)
 ```
 
 
@@ -210,6 +316,7 @@ boo_case <- bootstrap(
   resample = c(TRUE, TRUE)
 )
 toc()
+beep(1)
 ```
 
 
@@ -230,9 +337,100 @@ confint(boo_case, type = "perc")
 
 
 ```{r}
-boo_para$replicates$g.Intervention  |> mean() |> round(3)
-boo_resid$replicates$g.Intervention |> mean() |> round(3)
-boo_case$replicates$g.Intervention  |> mean() |> round(3)
+get_bootstrap_ests <- function(obj) {
+  mean_est <- obj$replicates$g.Intervention  |> mean()
+  intervals <- confint(obj, type = "perc") |>
+  filter(term == "g.Intervention")
+  
+  c(mean_est, intervals$lower, intervals$upper) |> as.numeric()
+}
+```
+
+```{r}
+add_result("bootstrap (parametric)", get_bootstrap_ests(boo_para))
+add_result("bootstrap (resid)",      get_bootstrap_ests(boo_resid))
+add_result("bootstrap (case)",       get_bootstrap_ests(boo_case))
+```
+
+
+```{r}
+tibble_results()
+```
+
+
+
+## Go Bayesian
+
+
+Model for the numerator:
+
+```{r}
+bayes_mod_1 <- brm(Posttest ~ Intervention + Prettest +
+                     (1 | School), data = crtData)
+```
+
+Model for the denominator:
+
+```{r}
+bayes_mod_0 <- brm(Posttest ~ Intervention +
+                     (1 | School), data = crtData)
+```
+
+
+
+```{r}
+bayes_mod_0 |> get_variables()
+```
+
+
+```{r}
+b_draws <- bayes_mod_1 |>
+  spread_draws(b_Intervention)
+sd_draws <- bayes_mod_0 |>
+  spread_draws(sd_School__Intercept, sigma) |>
+  mutate(total_sd = sqrt(sd_School__Intercept^2 + sigma^2))
+```
+
+```{r}
+head(b_draws)
+```
+
+
+```{r}
+head(sd_draws)
+```
+
+```{r}
+combined_draws <- bind_cols(b_draws |> select(b_Intervention),
+                      sd_draws |> select(total_sd)) |>
+  mutate(g = b_Intervention / total_sd)
+head(combined_draws)
+```
+
+
+```{r}
+combined_draws_Bayes_mean <- combined_draws |>
+  mean_hdci(g)
+combined_draws_Bayes_median <- combined_draws |>
+  median_hdci(g)
+combined_draws_Bayes_mode <- combined_draws |>
+  mode_hdci(g)
+```
+
+
+
+
+```{r}
+add_result("Bayesian HDCI (mean)",   combined_draws_Bayes_mean[,1:3] |> as.numeric())
+add_result("Bayesian HDCI (median)", combined_draws_Bayes_median[,1:3] |> as.numeric())
+add_result("Bayesian HDCI (mode)",   combined_draws_Bayes_mode[,1:3] |> as.numeric())
+```
+
+
+```{r rows.print = 20}
+tibble_results() |>
+  mutate(across(where(is.numeric), ~ round(.x, 4))) |>
+  arrange(lower95)
 ```
 
 
