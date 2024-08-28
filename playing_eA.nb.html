@@ -1871,6 +1871,13 @@ sim_dat &lt;- tibble(
   ) |&gt;
   mutate(across(where(is.numeric), \(x) round(x, 2)))</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6OCwibmNvbCI6Niwic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyI4IMOXIDYiXX19LCJyZGYiOiJINHNJQUFBQUFBQUFCblZTdlM4RVFSUWZ0eC91RnVmRTFiU2F1L2dxTkxKYkNGcENvcERJMkZ0czNNMnMzVDJmalVhdHBxVldVOW40Q3lRazE3cG9KQlJDaU1hZG1aMTV4MjNpSmJ2ejNtL20vZDV2NXIzNXFhVXhZOGxBQ0NsSVZUdVFvakVYYVlzTDA0VUpoTlFVQ3pxUWlqSjgzV1dIK3BtanN5L0h2clRjMEd5NmpYMFo2SVM2Z1RQY0ZvMjBSYU15Nm9xakZkOEozSktFdWdVVTJCdVVsb0U5OUIwY2dvWTk5c3Z5Mm9lbzNRNy9XY0hNQjdrKzFveEo3NndHUE9iVEdRZk96VmU1bjF6djkrc3pGL2tEczM3QzdiVEY4M1k1OTN3MGNObmllUnlMN1YrZUs1bC9KOC9kU3Z3ekh4Y0FuaWk5Rmx1VUcrQUZCcU9zMEJmMWV0elp1bjVmSHZxNE9WNisvbVpKKy9WWnVGK1VFemp3V0liSXMvckVPU3ZIMWM2OVdIMnkvb2ZnTXh2aUhxRFR5dGZqaEVUek5ZSXJUaUFicjB0UTVTRDRGUWNUNmFjQ2FLanlPeGhLeFNVdEYrOG0rRE0rM1NsQ2pSN093UnZZYkRhL2trTHNNZzVBQ0lCR0NZZTR1T1p6T1FnMUVpbWQxQXRkU2xoUzZ1LzR0dWJhVHdDOVZjS1ZsQXIyUnBWc0ZzWVQyNHBIMW5uTkdCTFdJLzMwSDE4WEtsTE54S1BwRGxsM0NUeWJWc2FyRG95NlVuSzJwWnRsN3hFL1I5SHpYUUxqYnpBMEtJWTB4SkJpMkxRTVNIeHoxUGdCMEtMKy90TURBQUE9In0= -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["name"],"name":[1],"type":["chr"],"align":["left"]},{"label":["mean"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["sd"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["var"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["min"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["max"],"name":[6],"type":["dbl"],"align":["right"]}],"data":[{"1":"covar","2":"0.00","3":"0.77","4":"0.60","5":"-3.05","6":"3.33"},{"1":"noise0","2":"0.00","3":"1.00","4":"1.00","5":"-4.03","6":"4.32"},{"1":"noise1","2":"0.00","3":"1.00","4":"1.00","5":"-3.83","6":"4.23"},{"1":"noise2","2":"0.00","3":"1.00","4":"1.00","5":"-3.93","6":"4.30"},{"1":"noise_resid","2":"0.00","3":"0.32","4":"0.10","5":"-1.21","6":"1.34"},{"1":"noise_school","2":"0.00","3":"0.55","4":"0.30","5":"-1.83","6":"1.92"},{"1":"treat","2":"0.50","3":"0.50","4":"0.25","5":"0.00","6":"1.00"},{"1":"y","2":"0.62","3":"1.17","4":"1.38","5":"-4.09","6":"5.22"}],"options":{"columns":{"min":{},"max":[10],"total":[6]},"rows":{"min":[10],"max":[10],"total":[8]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>The SD for y is over 1 since it’s a mixture of normals. We can get
@@ -1883,6 +1890,13 @@ sim_dat &lt;- tibble(
   summarise(mean_y = mean(y), sd_y = sd(y))
 by_group_summary |&gt; round(3)</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MiwibmNvbCI6Mywic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyIyIMOXIDMiXX19LCJyZGYiOiJINHNJQUFBQUFBQUFCZ3R5aVREbWl1QmlZR0JnWm1CaFlXUmdaZ1V5R1ZoRFE5eDBMUmdZV0ppQUhFWUdGZ1pPRUYwQlZDUU1Wc25Bd0FmRUlFa3dzUDhBWTBIRUcyRGluOWVKVkQxMFh3Y1R0LytnY2xkZmF2NCsrL2ZiWEJlZU90Q01aZ0ZyWG1KdWFqR1FJUUJ4RGtTd3BDZzFzUVRLWWN0TlRjeUxyNFR5V0lwVGdHeFVNemlMOHN2MVlPYnd3aHp6Ly8vL2YraVdKZWNrRnNNc2d3bHlwU1NXSk9xbEZRSDFBM25vV3RqekMwb3k4L09BbXBoQXdjQ0dwcG14Q0UyQXZ6UVA1SklVM2VTTTByeHNYVk0wYWVhQ3ZIU1FuV0FoQ09DRnNwbVEyTXdRVnpEOWgycG5nNFZGYWw1NlpsNHF6RHM1aVVtcE9UQ1RVMUxMb0V3K1lIaUFnME92b0NnekR4YU9YRURSWXIyUy9KSkVtQmF1NVB3Y21Balk1d3ovQUFPdys1OGJBZ0FBIn0= -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["treat"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["mean_y"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["sd_y"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"0","2":"0.00","3":"1.009"},{"1":"1","2":"1.23","3":"0.991"}],"options":{"columns":{"min":{},"max":[10],"total":[3]},"rows":{"min":[10],"max":[10],"total":[2]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
@@ -1890,6 +1904,9 @@ by_group_summary |&gt; round(3)</code></pre>
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYnlfZ3JvdXBfc3VtbWFyeSRzZF95XjIgfD4gbWVhbigpIHw+IHNxcnQoKVxuYGBgIn0= -->
 <pre class="r"><code>by_group_summary$sd_y^2 |&gt; mean() |&gt; sqrt()</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDEuMDAwMDA1XG4ifQ== -->
+<pre><code>[1] 1.000005</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
@@ -1908,6 +1925,34 @@ in general a good idea, though, e.g., the CI will be too wide):</p>
   data = sim_dat
 )</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiQ29tcHV0aW5nIHByb2ZpbGUgY29uZmlkZW5jZSBpbnRlcnZhbHMgLi4uXG4ifQ== -->
+<pre><code>Computing profile confidence intervals ...</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5Nb2RlbCBJbmZvOlxuIE1ldGhvZDogICAgIE1MTVxuIERlc2lnbjogICAgIENSVFxuIEFwcHJvYWNoOiAgIEZyZXF1ZW50aXN0XG4gRnVuY3Rpb246ICAgY3J0RlJFUVxuLS0tLS0tLS0tXG5cblJlc3VsdCBmb3I6IENvbmRpdGlvbmFsIGVmZmVjdCBzaXplXG4kdHJlYXQxXG4gICAgICAgRXN0aW1hdGUgOTUlIExCIDk1JSBVQlxuV2l0aGluICAgICAxLjQ2ICAgMS4zOCAgIDEuNTRcblRvdGFsICAgICAgMS4yMyAgIDEuMTYgICAxLjMwXG5cblxuUmVzdWx0IGZvcjogVW5jb25kaXRpb25hbCBlZmZlY3Qgc2l6ZVxuJHRyZWF0MVxuICAgICAgIEVzdGltYXRlIDk1JSBMQiA5NSUgVUJcbldpdGhpbiAgICAgMS40NiAgIDEuMzQgICAxLjU4XG5Ub3RhbCAgICAgIDEuMDUgICAwLjk2ICAgMS4xNFxuXG5cblBsZWFzZSB1c2Ugc3VtbWFyeSB0byBnZXQgbW9yZSByZXN1bHRzIFxuIn0= -->
+<pre><code>
+Model Info:
+ Method:     MLM
+ Design:     CRT
+ Approach:   Frequentist
+ Function:   crtFREQ
+---------
+
+Result for: Conditional effect size
+$treat1
+       Estimate 95% LB 95% UB
+Within     1.46   1.38   1.54
+Total      1.23   1.16   1.30
+
+
+Result for: Unconditional effect size
+$treat1
+       Estimate 95% LB 95% UB
+Within     1.46   1.34   1.58
+Total      1.05   0.96   1.14
+
+
+Please use summary to get more results </code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>As expected, the conditional effect size using the total variance is
@@ -1925,6 +1970,34 @@ unconditional total effect:</p>
   data = sim_dat
 )</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiQ29tcHV0aW5nIHByb2ZpbGUgY29uZmlkZW5jZSBpbnRlcnZhbHMgLi4uXG4ifQ== -->
+<pre><code>Computing profile confidence intervals ...</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5Nb2RlbCBJbmZvOlxuIE1ldGhvZDogICAgIE1MTVxuIERlc2lnbjogICAgIENSVFxuIEFwcHJvYWNoOiAgIEZyZXF1ZW50aXN0XG4gRnVuY3Rpb246ICAgY3J0RlJFUVxuLS0tLS0tLS0tXG5cblJlc3VsdCBmb3I6IENvbmRpdGlvbmFsIGVmZmVjdCBzaXplXG4kdHJlYXQxXG4gICAgICAgRXN0aW1hdGUgOTUlIExCIDk1JSBVQlxuV2l0aGluICAgICAzLjg3ICAgMy42NiAgIDQuMDhcblRvdGFsICAgICAgMS45NCAgIDEuODIgICAyLjA3XG5cblxuUmVzdWx0IGZvcjogVW5jb25kaXRpb25hbCBlZmZlY3Qgc2l6ZVxuJHRyZWF0MVxuICAgICAgIEVzdGltYXRlIDk1JSBMQiA5NSUgVUJcbldpdGhpbiAgICAgMS40NiAgIDEuMzQgICAxLjU4XG5Ub3RhbCAgICAgIDEuMDUgICAwLjk2ICAgMS4xNFxuXG5cblBsZWFzZSB1c2Ugc3VtbWFyeSB0byBnZXQgbW9yZSByZXN1bHRzIFxuIn0= -->
+<pre><code>
+Model Info:
+ Method:     MLM
+ Design:     CRT
+ Approach:   Frequentist
+ Function:   crtFREQ
+---------
+
+Result for: Conditional effect size
+$treat1
+       Estimate 95% LB 95% UB
+Within     3.87   3.66   4.08
+Total      1.94   1.82   2.07
+
+
+Result for: Unconditional effect size
+$treat1
+       Estimate 95% LB 95% UB
+Within     1.46   1.34   1.58
+Total      1.05   0.96   1.14
+
+
+Please use summary to get more results </code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
@@ -1975,6 +2048,12 @@ lme_empty &lt;- lme(
 )
 target_es</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICAgICAgICAgICAgICAgICAgIGVzdCAgICBzZVxudW5hZGp1c3RlZCBlZmZlY3Qgc2l6ZSAgICAgMS4yMyAwLjAzNlxuYWRqdXN0ZWQgZWZmZWN0IHNpemUgICAgICAgMS4yMyAwLjAzNlxuZGVncmVlIG9mIGZyZWVkb20gICAgICAxMDQ4NC43MSAgICAgIFxuIn0= -->
+<pre><code>                            est    se
+unadjusted effect size     1.23 0.036
+adjusted effect size       1.23 0.036
+degree of freedom      10484.71      </code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>Hurrah! We can also get a CI:</p>
@@ -1983,6 +2062,9 @@ target_es</code></pre>
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQ0lfZyh0YXJnZXRfZXMpXG5gYGAifQ== -->
 <pre class="r"><code>CI_g(target_es)</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDEuMTU5NTg3IDEuMjk5NTEwXG4ifQ== -->
+<pre><code>[1] 1.159587 1.299510</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
@@ -2003,6 +2085,12 @@ conditional effect size:</p>
 )
 conditional_eef_style</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICAgICAgICAgICAgICAgICAgIGVzdCAgICBzZVxudW5hZGp1c3RlZCBlZmZlY3Qgc2l6ZSAgICAxLjk0MyAwLjA2NFxuYWRqdXN0ZWQgZWZmZWN0IHNpemUgICAgICAxLjk0MyAwLjA2NFxuZGVncmVlIG9mIGZyZWVkb20gICAgICAxNzcwLjQ4MiAgICAgIFxuIn0= -->
+<pre><code>                            est    se
+unadjusted effect size    1.943 0.064
+adjusted effect size      1.943 0.064
+degree of freedom      1770.482      </code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>And the unconditional effect size:</p>
@@ -2019,15 +2107,29 @@ conditional_eef_style</code></pre>
 )
 unconditional_eef_style</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICAgICAgICAgICAgICAgICAgIGVzdCAgICBzZVxudW5hZGp1c3RlZCBlZmZlY3Qgc2l6ZSAgICAxLjA0NyAwLjAzMlxuYWRqdXN0ZWQgZWZmZWN0IHNpemUgICAgICAxLjA0NyAwLjAzMlxuZGVncmVlIG9mIGZyZWVkb20gICAgICA0MDc3LjM3MSAgICAgIFxuIn0= -->
+<pre><code>                            est    se
+unadjusted effect size    1.047 0.032
+adjusted effect size      1.047 0.032
+degree of freedom      4077.371      </code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>The CIs:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQ0lfZyhjb25kaXRpb25hbF9lZWZfc3R5bGUpIHw+IHJvdW5kKDIpXG5DSV9nKHVuY29uZGl0aW9uYWxfZWVmX3N0eWxlKSB8PiByb3VuZCgyKVxuYGBgIn0= -->
-<pre class="r"><code>CI_g(conditional_eef_style) |&gt; round(2)
-CI_g(unconditional_eef_style) |&gt; round(2)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQ0lfZyhjb25kaXRpb25hbF9lZWZfc3R5bGUpIHw+IHJvdW5kKDIpXG5gYGAifQ== -->
+<pre class="r"><code>CI_g(conditional_eef_style) |&gt; round(2)</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDEuODIgMi4wN1xuIn0= -->
+<pre><code>[1] 1.82 2.07</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQ0lfZyh1bmNvbmRpdGlvbmFsX2VlZl9zdHlsZSkgfD4gcm91bmQoMilcbmBgYCJ9 -->
+<pre class="r"><code>CI_g(unconditional_eef_style) |&gt; round(2)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDAuOTkgMS4xMVxuIn0= -->
+<pre><code>[1] 0.99 1.11</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>The CI matches for the conditional total but not the unconditional
