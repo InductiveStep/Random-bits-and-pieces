@@ -1,5 +1,5 @@
 ---
-title: "Comparing {eefAnalytics} and {lmeInfo}"
+title: "Comparing {_eefAnalytics_} and {_lmeInfo_}"
 author: "Andi Fugard ([@andi@sciences.social](https://sciences.social/@andi))"
 date: "Last knitted `r format(Sys.Date(), '%d %B %Y')`"
 output:
@@ -121,7 +121,7 @@ by_group_summary$sd_y^2 |> mean() |> sqrt()
 ```
 
 
-## {eefAnalytics}
+## {_eefAnalytics_}
 
 This should provide the correct answer for the conditional total effect size, since the covariate is excluded from the model (this isn't in general a good idea, though, e.g., the CI will be too wide):
 
@@ -137,8 +137,7 @@ crtFREQ(
 As expected, the conditional effect size using the total variance is `r es`.
 
 
-The following yields too large an answer for the conditional total and too small an answer for the unconditional total effect:
-
+The following call with the covariate included yields too large an answer for the conditional total and too small an answer for the unconditional total effect:
 
 ```{r}
 crtFREQ(
@@ -150,9 +149,9 @@ crtFREQ(
 ```
 
 
-## {lmeInfo}
+## {_lmeInfo_}
 
-Let's see if {lmeInfo} does better. First fit a model for the numerator (effect estimate) and denominator (SD). I've also fitted an intercept-only model, for use later.
+Let's see if {_lmeInfo_} does better. First fit a model for the numerator (effect estimate) and denominator (SD). I've also fitted an intercept-only model, for use later.
 
 ```{r}
 lme_num <- lme(
@@ -200,9 +199,9 @@ CI_g(target_es)
 ```
 
 
-## Replicating {eefAnalytics} using {lmeInfo}
+## Replicating {_eefAnalytics_} using {_lmeInfo_}
 
-Let's see if we can replicate {eefAnalytics}. Here's the conditional effect size:
+Let's see if we can replicate {_eefAnalytics_}. Here's the conditional effect size:
 
 ```{r}
 conditional_eef_style <- g_mlm(
