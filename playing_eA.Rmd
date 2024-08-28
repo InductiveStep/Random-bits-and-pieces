@@ -10,7 +10,7 @@ output:
 ---
 
 
-In multilevel analyses, it's often necessary to estimate a standardised mean difference such that the numerator mean effect comes from a different model than the denominator SD. The numerator could be a covariate-adjusted mean difference and the denominator the SD from the sum of residual and random effect variances in a model without covariate adjustment. For example, the [statistical analysis guidance for EEF evaluations](https://educationendowmentfoundation.org.uk/projects-and-evaluation/evaluation/evaluation-guidance-and-resources/evaluation-design) requires this approach alongside confidence intervals.
+In multilevel analyses, it is often necessary to estimate a standardised mean difference such that the numerator mean effect comes from a different model than the denominator SD. The numerator could be a covariate-adjusted mean difference and the denominator the SD from the sum of residual and random effect variances in a model without covariate adjustment. For example,  [statistical analysis guidance for EEF evaluations](https://educationendowmentfoundation.org.uk/projects-and-evaluation/evaluation/evaluation-guidance-and-resources/evaluation-design) requires this approach alongside confidence intervals.
 
 This note simulates data with known sample effect size, covariate-outcome association, and random effect variances, and estimates the SMD using the two packages in R I know that directly offer the calculation:
 
@@ -19,6 +19,7 @@ This note simulates data with known sample effect size, covariate-outcome associ
 
 Surprisingly, {_eefAnalytics_} does not seem to follow EEF guidance. I can, however, replicate what it does using {_lmeInfo_}. Also I can get {_lmeInfo_} to provide the answer I expect.
 
+(I'm aware of arguments against SMDs, e.g., Tukey, 1969, and arguments for using an SD from a survey of the population of interest.)
 
 
 ## Include required libraries
@@ -58,7 +59,7 @@ The effect size we're looking for is `r es`.
 
 ## Simulate the data
 
-Note that I'm trying to get the sample to have exactly the properties I want.
+Note that I'm trying to get the sample to have exactly the properties I want, hence all the scaling to get sample SD = 1 and use of residuals to remove sample correlations.
 
 ```{r}
 set.seed(42)
@@ -111,7 +112,7 @@ The SD for y is over 1 since it's a mixture of normals. We can get (nearly) 1 by
 by_group_summary <- sim_dat |>
   group_by(treat) |>
   summarise(mean_y = mean(y), sd_y = sd(y))
-by_group_summary
+by_group_summary |> round(3)
 ```
 
 
