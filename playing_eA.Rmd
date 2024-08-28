@@ -1,0 +1,239 @@
+---
+title: "Comparing {eefAnalytics} and {lmeInfo}"
+author: "Andi Fugard ([@andi@sciences.social](https://sciences.social/@andi))"
+date: "Last knitted `r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_notebook:
+    code_folding: none
+  html_document:
+    df_print: paged
+---
+
+
+In multilevel analyses, it's often necessary to estimate a standardised mean difference such that the numerator mean effect comes from a different model than the denominator SD. The numerator could be a covariate-adjusted mean difference and the denominator the SD from the sum of residual and random effect variances in a model without covariate adjustment. For example, the [statistical analysis guidance for EEF evaluations](https://educationendowmentfoundation.org.uk/projects-and-evaluation/evaluation/evaluation-guidance-and-resources/evaluation-design) requires this approach alongside confidence intervals.
+
+This note simulates data with known sample effect size, covariate-outcome association, and random effect variances, and estimates the SMD using the two packages in R I know that directly offer the calculation:
+
+1. {_eefAnalytics_} has a function _crtFREQ_ that wraps up calls to _lme4::lmer_ and does the sums for total and residual variance, with and without covariate adjustment.
+2. {_lmeInfo_} has a function _g_mlm_ that takes two _nlme::lme_ models and allows you to select which fixed and random effect variance estimates go into the ratio.
+
+Surprisingly, {_eefAnalytics_} does not seem to follow EEF guidance. I can, however, replicate what it does using {_lmeInfo_}. Also {_lmeInfo_} gives me the answer I do expect.
+
+
+
+## Include required libraries
+
+```{r}
+quiet_library <- \(...) library(...) |> suppressPackageStartupMessages()
+
+quiet_library(tidyverse)
+quiet_library(lme4)
+quiet_library(tictoc)
+quiet_library(beepr)
+quiet_library(lmeInfo)
+quiet_library(eefAnalytics)
+quiet_library(nlme)
+quiet_library(lmeInfo)
+```
+
+
+## Parameters for the simulation
+
+```{r}
+n_schools  <- 1000
+n_pupils   <- 100
+n_total    <- n_schools * n_pupils
+n_treat    <- n_total / 2
+cov_var    <- 0.6  # proportion of variance explained by the pupil covariate
+school_var <- 0.3  # proportion of variance explained by school
+es         <- 1.23 # the effect size we want to simulate
+
+stopifnot(n_total %% 2 == 0)
+stopifnot(n_schools %% 2 == 0)
+```
+
+
+The effect size we're looking for is `r es`.
+
+
+## Simulate the data
+
+Note that I'm trying to get the sample to have exactly the properties I want.
+
+```{r}
+set.seed(42)
+my_scale <- function(...) scale(...) |> as.numeric()
+school_sim <- tibble(school       = 1:n_schools,
+                     noise_school = rnorm(n_schools))
+
+sim_dat <- tibble(
+  id         = 1:n_total,
+  school      = rep(1:n_schools, n_pupils) |> sort(),
+  treat       = (school <= n_schools / 2) + 0,
+  noise0      = rnorm(n_total) |> my_scale()
+) |>
+  left_join(school_sim, by = "school") |>
+  mutate(
+    noise_school = my_scale(lm(noise_school ~ treat)$resid) * sqrt(school_var),
+    noise1       = lm(rnorm(n_total) ~ noise_school + factor(school))$resid |>
+                     my_scale(),
+    noise2       = lm(noise0 ~ noise1 + noise_school + factor(school))$resid |>
+                     my_scale(),
+    noise_resid  = noise1 * sqrt(1 - cov_var - school_var),
+    covar        = noise2 * sqrt(cov_var),
+    y            = noise_resid + noise_school + covar + es * treat
+  )
+```
+
+
+## Descriptives
+
+```{r}
+sim_dat |>
+  pivot_longer(cols = where(is.numeric)) |>
+  filter(!name %in% c("id", "school")) |>
+  group_by(name) |>
+  summarise(
+    mean = mean(value),
+    sd = sd(value),
+    var = sd^2,
+    min = min(value),
+    max = max(value)
+  ) |>
+  mutate(across(where(is.numeric), \(x) round(x, 2)))
+```
+
+
+The SD for y is over 1 since it's a mixture of normals. We can get (nearly) 1 by calculating the SD by group and pooling:
+
+
+```{r}
+by_group_summary <- sim_dat |>
+  group_by(treat) |>
+  summarise(mean_y = mean(y), sd_y = sd(y))
+by_group_summary
+```
+
+
+```{r}
+by_group_summary$sd_y^2 |> mean() |> sqrt()
+```
+
+
+## {eefAnalytics}
+
+This should provide the correct answer for the conditional total effect size, since the covariate is excluded from the model (this isn't in general a good idea, though, e.g., the CI will be too wide):
+
+```{r}
+crtFREQ(
+  y ~ treat,
+  random = "school",
+  intervention = "treat",
+  data = sim_dat
+)
+```
+
+As expected, the conditional effect size using the total variance is `r es`.
+
+
+The following yields too large an answer for the conditional total and too small an answer for the unconditional total effect:
+
+
+```{r}
+crtFREQ(
+  y ~ treat + covar,
+  random = "school",
+  intervention = "treat",
+  data = sim_dat
+)
+```
+
+
+## {lmeInfo}
+
+Let's see if {lmeInfo} does better. First fit a model for the numerator (effect estimate) and denominator (SD). I've also fitted an intercept-only model, for use later.
+
+```{r}
+lme_num <- lme(
+  fixed = y ~ treat + covar,
+  random = ~ 1 | school,
+  data = sim_dat,
+  method = "REML",
+  control = lmeControl(opt = "optim")
+)
+
+lme_den <- lme(
+  fixed = y ~ treat,
+  random = ~ 1 | school,
+  data = sim_dat,
+  method = "REML",
+  control = lmeControl(opt = "optim")
+)
+
+lme_empty <- lme(
+  fixed = y ~ 1,
+  random = ~ 1 | school,
+  data = sim_dat,
+  method = "REML",
+  control = lmeControl(opt = "optim")
+)
+```
+
+
+```{r}
+target_es <- g_mlm(
+  lme_num,
+  p_const = c(0,1,0),
+  mod_denom = lme_den,
+  r_const = c(1,1),
+  infotype = "expected",
+  separate_variances = FALSE
+)
+target_es
+```
+
+Hurrah! We can also get a CI:
+
+```{r}
+CI_g(target_es)
+```
+
+
+## Replicating {eefAnalytics} using {lmeInfo}
+
+Let's see if we can replicate {eefAnalytics}. Here's the conditional effect size:
+
+```{r}
+conditional_eef_style <- g_mlm(
+  lme_num,
+  p_const = c(0,1,0),
+  mod_denom = lme_num,
+  r_const = c(1,1),
+  infotype = "expected",
+  separate_variances = FALSE
+)
+conditional_eef_style
+```
+
+And the unconditional effect size:
+
+```{r}
+unconditional_eef_style <- g_mlm(
+  lme_num,
+  p_const = c(0,1,0),
+  mod_denom = lme_empty,
+  r_const = c(1,1),
+  infotype = "expected",
+  separate_variances = FALSE
+)
+unconditional_eef_style
+```
+
+The CIs:
+
+```{r}
+CI_g(conditional_eef_style) |> round(2)
+CI_g(unconditional_eef_style) |> round(2)
+```
+
+The CI matches for the conditional total but not the unconditional total.
