@@ -17,7 +17,7 @@ This note simulates data with known sample effect size, covariate-outcome associ
 1. {_eefAnalytics_} has a function _crtFREQ_ that wraps up calls to _lme4::lmer_ and does the sums for total and residual variance, with and without covariate adjustment.
 2. {_lmeInfo_} has a function _g_mlm_ that takes two _nlme::lme_ models and allows you to select which fixed and random effect variance estimates go into the ratio.
 
-Surprisingly, {_eefAnalytics_} does not seem to follow EEF guidance. I can, however, replicate what it does using {_lmeInfo_}. Also {_lmeInfo_} gives me the answer I do expect.
+Surprisingly, {_eefAnalytics_} does not seem to follow EEF guidance. I can, however, replicate what it does using {_lmeInfo_}. Also I can get {_lmeInfo_} to provide the answer I expect.
 
 
 
