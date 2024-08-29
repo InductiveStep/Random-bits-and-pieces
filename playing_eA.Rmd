@@ -10,14 +10,14 @@ output:
 ---
 
 
-In multilevel analyses, it is often necessary to estimate a standardised mean difference (SMD) such that the numerator mean effect comes from a different model than the denominator SD. The numerator could be a covariate-adjusted mean difference and the denominator the SD from the sum of residual and random effect variances in a model without covariate adjustment. For example,  [statistical analysis guidance for EEF evaluations](https://educationendowmentfoundation.org.uk/projects-and-evaluation/evaluation/evaluation-guidance-and-resources/evaluation-design) requires this approach alongside confidence intervals.
+In multilevel analyses, it is often necessary to estimate a standardised mean difference (SMD) such that the numerator mean effect comes from a different model than the denominator SD. The numerator could be a covariate-adjusted mean difference and the denominator the SD from the sum of residual and random effect variances in a model without covariate adjustment. For example,  [statistical analysis guidance for EEF evaluations](https://educationendowmentfoundation.org.uk/projects-and-evaluation/evaluation/evaluation-guidance-and-resources/evaluation-design) requires this approach, alongside confidence intervals.
 
-This note simulates data with known sample effect size, covariate-outcome association, and random effect variances, and estimates the SMD using the two packages in R I know that directly offer the calculation:
+This note simulates data with known sample effect size, covariate-outcome association, and random effect variances, and estimates the SMD using the two packages in R I know that directly do the sums:
 
-1. {_eefAnalytics_} has a function _crtFREQ_ that wraps up calls to _lme4::lmer_ and does the sums for total and residual variance, with and without covariate adjustment.
+1. {_eefAnalytics_} has a function _crtFREQ_ that wraps up calls to _lme4::lmer_ and calculates SMDs using total and residual variance, with and without covariate adjustment.
 2. {_lmeInfo_} has a function _g_mlm_ that takes two _nlme::lme_ models and allows you to select which fixed and random effect variance estimates go into the ratio.
 
-Surprisingly, {_eefAnalytics_} does not follow EEF guidance. I can, however, replicate what it does using {_lmeInfo_}. Also I can get {_lmeInfo_} to provide the answer I expect.
+TL;DR summary: surprisingly, {_eefAnalytics_} does not follow EEF guidance. I can, however, replicate what it does using {_lmeInfo_}. Also I can get {_lmeInfo_} to provide the answer I expect.
 
 (I'm aware of arguments against SMDs, e.g., Tukey, 1969, and arguments for using an SD from a survey of the population of interest.)
 
@@ -54,7 +54,7 @@ stopifnot(n_schools %% 2 == 0)
 ```
 
 
-The SMD we're looking for is `r es`.
+The SMD we're looking for is `r es` -- keep an eye out for that number!
 
 
 ## Simulate the data
@@ -112,7 +112,7 @@ The SD for _y_ is greater than 1 since _y_ is a mixture of normals. We can get (
 ```{r}
 by_group_summary <- sim_dat |>
   group_by(treat) |>
-  summarise(mean_y = mean(y), sd_y = sd(y))
+  summarise(mean_y = mean(y), sd_y = sd(y), n = n())
 by_group_summary |> round(3)
 ```
 
@@ -120,6 +120,19 @@ by_group_summary |> round(3)
 ```{r}
 by_group_summary$sd_y^2 |> mean() |> sqrt()
 ```
+
+Here's a picture:
+
+```{r}
+sim_dat |>
+  ggplot(aes(x = y, fill = factor(treat, labels = c("Control", "Treat")))) +
+  geom_histogram(alpha = 0.5,
+                 position = "identity",
+                 bins = 100) +
+  labs(fill = "Group", x = "Outcome", y = "Count") +
+  theme_minimal()
+```
+
 
 Here are the covariances:
 
@@ -136,7 +149,7 @@ sim_dat |>
 
 (In case you too try this approach, _crtFREQ_ wants the random effect ID to be a numeric and doesn't like factors.)
 
-This first example includes only treatment group and random effect, with no covariate. It should provide the correct answer, though this isn't generally a good idea as the CI will be too wide if your covariates explain variation in the outcome:
+This first example includes only treatment group and random effect, with no covariate. It should provide the correct answer, though this isn't generally a good idea as the confidence interval will be too wide if your covariates explain variation in the outcome:
 
 ```{r}
 eefa_uncond <- crtFREQ(
@@ -153,7 +166,7 @@ should_be_correct <- eefa_uncond$ES$treat1["Total",]$Estimate
 stopifnot(round(should_be_correct, 2) == round(es, 2))
 ```
 
-As expected, the conditional effect size using the total variance is `r should_be_correct`, matching the target (`r es`).
+As expected, the conditional effect size using the total variance is `r should_be_correct`, matching the target.
 
 The following call with the covariate included yields too large an answer for the conditional total and too small an answer for the unconditional total effect:
 
@@ -177,11 +190,55 @@ stopifnot(too_small_es < es)
 
 We're aiming for `r es`. The total conditional effect size is `r too_big_es` and the unconditional is `r too_small_es`.
 
+The model behind the conditional effect size shrinks the residuals, as the covariate explains variance in the outcome. The denominator is smaller than we want, so the SMD is too large.
+
+The model behind the unconditional effect size denominator doesn't take account of the intervention increasing the between-school variance as it pushes the means apart. We can see that if we examine the school random effects in the unconditional model:
+
+```{r}
+uncond_lmer <- lmer(y ~ (1|school), data = sim_dat)
+summary(uncond_lmer)
+```
+
+Here's a picture of the school random effects showing what's going on:
+
+```{r}
+plot_ranefs <- function(mod) {
+school_ranefs <- ranef(mod)$school |>
+  rename("intercept" = "(Intercept)") |>
+  rownames_to_column("school") |>
+  mutate(school = as.numeric(school),
+         treat  = (school <= n_schools / 2) + 0)
+
+school_ranefs |>
+  ggplot(aes(x = intercept, fill = factor(treat, labels = c("Control", "Treat")))) +
+  geom_histogram(alpha = 0.5,
+                 position = "identity",
+                 bins = 21) +
+  labs(fill = "Group", x = "School random effect", y = "Count") +
+  theme_minimal()
+}
+plot_ranefs(uncond_lmer)
+```
+
+Let's look again, this time using a model that includes the treatment predictor:
+
+```{r}
+treat_lmer <- lmer(y ~ treat + (1|school), data = sim_dat)
+summary(treat_lmer)
+```
+
+Note how much smaller the school random effect variance is now (almost the `r school_var` I was originally aiming for -- see the simulation parameters). The picture:
+
+```{r}
+plot_ranefs(treat_lmer)
+```
+
+This is the model we want for the denominator.
 
 
 ## {_lmeInfo_}
 
-Let's see if {_lmeInfo_} does better. First fit a model for the numerator (effect estimate) and denominator (SD). I've also fitted an intercept-only model, for use later.
+Let's see if {_lmeInfo_} can produce the SMD we want. First, fit a model for the numerator (effect estimate) and denominator (SD). I've also fitted an intercept-only model, for use later when replicating {_eefAnalytics_}'s results.
 
 ```{r}
 lme_num <- lme(
@@ -209,6 +266,8 @@ lme_empty <- lme(
 )
 ```
 
+
+Estimate the SMD:
 
 ```{r}
 correct_es_est <- g_mlm(
