@@ -10,14 +10,14 @@ output:
 ---
 
 
-In multilevel analyses, it is often necessary to estimate a standardised mean difference such that the numerator mean effect comes from a different model than the denominator SD. The numerator could be a covariate-adjusted mean difference and the denominator the SD from the sum of residual and random effect variances in a model without covariate adjustment. For example,  [statistical analysis guidance for EEF evaluations](https://educationendowmentfoundation.org.uk/projects-and-evaluation/evaluation/evaluation-guidance-and-resources/evaluation-design) requires this approach alongside confidence intervals.
+In multilevel analyses, it is often necessary to estimate a standardised mean difference (SMD) such that the numerator mean effect comes from a different model than the denominator SD. The numerator could be a covariate-adjusted mean difference and the denominator the SD from the sum of residual and random effect variances in a model without covariate adjustment. For example,  [statistical analysis guidance for EEF evaluations](https://educationendowmentfoundation.org.uk/projects-and-evaluation/evaluation/evaluation-guidance-and-resources/evaluation-design) requires this approach alongside confidence intervals.
 
 This note simulates data with known sample effect size, covariate-outcome association, and random effect variances, and estimates the SMD using the two packages in R I know that directly offer the calculation:
 
 1. {_eefAnalytics_} has a function _crtFREQ_ that wraps up calls to _lme4::lmer_ and does the sums for total and residual variance, with and without covariate adjustment.
 2. {_lmeInfo_} has a function _g_mlm_ that takes two _nlme::lme_ models and allows you to select which fixed and random effect variance estimates go into the ratio.
 
-Surprisingly, {_eefAnalytics_} does not seem to follow EEF guidance. I can, however, replicate what it does using {_lmeInfo_}. Also I can get {_lmeInfo_} to provide the answer I expect.
+Surprisingly, {_eefAnalytics_} does not follow EEF guidance. I can, however, replicate what it does using {_lmeInfo_}. Also I can get {_lmeInfo_} to provide the answer I expect.
 
 (I'm aware of arguments against SMDs, e.g., Tukey, 1969, and arguments for using an SD from a survey of the population of interest.)
 
@@ -71,18 +71,18 @@ sim_dat <- tibble(
   id         = 1:n_total,
   school      = rep(1:n_schools, n_pupils) |> sort(),
   treat       = (school <= n_schools / 2) + 0,
-  noise0      = rnorm(n_total) |> my_scale()
+  noise0      = rnorm(n_total)
 ) |>
   left_join(school_sim, by = "school") |>
   mutate(
-    noise_school = my_scale(lm(noise_school ~ treat)$resid) * sqrt(school_var),
-    noise1       = lm(rnorm(n_total) ~ noise_school + factor(school))$resid |>
+    ranef_school = my_scale(lm(noise_school ~ treat)$resid) * sqrt(school_var),
+    noise1       = lm(rnorm(n_total) ~ ranef_school + factor(school))$resid |>
                      my_scale(),
-    noise2       = lm(noise0 ~ noise1 + noise_school + factor(school))$resid |>
+    noise2       = lm(noise0 ~ noise1 + ranef_school + factor(school))$resid |>
                      my_scale(),
-    noise_resid  = noise1 * sqrt(1 - cov_var - school_var),
+    resid        = noise1 * sqrt(1 - cov_var - school_var),
     covar        = noise2 * sqrt(cov_var),
-    y            = noise_resid + noise_school + covar + es * treat
+    y            = resid + ranef_school + covar + es * treat
   )
 ```
 
@@ -91,7 +91,8 @@ sim_dat <- tibble(
 
 ```{r}
 sim_dat |>
-  pivot_longer(cols = where(is.numeric)) |>
+  select(-starts_with("noise")) |>
+  pivot_longer(cols = everything()) |>
   filter(!name %in% c("id", "school")) |>
   group_by(name) |>
   summarise(
@@ -120,33 +121,62 @@ by_group_summary |> round(3)
 by_group_summary$sd_y^2 |> mean() |> sqrt()
 ```
 
+Here are the covariances:
+
+```{r}
+sim_dat |>
+  select(-starts_with("noise")) |>
+  select(-c("id", "school")) |>
+  cov() |>
+  round(2) |>
+  as.data.frame()
+```
 
 ## {_eefAnalytics_}
 
-This should provide the correct answer for the conditional total effect size, since the covariate is excluded from the model (this isn't in general a good idea, though, e.g., the CI will be too wide):
+(In case you too try this approach, _crtFREQ_ wants the random effect ID to be a numeric and doesn't like factors.)
+
+This first example includes only treatment group and random effect, with no covariate. It should provide the correct answer, though this isn't generally a good idea as the CI will be too wide:
 
 ```{r}
-crtFREQ(
+eefa_uncond <- crtFREQ(
   y ~ treat,
   random = "school",
   intervention = "treat",
   data = sim_dat
 )
+eefa_uncond
 ```
 
-As expected, the conditional effect size using the total variance is `r es`.
+```{r}
+should_be_correct <- eefa_uncond$ES$treat1["Total",]$Estimate
+stopifnot(round(should_be_correct, 2) == round(es, 2))
+```
 
+As expected, the conditional effect size using the total variance is `r should_be_correct`, matching the target (`r es`).
 
 The following call with the covariate included yields too large an answer for the conditional total and too small an answer for the unconditional total effect:
 
 ```{r}
-crtFREQ(
+eef_wrong <- crtFREQ(
   y ~ treat + covar,
   random = "school",
   intervention = "treat",
   data = sim_dat
 )
+eef_wrong
 ```
+
+```{r}
+too_big_es   <- eef_wrong$ES$treat1["Total",]$Estimate
+too_small_es <- eef_wrong$Unconditional$ES$treat1["Total",]$Estimate
+stopifnot(too_big_es > es)
+stopifnot(too_small_es < es)
+```
+
+
+We're aiming for `r es`. The total conditional effect size is `r too_big_es` and the unconditional is `r too_small_es`.
+
 
 
 ## {_lmeInfo_}
@@ -181,7 +211,7 @@ lme_empty <- lme(
 
 
 ```{r}
-target_es <- g_mlm(
+correct_es_est <- g_mlm(
   lme_num,
   p_const = c(0,1,0),
   mod_denom = lme_den,
@@ -189,13 +219,23 @@ target_es <- g_mlm(
   infotype = "expected",
   separate_variances = FALSE
 )
-target_es
+correct_es_est
 ```
 
-Hurrah! We can also get a CI:
+```{r}
+stopifnot(round(correct_es_est$g_AB, 2) == es)
+```
+
+The estimate is as desired, to two decimal places. In full: 
 
 ```{r}
-CI_g(target_es)
+correct_es_est$g_AB
+```
+
+We can also get a CI:
+
+```{r}
+CI_g(correct_es_est) |> round(2)
 ```
 
 
@@ -215,6 +255,13 @@ conditional_eef_style <- g_mlm(
 conditional_eef_style
 ```
 
+```{r}
+stopifnot(round(conditional_eef_style$delta_AB, 2) == round(too_big_es, 2))
+```
+
+
+`r conditional_eef_style$delta_AB` matches {_eefAnalytics_}'s `r too_big_es` to two decimal places.
+
 And the unconditional effect size:
 
 ```{r}
@@ -229,6 +276,14 @@ unconditional_eef_style <- g_mlm(
 unconditional_eef_style
 ```
 
+```{r}
+stopifnot(round(unconditional_eef_style$g_AB, 2) == round(too_small_es, 2))
+```
+
+
+`r unconditional_eef_style$g_AB` again matches {_eefAnalytics_}'s `r too_small_es` to two decimal places.
+
+
 The CIs:
 
 ```{r}
@@ -236,4 +291,14 @@ CI_g(conditional_eef_style) |> round(2)
 CI_g(unconditional_eef_style) |> round(2)
 ```
 
-The CI matches for the conditional total but not the unconditional total.
+The CI matches for the conditional total but not the unconditional total. Here are the corresponding estimates again from {_eefAnalytics_}:
+
+```{r}
+eef_wrong$ES$treat1["Total", c("95% LB", "95% UB")]
+```
+
+```{r}
+eef_wrong$Unconditional$ES$treat1["Total", c("95% LB", "95% UB")]
+```
+
+
