@@ -54,7 +54,7 @@ stopifnot(n_schools %% 2 == 0)
 ```
 
 
-The effect size we're looking for is `r es`.
+The SMD we're looking for is `r es`.
 
 
 ## Simulate the data
@@ -68,10 +68,10 @@ school_sim <- tibble(school       = 1:n_schools,
                      noise_school = rnorm(n_schools))
 
 sim_dat <- tibble(
-  id         = 1:n_total,
-  school      = rep(1:n_schools, n_pupils) |> sort(),
-  treat       = (school <= n_schools / 2) + 0,
-  noise0      = rnorm(n_total)
+  id     = 1:n_total,
+  school = rep(1:n_schools, n_pupils) |> sort(),
+  treat  = (school <= n_schools / 2) + 0,
+  noise0 = rnorm(n_total)
 ) |>
   left_join(school_sim, by = "school") |>
   mutate(
@@ -136,7 +136,7 @@ sim_dat |>
 
 (In case you too try this approach, _crtFREQ_ wants the random effect ID to be a numeric and doesn't like factors.)
 
-This first example includes only treatment group and random effect, with no covariate. It should provide the correct answer, though this isn't generally a good idea as the CI will be too wide:
+This first example includes only treatment group and random effect, with no covariate. It should provide the correct answer, though this isn't generally a good idea as the CI will be too wide if your covariates explain variation in the outcome:
 
 ```{r}
 eefa_uncond <- crtFREQ(
@@ -301,4 +301,15 @@ eef_wrong$ES$treat1["Total", c("95% LB", "95% UB")]
 eef_wrong$Unconditional$ES$treat1["Total", c("95% LB", "95% UB")]
 ```
 
+```{r}
+beep(2) # Wakey wakey
+```
+
+
+
+## Session info
+
+```{r}
+sessionInfo()
+```
 
