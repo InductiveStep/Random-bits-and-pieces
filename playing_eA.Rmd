@@ -106,7 +106,7 @@ sim_dat |>
 ```
 
 
-The SD for y is over 1 since it's a mixture of normals. We can get (nearly) 1 by calculating the SD by group and pooling:
+The SD for _y_ is greater than 1 since _y_ is a mixture of normals. We can get (nearly) 1 by calculating the SD by group and pooling:
 
 
 ```{r}
