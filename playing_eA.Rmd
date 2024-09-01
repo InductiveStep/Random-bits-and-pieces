@@ -70,15 +70,14 @@ school_sim <- tibble(school       = 1:n_schools,
 sim_dat <- tibble(
   id     = 1:n_total,
   school = rep(1:n_schools, n_pupils) |> sort(),
-  treat  = (school <= n_schools / 2) + 0,
-  noise0 = rnorm(n_total)
+  treat  = (school <= n_schools / 2) + 0
 ) |>
   left_join(school_sim, by = "school") |>
   mutate(
     ranef_school = my_scale(lm(noise_school ~ treat)$resid) * sqrt(school_var),
     noise1       = lm(rnorm(n_total) ~ ranef_school + factor(school))$resid |>
                      my_scale(),
-    noise2       = lm(noise0 ~ noise1 + ranef_school + factor(school))$resid |>
+    noise2       = lm(rnorm(n_total) ~ noise1 + ranef_school + factor(school))$resid |>
                      my_scale(),
     resid        = noise1 * sqrt(1 - cov_var - school_var),
     covar        = noise2 * sqrt(cov_var),
@@ -282,10 +281,10 @@ correct_es_est
 ```
 
 ```{r}
-stopifnot(round(correct_es_est$g_AB, 2) == es)
+stopifnot(round(correct_es_est$g_AB, 3) == es)
 ```
 
-The estimate is as desired, to two decimal places. In full: 
+The estimate is as desired, to three decimal places. In full: 
 
 ```{r}
 correct_es_est$g_AB
