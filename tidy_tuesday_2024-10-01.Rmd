@@ -1,0 +1,179 @@
+---
+title: "TidyTuesday Information for 2024-10-01"
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+
+```{r}
+library(conflicted)
+library(tidyverse)
+library(lme4)
+library(ggeffects)
+```
+
+Info on the data [yonder](https://github.com/rfordatascience/tidytuesday/blob/master/data/2024/2024-10-01/readme.md).
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load("2024-10-01")
+chess <- tuesdata$chess
+```
+
+```{r}
+longchess <- chess |>
+  dplyr::filter(winner %in% c("white", "black")) |>
+  select(game_id,
+         victory_status,
+         winner,
+         white_id,
+         white_rating,
+         black_id,
+         black_rating) |>
+  rename(
+    id_white = white_id,
+    id_black = black_id,
+    rating_white = white_rating,
+    rating_black = black_rating
+  ) |>
+  pivot_longer(
+    cols = starts_with("id_"),
+    names_prefix = "id_",
+    values_to = "id",
+    names_to = "colour"
+  ) |>
+  mutate(rating = ifelse(colour == "white", rating_white, rating_black),
+         other_rating = ifelse(colour == "black", rating_white, rating_black),
+         rating_advantage = rating - other_rating,
+         rating_advantage_100s = rating_advantage / 100,
+         is_winner = as.numeric(colour == winner),
+         victory_status = as_factor(victory_status),
+         victory_status = relevel(victory_status, "mate")) |>
+  select(-c(ends_with("white") | ends_with("black")))
+
+head(longchess)
+```
+
+
+Every game is now in there twice, hence the symmetry:
+
+```{r}
+summary(longchess$rating_advantage)
+```
+
+
+
+```{r}
+mod <- glmer(is_winner ~ colour * rating_advantage_100s +
+               (1 | id),
+             data = longchess,
+             family = binomial)
+```
+
+
+
+```{r}
+summary(mod)
+```
+
+```{r}
+fixef(mod)[-1] |> exp()
+```
+
+
+```{r}
+quantile(longchess$rating_advantage_100s, probs = c(.1, .9))
+```
+
+
+```{r}
+preds <- expand_grid(rating_advantage_100s = seq(-5, 5, 1/1000),
+                     colour = c("black", "white"))
+preds$prob_win <- predict(mod, newdata = preds, re.form = NA, type = "response")
+```
+
+```{r}
+preds |>
+  mutate(colour = relevel(as_factor(colour), "white")) |>
+  ggplot(aes(x = rating_advantage_100s * 100, y = prob_win, colour = colour)) +
+  geom_line() +
+  labs(
+    x = "Rating advantage",
+    y = "Probability of winning",
+    colour = "Colour"
+  )
+```
+
+
+
+
+```{r}
+summary(longchess$rating_advantage)
+```
+
+
+```{r}
+the_breaks <- c(seq(-400, 400, 200), -2000, 2000) |> sort()
+longchess$rating_advantage_class <- cut(longchess$rating_advantage,
+                                        the_breaks,
+                                        right = FALSE)
+table(longchess$rating_advantage_class)
+```
+
+```{r}
+levels(longchess$rating_advantage_class)[1] <- "< -400"
+levels(longchess$rating_advantage_class)[6] <- "≥ 400"
+levels(longchess$rating_advantage_class)
+```
+
+
+```{r}
+table(longchess$rating_advantage_class)
+```
+
+
+
+```{r}
+longchess |>
+  mutate(colour = relevel(as_factor(colour), "white")) |>
+  group_by(rating_advantage_class, is_winner, colour) |>
+  tally() |>
+  dplyr::filter(is_winner == 1) |>
+  ggplot(aes(x = rating_advantage_class, y = n, fill = colour)) +
+  geom_bar(stat = "identity", position = position_dodge()) + 
+  labs(
+    x = "Rating advantage",
+    y = "Number of wins",
+    fill = "Colour"
+  ) +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(), 
+        panel.grid.minor.x = element_blank(),
+        legend.position = "bottom")
+```
+
+
+
+```{r}
+longchess |>
+  group_by(rating_advantage_class, is_winner, colour) |>
+  tally() |>
+  group_by(rating_advantage_class) |>
+  mutate(prop = n / sum(n)) |>
+  dplyr::filter(is_winner == 1) |>
+  ggplot(aes(x = rating_advantage_class, y = prop, fill = colour)) +
+  geom_bar(stat = "identity", position = position_dodge()) + 
+  labs(
+    x = "Rating advantage",
+    y = "Proportion of wins",
+    fill = "Colour"
+  ) +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(), 
+        panel.grid.minor.x = element_blank(),
+        legend.position = "bottom") +
+  ylim(0, .6)
+```
+
+
+
