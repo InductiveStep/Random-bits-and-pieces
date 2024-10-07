@@ -1,5 +1,7 @@
 ---
-title: "TidyTuesday Information for 2024-10-01"
+title: "TidyTuesday 2024-10-01: work in progress"
+author: "Andi Fugard (Mastodon: @andi@sciences.social)"
+date: 7 Oct, just before the next...
 output: 
   html_notebook: 
     code_folding: none
