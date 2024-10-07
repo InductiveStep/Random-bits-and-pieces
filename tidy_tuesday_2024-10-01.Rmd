@@ -12,7 +12,6 @@ output:
 library(conflicted)
 library(tidyverse)
 library(lme4)
-library(ggeffects)
 ```
 
 Info on the data [yonder](https://github.com/rfordatascience/tidytuesday/blob/master/data/2024/2024-10-01/readme.md).
@@ -63,7 +62,7 @@ Every game is now in there twice, hence the symmetry:
 summary(longchess$rating_advantage)
 ```
 
-
+Try a GLMM:
 
 ```{r}
 mod <- glmer(is_winner ~ colour * rating_advantage_100s +
@@ -113,6 +112,7 @@ preds |>
 summary(longchess$rating_advantage)
 ```
 
+Back to simple pics:
 
 ```{r}
 the_breaks <- c(seq(-400, 400, 200), -2000, 2000) |> sort()
