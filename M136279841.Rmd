@@ -1,0 +1,99 @@
+---
+title: "View M136279841"
+author: "Andi Fugard"
+date: "23 Oct 2024"
+output:
+  html_document:
+    df_print: paged
+  html_notebook:
+    code_folding: none
+---
+
+
+Load in some packages:
+
+```{r}
+library(conflicted)
+library(tidyverse)
+```
+
+
+Download the digits (in a zip file) from https://www.mersenne.org/primes/?press=M136279841
+
+
+```{r}
+temp_dir  <- tempdir(check = TRUE)
+temp_file <- tempfile(pattern = "primezip",
+                      tmpdir = temp_dir)
+download.file("https://www.mersenne.org/primes/digits/M136279841.zip",
+              temp_file)
+```
+
+Unzip:
+
+```{r}
+unzip(temp_file, files = "m136279841.txt", exdir = temp_dir)
+```
+
+
+Load it into R:
+
+```{r}
+filename <- paste(temp_dir, "m136279841.txt", sep = "\\")
+digits_str <- readLines(filename) |> paste(collapse = "")
+```
+
+
+Transform into a 1D vector of digits:
+
+```{r}
+digits <- digits_str |>
+  strsplit("") |>
+  pluck(1) |>
+  as.numeric()
+```
+
+
+Check the first and last three digits:
+
+```{r}
+digits[1:3]
+digits[(length(digits) - 2):length(digits)]
+```
+
+Count all the digits:
+
+```{r}
+length(digits)
+```
+
+Make a few tables and a pic:
+
+```{r}
+dig_table <- table(digits) |> as.data.frame()
+```
+
+
+```{r}
+dig_table <- dig_table |>
+  mutate(perc = 100 * Freq / sum(Freq))
+dig_table
+```
+
+
+```{r dpi=300}
+dig_table |>
+  ggplot(aes(x = digits, y = Freq)) +
+  geom_point() +
+  labs(x = "Digit", y = "Frequency", title = "Digit frequency in M136279841") +
+  theme(legend.position = "none")
+```
+
+
+
+```{r}
+dig_table |> arrange(Freq)
+```
+
+
+
