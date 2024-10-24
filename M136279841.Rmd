@@ -96,4 +96,56 @@ dig_table |> arrange(Freq)
 ```
 
 
+Are the digits all equally likely?
+
+```{r}
+chisq.test(dig_table$Freq)
+```
+```{r}
+chisq.test(dig_table$Freq)$stdres
+```
+
+
+No evidence they aren't.
+
+How much more frequent would the three need to get to get a statistically significant $\chi^2$?
+
+
+
+```{r}
+sens_check <- dig_table$Freq
+the_p <- chisq.test(sens_check)$p.value
+add_on <- 0
+
+while (the_p > .05) {
+  add_on <- add_on + 1
+  sens_check[4] <- dig_table$Freq[4] + add_on
+  the_p <- chisq.test(sens_check)$p.value
+}
+
+add_on
+```
+
+
+```{r}
+chisq.test(sens_check)
+```
+
+```{r}
+chisq.test(sens_check)$stdres
+```
+
+
+
+```{r dpi=300}
+dig_table |>
+  mutate(Freq = sens_check) |>
+  ggplot(aes(x = digits, y = Freq)) +
+  geom_point() +
+  labs(x = "Digit", y = "Frequency", title = "Mini freq for 3 needed to get a chi-square test with p < .05") +
+  theme(legend.position = "none")
+```
+
+
+
 
