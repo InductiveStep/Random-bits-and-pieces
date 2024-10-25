@@ -17,9 +17,7 @@ library(conflicted)
 library(tidyverse)
 ```
 
-
 Download the digits (in a zip file) from https://www.mersenne.org/primes/?press=M136279841
-
 
 ```{r}
 temp_dir  <- tempdir(check = TRUE)
@@ -89,28 +87,23 @@ dig_table |>
   theme(legend.position = "none")
 ```
 
-
-
 ```{r}
 dig_table |> arrange(Freq)
 ```
-
 
 Are the digits all equally likely?
 
 ```{r}
 chisq.test(dig_table$Freq)
 ```
+
 ```{r}
 chisq.test(dig_table$Freq)$stdres
 ```
 
-
 No evidence they aren't.
 
-How much more frequent would the three need to get to get a statistically significant $\chi^2$?
-
-
+How much more frequent would the 3 need to be to get a statistically significant $\chi^2$?
 
 ```{r}
 sens_check <- dig_table$Freq
@@ -126,7 +119,6 @@ while (the_p > .05) {
 add_on
 ```
 
-
 ```{r}
 chisq.test(sens_check)
 ```
@@ -134,7 +126,6 @@ chisq.test(sens_check)
 ```{r}
 chisq.test(sens_check)$stdres
 ```
-
 
 
 ```{r dpi=300}
@@ -147,5 +138,28 @@ dig_table |>
 ```
 
 
+```{r}
+twogram <- function(test_vec) {
+  res <- matrix(0, nrow = 10, ncol = 10)
+  rownames(res) <- 0:9
+  colnames(res) <- 0:9
+  for (i in 1:(length(test_vec) - 1)) {
+    res[test_vec[i] + 1,
+        test_vec[i + 1] + 1] <- res[test_vec[i] + 1,
+                                    test_vec[i + 1] + 1] + 1
+  }
+  res
+}
+```
 
+```{r}
+two_grams <- twogram(digits)
+```
 
+```{r}
+two_grams - min(two_grams)
+```
+
+```{r}
+chisq.test(two_grams)
+```
