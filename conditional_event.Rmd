@@ -1,0 +1,120 @@
+---
+title: "Two ways to calculate the probability that if it rains, I have an umbrella"
+author: Andi Fugard
+date: 2 Nov 2024
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+This post shows two ways to calculate the conditional probability that I have an umbrella, given that it's raining, $P(umbrella|raining)$; one using the usual ratio formula and the other using a three-valued logical connective, the conditional event, also known as the suppositional.
+
+```{r}
+library(conflicted)
+library(tidyverse)
+conflicts_prefer(dplyr::filter)
+```
+
+Here's a simulated dataset about rain and umbrellas, where each row is a day.
+
+```{r}
+days_n <- 20
+
+set.seed(5)
+sim_dat <- data.frame(day = 1:days_n, raining = rbinom(days_n, 1, .5)) |>
+  mutate(umbrella = rbinom(days_n, 1, ifelse(raining, .8, .2))) |>
+  mutate(across(raining:umbrella, as.logical))
+sim_dat
+```
+
+The variable _raining_ denotes whether it was raining and _umbrella_ denotes whether I had an umbrella with me.
+
+Here are the joint probabilities:
+
+```{r}
+joints <- sim_dat |>
+  group_by(raining, umbrella) |>
+  tally() |>
+  ungroup() |>
+  mutate(p = n / sum(n)) |>
+  select(-n) |>
+  arrange(desc(raining), desc(umbrella))
+joints
+```
+
+
+What's the probability that if it rains, I have an umbrella, $P(umbrella | raining)$?
+
+One way to do it is through:
+
+$$P(umbrella|raining) = \frac{P(raining \land umbrella)}{P(raining)}$$
+
+$P(raining \land umbrella)$ is:
+
+```{r}
+raining_and_umbrella_p <- joints |>
+  filter(raining & umbrella) |>
+  pull(p)
+raining_and_umbrella_p 
+```
+
+$P(raining)$ is:
+
+```{r}
+raining_p <- joints |>
+  filter(raining == 1) |>
+  pull(p) |>
+  sum()
+raining_p
+```
+
+So, $P(umbrella|raining)$ is:
+
+```{r}
+raining_and_umbrella_p / raining_p
+```
+
+Another way to calculate this is using the _conditional event_, $B \dashv A$ ("B given A"), here using Hailperin's (1996) formulation (he calls it the _suppositional_):
+
+```{r}
+dont_care <- function(x) {
+  ifelse(x, NA, x)
+}
+
+`%-|%` <- function(y, x) {
+  dont_care(!x) | (x & y)
+}
+```
+
+$B \dashv A$ is a connective in a three-valued logic with the values:
+
+```{r}
+vals <- c(TRUE, FALSE)
+expand.grid(A = vals, B = vals) |>
+  mutate(`B -| A` = B %-|% A) |>
+  arrange(desc(A), desc(B))
+```
+
+
+We can apply this to the original dataset:
+
+```{r}
+sim_dat <- sim_dat |>
+  mutate(`umbrella -| raining` = umbrella %-|% raining)
+sim_dat
+```
+
+
+Now for $P(umbrella|raining)$ we drop the NAs and count the proportion of the time that $umbrella \dashv raining$ is TRUE:
+
+```{r}
+sim_dat |>
+  pull(`umbrella -| raining`) |>
+  mean(na.rm = TRUE)
+```
+
+
+## References
+
+Hailperin, T. (1996). _Sentential Probability Logic. Origins, Development, Current Status, and Technical Applications_. Lehigh University Press.
+
