@@ -1,6 +1,5 @@
 ---
-title: Four ways to calculate the probability that if it rains, I have an umbrella
-  in R
+title: Four ways to calculate the probability that if it rains, I have an umbrella, using R
 author: "Andi Fugard"
 date: "3 Nov 2024"
 output:
