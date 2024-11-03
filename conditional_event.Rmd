@@ -1,26 +1,36 @@
 ---
-title: "Two ways to calculate the probability that if it rains, I have an umbrella"
-author: Andi Fugard
-date: 2 Nov 2024
-output: 
-  html_notebook: 
+title: Fours ways to calculate the probability that if it rains, I have an umbrella
+  in R
+author: "Andi Fugard"
+date: "3 Nov 2024"
+output:
+  html_notebook:
     code_folding: none
+  html_document:
+    df_print: paged
 ---
 
-This post shows two ways to calculate the conditional probability that I have an umbrella, given that it's raining, $P(umbrella|raining)$; one using the usual ratio formula and the other using a three-valued logical connective, the conditional event, also known as the suppositional.
+```{r echo=FALSE, fig.alt="Two people sitting on a bench, sheltered from the rain by a train platform roof; a third person sheltering under a yellow umbrella.", out.width="100%"}
+knitr::include_graphics("Farhampton_umbrella.jpg")
+```
 
-```{r}
+
+This post shows four ways to calculate the conditional probability that I have an umbrella, given that it's raining, $P(umbrella|raining)$. The first way uses the ratio formula, $P(raining \land umbrella)/P(raining)$. The second uses a three-valued logical connective, the conditional event, which can be traced back to the work of Bruno de Finetti in the 1930s (see, e.g., Baratgin, 2021). The third is easier but boring, and just filters the dataset to rows where it's raining. The fourth uses logistic regression.
+
+Here's a simulated dataset about rain and umbrellas, where each row is a day.
+
+```{r message=FALSE, warning=FALSE}
 library(conflicted)
 library(tidyverse)
 conflicts_prefer(dplyr::filter)
 ```
 
-Here's a simulated dataset about rain and umbrellas, where each row is a day.
-
 ```{r}
 days_n <- 20
-
 set.seed(5)
+```
+
+```{r}
 sim_dat <- data.frame(day = 1:days_n, raining = rbinom(days_n, 1, .5)) |>
   mutate(umbrella = rbinom(days_n, 1, ifelse(raining, .8, .2))) |>
   mutate(across(raining:umbrella, as.logical))
@@ -42,14 +52,11 @@ joints <- sim_dat |>
 joints
 ```
 
-
-What's the probability that if it rains, I have an umbrella, $P(umbrella | raining)$?
-
-One way to do it is through:
+Then 
 
 $$P(umbrella|raining) = \frac{P(raining \land umbrella)}{P(raining)}$$
 
-$P(raining \land umbrella)$ is:
+$P(raining \land umbrella)$, i.e., the probability that it's raining _and_ I have an umbrella, is:
 
 ```{r}
 raining_and_umbrella_p <- joints |>
@@ -62,7 +69,7 @@ $P(raining)$ is:
 
 ```{r}
 raining_p <- joints |>
-  filter(raining == 1) |>
+  filter(raining) |>
   pull(p) |>
   sum()
 raining_p
@@ -77,16 +84,14 @@ raining_and_umbrella_p / raining_p
 Another way to calculate this is using the _conditional event_, $B \dashv A$ ("B given A"), here using Hailperin's (1996) formulation (he calls it the _suppositional_):
 
 ```{r}
-dont_care <- function(x) {
+dont_care <- function(x)
   ifelse(x, NA, x)
-}
 
-`%-|%` <- function(y, x) {
+`%-|%` <- function(y, x)
   dont_care(!x) | (x & y)
-}
 ```
 
-$B \dashv A$ is a connective in a three-valued logic with the values:
+The _don't_care_ function has one parameter and returns the missing value, _NA_, if that parameter is _TRUE_. $B \dashv A$ is then defined using this so it gets the value _NA_ if $A$ is _FALSE_, otherwise it's equal to $A \land B$. Here's a table:
 
 ```{r}
 vals <- c(TRUE, FALSE)
@@ -113,8 +118,26 @@ sim_dat |>
   mean(na.rm = TRUE)
 ```
 
+An easier, though less fun, way would be just:
+
+```{r}
+sim_dat |>
+  filter(raining) |>
+  pull(umbrella) |>
+  mean()
+```
+
+Finally, we could use logistic regresion:
+
+```{r}
+logistic <- glm(umbrella ~ raining, data = sim_dat, family = binomial)
+predict(logistic, newdat = data.frame(raining = TRUE), type = "response")
+```
+
 
 ## References
+
+Baratgin, J. (2021). [Discovering early de Finetti’s writings on trivalent theory of conditionals](https://doi.org/10.14275/2465-2334/202112.bar). _Argumenta_, _6_, 267--291.
 
 Hailperin, T. (1996). _Sentential Probability Logic. Origins, Development, Current Status, and Technical Applications_. Lehigh University Press.
 
