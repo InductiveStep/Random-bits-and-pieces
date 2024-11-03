@@ -1,5 +1,5 @@
 ---
-title: Fours ways to calculate the probability that if it rains, I have an umbrella
+title: Four ways to calculate the probability that if it rains, I have an umbrella
   in R
 author: "Andi Fugard"
 date: "3 Nov 2024"
@@ -15,7 +15,7 @@ knitr::include_graphics("Farhampton_umbrella.jpg")
 ```
 
 
-This post shows four ways to calculate the conditional probability that I have an umbrella, given that it's raining, $P(umbrella|raining)$. The first way uses the ratio formula, $P(raining \land umbrella)/P(raining)$. The second uses a three-valued logical connective, the conditional event, which can be traced back to the work of Bruno de Finetti in the 1930s (see, e.g., Baratgin, 2021). The third is easier but boring, and just filters the dataset to rows where it's raining. The fourth uses logistic regression.
+This post shows four ways to calculate the conditional probability that I have an umbrella, given that it's raining, $P(umbrella|raining)$. The first way uses the ratio formula, $P(raining \land umbrella)/P(raining)$. The second uses a three-valued logical connective, the conditional event, which can be traced back to the work of Bruno de Finetti in the 1930s (see, e.g., Baratgin, 2021). The third filters the dataset to rows where it's raining before counting the proportion of those where I had an umbrella. The fourth uses logistic regression.
 
 Here's a simulated dataset about rain and umbrellas, where each row is a day.
 
