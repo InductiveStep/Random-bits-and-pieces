@@ -1,0 +1,179 @@
+---
+title: "Sharp variance bounds for SATE: giving Mikhaeil and Green (2024) a test drive"
+author: Andi Fugard
+date: 9 Nov 2024
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+
+Most randomised controlled trials (RCTs) use non-probability samples and the goal is to estimate the sample average treatment effect (SATE). The sample is the finite population of interest and something else needs to be done to transfer or generalise the finding to other samples -- ideally a few decades of substantive theory built on basic research.
+
+There's still an inferential problem, even with the finite sample. SATE is the average of each individual's treatment effect (TEs), which is defined as the difference between the individual's potential outcome following treatment and their potential outcome following control. However, only one of those two potential outcomes is realised for an individual, depending on whether they were randomised to treatment or control.
+
+The standard ANCOVA-style way to estimate SATE is to regress the outcome on treatment group and covariates. This yields an unbiased estimate of the SATE; however, the standard error is a little too big, which means the confidence interval is a little too wide. The reason for this is that the correct standard error depends on the correlation between potential outcomes, but we cannot estimate a correlation between two variables if each trial participant only gives us one of the two values we wish to correlate.
+
+Here's the SE for a test without covariates (Reichardt & Gollob, 1999):
+
+$$\sqrt{\frac{\sigma_X^2}{n_X} + \frac{\sigma_Y^2}{n_Y}-\left[ \frac{(\sigma_X-\sigma_Y)^2}{N} + \frac{2(1-\rho) \sigma_X \sigma_{Y}}{N} \right]}$$
+
+where $\sigma_X^2$ and $\sigma_Y^2$ are the variances of the two groups, $n_X$ and $n_Y$ are the observed group sample sizes, and $N$ is the total sample (the finite population) size. The problem is $\rho$, the unobservable correlation between treat and control outcomes for each participant.
+
+This problem was pointed out by Neyman (1923/1990). Reichardt and Gollob (1999) independently rediscovered the problem and suggested a way to get a less conservative standard error based on the reliability of the outcome measure. This gives an upper bound on the correlation.  Aronow, Green, and Lee (2014) proved a result that puts bounds on the correlation based on the observed marginal distribution of outcomes. They also helpfully provided R code to do the sums; however, this approach only works for a model without any covariates.
+
+I'm excited by a new preprint by Mikhaeil and Green (2024) that extends the approach to models with covariates and again provides R code, in the {[sharpvar](https://github.com/JonasMikhaeil/SharpVarianceBounds)} package (currently on GitHub). Let's give it a go.
+
+## Simulate data
+
+```{r include=FALSE}
+#devtools::install_github("JonasMikhaeil/SharpVarianceBounds")
+library(conflicted)
+library(sharpvar)
+library(tidyverse)
+library(broom)
+library(tictoc)
+conflicts_prefer(dplyr::filter)
+```
+
+
+```{r}
+set.seed(42)
+theN <- 100
+
+sim_dat <- tibble(latent_magic = 50 + rnorm(theN, 0, sqrt(.6)),
+                  y0 = round(latent_magic + rnorm(theN, 0, sqrt(.4)), 1),
+                  y1 = round(latent_magic + 0.2 + rnorm(theN, 0, sqrt(.4)), 1),
+                  x  = latent_magic + rnorm(theN, mean = 0, sd = 1.5),
+                  TE = y1 - y0) |>
+  select(-latent_magic)
+```
+
+
+```{r}
+sim_dat
+```
+
+```{r}
+sim_dat |>
+  select(-TE) |>
+  cor() |>
+  round(2)
+```
+
+This is the true SATE for this finite population:
+
+```{r}
+trueSATE <- mean(sim_dat$TE)
+trueSATE
+```
+
+
+## Simulate some efficacy trials
+
+This is a slightly convoluted way to implement complete randomisation in which a fixed number of participants are randomised to treatment (compare with Bernoulli randomisation, where the proportion is a probability that may vary between trials).
+
+```{r}
+completely_randomiser <- function(dat,
+                                  treat_var_name = "treat",
+                                  prop_treat = 0.5) {
+  treat_n   <- ceiling(prop_treat * nrow(dat))
+  control_n <- nrow(dat) - treat_n
+  zero_ones <- c(rep(1, treat_n), rep(0, control_n))
+  dat |>
+    mutate(!!treat_var_name := sample(zero_ones))
+}
+```
+
+This function will give us the realised potential outcome:
+
+```{r}
+realise_potential <- function(dat, y_name = y, y0, y1, treat) {
+  dat |>
+    mutate(!!y_name := ifelse(treat == 1, y1, y0))
+}
+```
+
+And a function to summarise the findings for the classic SE and the new sharp bound on the SE:
+
+```{r}
+summarise_mod <- function(mod, dat, treat_var = "treat") {
+  mod |>
+    tidy() |>
+    filter(term == treat_var) |>
+    mutate(
+      se_sharp = sharpvar(resid(mod), dat$treat, upper = TRUE) |> sqrt(),
+      df = df.residual(mod)
+    ) |>
+    rename(se_classic = std.error) |>
+    select(-c(statistic, p.value)) |>
+    pivot_longer(
+      cols = starts_with("se_"),
+      names_prefix = "se_",
+      names_to = "type",
+      values_to = "se"
+    ) |>
+    mutate(ci_lower = estimate + qt(.05/2, df) * se,
+           ci_upper = estimate + qt(1 - (.05/2), df) * se)
+}
+```
+
+
+The pipeline we will replicate a few thousand times:
+
+```{r}
+one_sim <- function(popn_dat) {
+  one_trial <- popn_dat |>
+    completely_randomiser() |>
+    realise_potential("y", y0, y1, treat)
+  
+  the_mod <- lm(y ~ treat, data = one_trial)
+  
+  summarise_mod(the_mod, one_trial)
+}
+```
+
+
+
+Off we go:
+
+```{r}
+tic()
+res <- replicate(10000, one_sim(sim_dat), simplify = FALSE) |> list_rbind()
+toc()
+```
+
+Now what's the coverage like?
+
+
+```{r}
+tallied_res <- res |>
+  mutate(truth = trueSATE,
+         covered = between(truth, ci_lower, ci_upper)) |>
+  group_by(type) |>
+  summarise(`proportion 95% CI coverage` = mean(covered))
+tallied_res
+```
+
+```{r include=FALSE}
+gimme_res <- function(which) {
+  the_prop <- tallied_res |> filter(type == which) |> pull(2)
+  round(100 * the_prop,2)
+}
+```
+
+We see that the classic (and conservative) 95% confidence interval covers the true SATE `r gimme_res("classic")`% of the time whereas Mikhaeil and Green's improved interval gives us `r gimme_res("sharp")`% coverage.
+
+
+
+
+## References
+
+Aronow, P. M., Green, D. P., & Lee, D. K. K. (2014). [Sharp bounds on the variance in randomized experiments](https://www.jstor.org/stable/43556308). Annals of Statistics, 42, 850--871.
+
+Mikhaeil, J. M., & Green, D. P. (2024). [Sharp bounds on the variance of general regression adjustment in randomized experiments](https://arxiv.org/abs/2411.00191). arXiv preprint.
+
+Neyman, J. (1923/1990). [On the application of probability theory to agricultural experiments. Essay on principles. Section 9.](https://www.jstor.org/stable/2245382) _Statistical Science_, _5_, 465--472.
+
+Reichardt, C. S., & Gollob, H. F. (1999). [Justifying the Use and Increasing the Power of a t Test for a Randomized Experiment With a Convenience Sample](https://psycnet.apa.org/doi/10.1037/1082-989X.4.1.117). _Psychological Methods_, _4_, 117--128.
+
