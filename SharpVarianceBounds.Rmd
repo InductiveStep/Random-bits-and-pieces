@@ -1,5 +1,5 @@
 ---
-title: "Sharp variance bounds for SATE: giving Mikhaeil and Green (2024) a test drive"
+title: "Sharp variance bounds for SATE: giving Mikhaeil and Green's (2024) work a test drive"
 author: Andi Fugard
 date: 9 Nov 2024
 output: 
@@ -20,7 +20,7 @@ $$\sqrt{\frac{\sigma_X^2}{n_X} + \frac{\sigma_Y^2}{n_Y}-\left[ \frac{(\sigma_X-\
 
 where $\sigma_X^2$ and $\sigma_Y^2$ are the variances of the two groups, $n_X$ and $n_Y$ are the observed group sample sizes, and $N$ is the total sample (the finite population) size. The problem is $\rho$, the unobservable correlation between treat and control outcomes for each participant.
 
-This problem was pointed out by Neyman (1923/1990). Reichardt and Gollob (1999) independently rediscovered the problem and suggested a way to get a less conservative standard error based on the reliability of the outcome measure. This gives an upper bound on the correlation.  Aronow, Green, and Lee (2014) proved a result that puts bounds on the correlation based on the observed marginal distribution of outcomes. They also helpfully provided R code to do the sums; however, this approach only works for a model without any covariates.
+This problem was pointed out by Neyman (1923/1990). Reichardt and Gollob (1999) independently rediscovered the problem and suggested a way to get a less conservative standard error based on the reliability of the outcome measure, which gives an upper bound on the correlation.  Aronow, Green, and Lee (2014) proved a result that puts bounds on the correlation based on the observed marginal distribution of outcomes. They also helpfully provided R code to do the sums; however, this approach only works for a model without any covariates.
 
 I'm excited by a new preprint by Mikhaeil and Green (2024) that extends the approach to models with covariates and again provides R code, in the {[sharpvar](https://github.com/JonasMikhaeil/SharpVarianceBounds)} package (currently on GitHub). Let's give it a go.
 
