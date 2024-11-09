@@ -127,7 +127,7 @@ one_sim <- function(popn_dat) {
     completely_randomiser() |>
     realise_potential("y", y0, y1, treat)
   
-  the_mod <- lm(y ~ treat, data = one_trial)
+  the_mod <- lm(y ~ treat + x, data = one_trial)
   
   summarise_mod(the_mod, one_trial)
 }
