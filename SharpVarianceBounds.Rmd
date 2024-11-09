@@ -26,7 +26,7 @@ I'm excited by a new preprint by Mikhaeil and Green (2024) that extends the appr
 
 ## Simulate data
 
-```{r include=FALSE}
+```{r}
 #devtools::install_github("JonasMikhaeil/SharpVarianceBounds")
 library(conflicted)
 library(sharpvar)
