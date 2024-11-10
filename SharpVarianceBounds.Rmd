@@ -12,7 +12,7 @@ Most randomised controlled trials (RCTs) use non-probability samples and the goa
 
 There's still an inferential problem, even with the finite sample. SATE is the average of each individual's treatment effect (TEs), which is defined as the difference between the individual's potential outcome following treatment and their potential outcome following control. However, only one of those two potential outcomes is realised for an individual, depending on whether they were randomised to treatment or control.
 
-The standard ANCOVA-style way to estimate SATE is to regress the outcome on treatment group and covariates. This yields an unbiased estimate of the SATE; however, the standard error is a little too big, which means the confidence interval is a little too wide. The reason for this is that the correct standard error depends on the correlation between potential outcomes, but we cannot estimate a correlation between two variables since each trial participant only gives us one of the two values we wish to correlate.
+The standard ANCOVA-style way to estimate SATE is to regress the outcome on treatment group and covariates. This yields an unbiased estimate of the SATE; however, the standard error is a little too big, which means the confidence interval is a little too wide. The reason for this is that the correct standard error depends on the correlation between potential outcomes, but we cannot estimate this correlation since each trial participant only gives us one of the two values we wish to correlate.
 
 Here's the SE for a test without covariates (Reichardt & Gollob, 1999):
 
@@ -164,7 +164,7 @@ gimme_res <- function(which) {
 
 We see that the classic (and conservative) 95% confidence interval covers the true SATE `r gimme_res("classic")`% of the time whereas Mikhaeil and Green's improved interval gives us `r gimme_res("sharp")`% coverage.
 
-It worked, the interval is a bit closer to the 95% target!
+It worked, the interval is a tiny bit closer to the 95% target!
 
 
 ## References
