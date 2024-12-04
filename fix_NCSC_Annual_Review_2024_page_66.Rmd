@@ -1,0 +1,78 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+
+```{r}
+dat <- read.csv(
+  text = "let	year_2023	vulnerability	year_2024
+A.	49.61	Cross-site Scripting (XSS) - Reflected	33.99
+B.	14.27	Information Disclosure	18.50
+C.	11.52	Open Redirect	11.55
+D.	4.45	Path Traversal	6.69
+E.	4.32	Code Injection	6.56
+F.	3.80	Improper Access Control - Generic	5.64
+G.	3.27	Privilege Escalation	4.59
+H.	3.27	Information Exposure Through Directory Listing	4.59
+I.	3.01	SQL Injection	4.20
+J.	2.49	Cross-site Scripting (XSS) - Generic	3.67",
+sep = "\t"
+) |>
+  select(vulnerability, year_2023, year_2024) |>
+  mutate(diff = year_2024 - year_2023)
+
+
+dat_long <- dat |>
+  select(-diff) |>
+  pivot_longer(
+    cols = starts_with("year_"),
+    names_prefix = "year_",
+    names_to = "year",
+    values_to = "perc"
+  ) |>
+  mutate(vulnerability = as_factor(vulnerability))
+dat_long
+```
+
+
+```{r}
+sorted <- dat_long |>
+  filter(year == "2024") |>
+  arrange(perc)
+```
+
+```{r}
+dat_long <- dat_long |>
+  mutate(vulnerability = factor(vulnerability, levels = sorted$vulnerability))
+```
+
+
+
+
+
+
+```{r dpi = 300}
+dat_long |>
+  ggplot() +
+  aes(y = vulnerability, x = perc, shape = year, colour = year) +
+  geom_point(size = 2) +
+  labs(
+    y = NULL,
+    shape = "Year",
+    colour = "Year",
+    x = "Percentage",
+    title = "Breakdown of top 10 (2023/24)"
+  ) +
+  theme_light() +
+  scale_colour_manual(values=c("#4357ad", "#48A9A6")) +
+  xlim(0, NA)
+```
+
