@@ -1,38 +1,101 @@
 ---
 title: "Difference-in-differences (diff-in-diffs) experiments"
-output: html_notebook
+author: Andi Fugard
+date: 22 Dec 2024
+output: 
+  html_notebook: 
+    code_folding: none
 ---
 
-```{r}
-library(DRDID)
+Attempt to replicate Callaway and Sant’Anna (2021).
+
+Get libraries loaded:
+
+```{r include=FALSE}
+library(tidyverse)
+library(did)
 ```
 
-Got the data from https://psantanna.com/DRDID/ 
-
+The example dataset supplied with {did}:
 
 ```{r}
-nsw_long
+dat <- mpdta  # In case I wanted to change anything...
+head(dat)
+```
+
+Estimate ATT for each group and time:
+
+```{r rows.print = 20}
+did_mod <- att_gt(
+  yname = "lemp",
+  gname = "first.treat",
+  control_group = "notyettreated",
+  idname = "countyreal",
+  tname = "year",
+  data = dat,
+  est_method = "reg",
+  base_period = "varying"
+)
+
+did_mod
 ```
 
 
+Now my attempt, initially focussed on the estimates. Standard errors can come later!
+
+What made sense:
+
+* We're sweeping along times and groups (the year when a unit is first treated), building the canonical 2×2 datasets and estimating the usual TWFE model as we zoom along.
+
+Here's what tripped me up:
+
+* _att_gt_ treats group = 0 as never treated. A better choice might have been any number greater than the maximum time (e.g., year) in the dataset.
+* As we sweep along and build the 2 × 2 datasets, we consider a unit "treated" if it's ever treated and in the second time point, i.e., so we can check for baseline trends.
+* If we are still in the untreated phase, the comparison time point is one before the current time point. If we are in the treated phase, then the comparison time point is the one just before when the unit first received treatment.
+* Also a bit of silliness with how I setup the fixed effect model: I tried to include a main effect of the treatment group; however, that's perfectly correlated with the unit fixed effects, obvs.
 
 ```{r}
-eval_lalonde_cps <- subset(nsw_long, nsw_long$treated == 0 | nsw_long$sample == 2)
+ATT_group_time <- function(the_group, the_year) {
+  # The first time point we choose as we go depends on whether
+  # the unit is treated in this "canonical" 2×2 dataset
+  comparision_year <- ifelse(the_year < the_group,
+                             the_year - 1,
+                             the_group - 1)
+  
+  this_dat <- dat |>
+    mutate(treat = as.numeric(first.treat == the_group),
+           time  = as.numeric(year == the_year)) |>
+    filter(treat |                # ever treated (current group)
+           first.treat == 0 |     # never treated
+           year < first.treat) |> # not yet treated
+    filter(year %in% c(comparision_year, the_year))
+  
+  mod <- lm(lemp ~ 0 + factor(countyreal) + time + time:treat,
+            data = this_dat)
+  summary(mod) |>
+    tidy() |>
+    filter(term == "time:treat") |>
+    mutate(group = the_group, .before = "term") |>
+    mutate(year = the_year, .before = "term") |>
+    rename(my_estimate = estimate) |>
+    select(-term)
+}
 ```
 
+Now zap the whole dataset and compare with {did}'s estimates.
 
-```{r}
-library(lme4)
+```{r rows.print = 20}
+res <- map2(did_mod$group, did_mod$t, ATT_group_time) |>
+  bind_rows() |>
+  mutate(did_estimate = did_mod$att, .after = "my_estimate") |>
+  mutate(correct = abs(my_estimate - did_estimate) < 1e-6, .after = "did_estimate")
+res
 ```
 
-
-```{r}
-out <- lmer(re ~ (1|id) + (year * experimental) + age + educ + black + married + nodegree + hisp + re74,
-             data = eval_lalonde_cps)
-fixef(out)["year:experimental"]
-```
+I'm going to worry about the standard errors another day.
 
 
+### References
 
-
+Callaway, B., & Sant’Anna, P. H. C. (2021). [Difference-in-Differences with multiple time periods](https://doi.org/10.1016/j.jeconom.2020.12.001). Journal of Econometrics, 225(2), 200–230. 
 
