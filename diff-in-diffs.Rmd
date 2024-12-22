@@ -11,7 +11,7 @@ Attempt to replicate Callaway and Sant’Anna (2021).
 
 Get libraries loaded:
 
-```{r include=FALSE}
+```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(did)
 ```
@@ -47,7 +47,7 @@ What made sense:
 
 * We're sweeping along times and groups (the year when a unit is first treated), building the canonical 2×2 datasets and estimating the usual TWFE model as we zoom along.
 
-Here's what tripped me up:
+Here's what initially tripped me up:
 
 * _att_gt_ treats group = 0 as never treated. A better choice might have been any number greater than the maximum time (e.g., year) in the dataset.
 * As we sweep along and build the 2 × 2 datasets, we consider a unit "treated" if it's ever treated and in the second time point, i.e., so we can check for baseline trends.
