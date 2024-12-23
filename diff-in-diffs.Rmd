@@ -205,7 +205,7 @@ res_se |>
   mutate(se_ratio = pooled_se / did_se)
 ```
 
-That works for the estimates(!), but not quite the SEs (still surprised they are that close). There's only one ATT(g, t) for group 2007, so I don't get why the pooled SE is different to that one observation. But that seems to be a glue. Anyway, time to revisit the paper and peek at the [package code](https://github.com/bcallaway11/did).
+That works for the estimates(!), but not quite the SEs (still surprised they are that close). There's only one ATT(g, t) for group 2007, so I don't get why the pooled SE is different to the SE for that one estimate. But that seems to be a clue. Anyway, time to revisit the paper and peek at the [package code](https://github.com/bcallaway11/did).
 
 
 ### References
