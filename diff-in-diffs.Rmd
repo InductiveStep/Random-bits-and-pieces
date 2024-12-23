@@ -1,7 +1,7 @@
 ---
 title: "Difference-in-differences (diff-in-diffs) experiments"
 author: Andi Fugard
-date: 22 Dec 2024
+date: 23 Dec 2024
 output: 
   html_notebook: 
     code_folding: none
@@ -14,6 +14,8 @@ Get libraries loaded:
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(did)
+library(sandwich)
+library(lmtest)
 ```
 
 The example dataset supplied with {did}:
@@ -23,7 +25,7 @@ dat <- mpdta  # In case I wanted to change anything...
 head(dat)
 ```
 
-Estimate ATT for each group and time:
+Estimate ATT(g, t) for each group _g_ and time _t_:
 
 ```{r rows.print = 20}
 did_mod <- att_gt(
@@ -43,14 +45,14 @@ did_mod
 
 Now my attempt, initially focussed on the estimates. Standard errors can come later!
 
-What made sense:
+What made intuitive sense:
 
 * We're sweeping along times and groups (the year when a unit is first treated), building the canonical 2×2 datasets and estimating the usual TWFE model as we zoom along.
 
 Here's what initially tripped me up:
 
 * _att_gt_ treats group = 0 as never treated. A better choice might have been any number greater than the maximum time (e.g., year) in the dataset.
-* As we sweep along and build the 2 × 2 datasets, we consider a unit "treated" if it's ever treated and in the second time point, i.e., so we can check for baseline trends.
+* As we sweep along and build the 2×2 datasets, we consider a unit "treated" if it's ever treated and in the second time point, i.e., so we can check for baseline trends.
 * If we are still in the untreated phase, the comparison time point is one before the current time point. If we are in the treated phase, then the comparison time point is the one just before when the unit first received treatment.
 * Also a bit of silliness with how I setup the fixed effect model: I tried to include a main effect of the treatment group; however, that's perfectly correlated with the unit fixed effects, obvs.
 
@@ -66,8 +68,8 @@ ATT_group_time <- function(the_group, the_year) {
     mutate(treat = as.numeric(first.treat == the_group),
            time  = as.numeric(year == the_year)) |>
     filter(treat |                # ever treated (current group)
-           first.treat == 0 |     # never treated
-           year < first.treat) |> # not yet treated
+           first.treat == 0 |     # never treated (weird convention of {did})
+           year < first.treat) |> # not yet treated (other groups)
     filter(year %in% c(comparision_year, the_year))
   
   mod <- lm(lemp ~ 0 + factor(countyreal) + time + time:treat,
@@ -77,7 +79,7 @@ ATT_group_time <- function(the_group, the_year) {
     filter(term == "time:treat") |>
     mutate(group = the_group, .before = "term") |>
     mutate(year = the_year, .before = "term") |>
-    rename(my_estimate = estimate) |>
+    rename(my_est = estimate) |>
     select(-term)
 }
 ```
@@ -87,12 +89,123 @@ Now zap the whole dataset and compare with {did}'s estimates.
 ```{r rows.print = 20}
 res <- map2(did_mod$group, did_mod$t, ATT_group_time) |>
   bind_rows() |>
-  mutate(did_estimate = did_mod$att, .after = "my_estimate") |>
-  mutate(correct = abs(my_estimate - did_estimate) < 1e-6, .after = "did_estimate")
-res
+  mutate(did_est = did_mod$att, .after = "my_est") |>
+  mutate(correct = abs(my_est - did_est) < 1e-6, .after = "did_est")
+stopifnot(all(res$correct))
+res |> select(group, year, my_est, did_est, correct)
 ```
 
+Hurrah - it worked!
+
 I'm going to worry about the standard errors another day.
+
+
+### Another day: SEs
+
+Mild edit of the code above, with clustered standard errors:
+
+```{r}
+ATT_group_time_SE <- function(the_group, the_year) {
+  # The first time point we choose as we go depends on whether
+  # the unit is treated in this "canonical" 2×2 dataset
+  comparision_year <- ifelse(the_year < the_group,
+                             the_year - 1,
+                             the_group - 1)
+  
+  this_dat <- dat |>
+    mutate(treat = as.numeric(first.treat == the_group),
+           time  = as.numeric(year == the_year)) |>
+    filter(treat |                # ever treated (current group)
+           first.treat == 0 |     # never treated (weird convention of {did})
+           year < first.treat) |> # not yet treated (other groups)
+    filter(year %in% c(comparision_year, the_year))
+  
+  mod <- lm(lemp ~ factor(countyreal) + time + time:treat,
+            data = this_dat)
+  # coeftest and vcovCL do the SE work:
+  coeftest(mod, vcov = vcovCL, type = "HC1", cluster = ~ countyreal) |>
+    tidy() |>
+    filter(term == "time:treat") |>
+    mutate(group = the_group, .before = "term") |>
+    mutate(year = the_year, .before = "term") |>
+    mutate(n = nrow(this_dat)) |>
+    rename(my_est = estimate, my_se = std.error) |>
+    select(-term)
+}
+```
+
+
+Have a look:
+
+```{r rows.print = 20}
+res_se <- map2(did_mod$group, did_mod$t, ATT_group_time_SE) |>
+  bind_rows() |>
+  mutate(did_est = did_mod$att, .after = "my_est") |>
+  mutate(did_se = did_mod$se, .after = "my_se") |>
+  mutate(correct_est = abs(my_est - did_est) < 1e-6,
+         .after = "did_est") |>
+  mutate(diff_in_ses = my_se - did_se,
+         .after = "did_se")
+stopifnot(all(res_se$correct_est))
+res_se |> select(group, year, my_se, did_se, diff_in_ses)
+```
+
+HC1 SEs are close, but it's doing something else. Time to peek at the [package code](https://github.com/bcallaway11/did) (another day).
+
+
+### How about pooling the ATT(g,t)s?
+
+
+Here are {did}'s estimates
+
+```{r}
+did_agg_group <- aggte(did_mod, type = "group")
+```
+
+
+First go, using {did}'s SEs to weight ($1/\mathit{SE}^2$):
+
+```{r}
+pool_estimates_se <- function(ests, ses) {
+  vars <- ses^2
+  weights <- 1/vars
+  data.frame(
+    pooled_est = sum(ests * weights) / sum(weights),
+    pooled_se  = sqrt(1/sum(weights))
+  )
+}
+
+res_se |>
+  filter(year >= group) |>
+  group_by(group) |>
+  summarise(pool_estimates_se(my_est, did_se)) |>
+  mutate(did_agg_es = did_agg_group$att.egt, .after = "pooled_est") |>
+  mutate(did_se = did_agg_group$se.egt, .after = "pooled_se")
+```
+
+Nope, those estimates and SEs are both different.
+
+Second try, a guess: just average the ATT(g,t) estimates across the t's, without any weights.
+
+```{r}
+pool_estimates_naive <- function(ests, ses, ns) {
+  data.frame(
+    pooled_est = mean(ests),
+    pooled_se  = mean(ses),
+    n_t = length(ests)
+  )
+}
+
+res_se |>
+  filter(year >= group) |>
+  group_by(group) |>
+  summarise(pool_estimates_naive(my_est, did_se, n)) |>
+  mutate(did_agg_es = did_agg_group$att.egt, .after = "pooled_est") |>
+  mutate(did_se = did_agg_group$se.egt, .after = "pooled_se") |>
+  mutate(se_ratio = pooled_se / did_se)
+```
+
+That works for the estimates(!), but not quite the SEs (still surprised they are that close). There's only one ATT(g, t) for group 2007, so I don't get why the pooled SE is different to that one observation. But that seems to be a glue. Anyway, time to revisit the paper and peek at the [package code](https://github.com/bcallaway11/did).
 
 
 ### References
