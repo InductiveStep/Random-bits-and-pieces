@@ -1,0 +1,16 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(christmas)
+xmastreeshape(shape = "piramidal", year = 2025,
+ nballs = 20, ballscolor = c("sienna2", "yellow2", "red"))
+```
+
+
+```{r}
+xmascaganer(year = 2025)
+```
+
