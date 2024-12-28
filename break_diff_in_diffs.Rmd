@@ -1,0 +1,220 @@
+---
+title: "A contrived example to break diff-in-diffs"
+author: "Andi Fugard"
+date: "28 December 2024"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+Include packages:
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(did)
+```
+
+
+
+First setup the true scores for each individual:
+
+```{r}
+set.seed(42)
+true_outcomes <- data.frame(id = 1:8000) |>
+  mutate(true = rnorm(n(), 0, 1))
+```
+
+Look at a random sample:
+
+```{r}
+true_outcomes |>
+  mutate(true = round(true, 2)) |>
+  slice_sample(n = 10)
+```
+
+
+Now the measured outcomes, which are noisy version of the true score:
+
+```{r}
+gen_obs <- function(id, true, sd, n) {
+  data.frame(time = 1:n) |>
+    mutate(id = id, .before = time) |>
+    mutate(true = true,
+           y = true + rnorm(n, 0, sd))
+}
+
+sim_dat <- pmap_df(true_outcomes,
+                   \(id, true) gen_obs(id = id, true = true, sd = 1, n = 4)) |>
+  mutate(y = scale(y) |> as.numeric())
+```
+
+Look at a random sample:
+
+```{r}
+sim_dat |>
+  mutate(true = round(true, 2),
+         y = round(y, 2)) |>
+  slice_sample(n = 10)
+```
+
+We have standardised y:
+
+```{r}
+mean(sim_dat$y) |> round(2)
+sd(sim_dat$y) |> round(2)
+```
+
+The correlations:
+
+```{r}
+sim_dat |>
+  pivot_wider(names_from = time, values_from = y) |>
+  select(-id) |>
+  cor() |>
+  round(1)
+```
+
+Each measurement is correlated about .7 with the (unmeasurable) true score and the measurements are correlated around .5 with each other.
+
+Now, select people for the intervention if their scores 1 SD below the population mean or less for periods prior to the intervention period.
+
+```{r}
+ids <- list()
+
+ids[[3]] <- sim_dat |>
+  filter(time %in% 1:2 & y < -1) |>
+  pull(id) |>
+  unique() |>
+  sample(size = 500)
+
+ids[[4]] <- sim_dat |>
+  filter(time %in% 1:3 & y < -1) |>
+  pull(id) |>
+  setdiff(ids[[3]]) |>
+  unique() |>
+  sample(size = 500)
+
+ids[[5]] <- setdiff(sim_dat$id, c(ids[[3]], ids[[4]])) |>
+  sample(size = 500)
+```
+
+Build a dataset mapping ID to group. {did} treats group = 0 as never-treated.
+
+```{r}
+group_ids <- list(
+  data.frame(id = ids[[3]], group = 3),
+  data.frame(id = ids[[4]], group = 4),
+  data.frame(id = ids[[5]], group = 0)) |>
+  bind_rows()
+stopifnot((group_ids |> duplicated() |> sum()) == 0)
+```
+
+Join into the main dataset and drop missings:
+
+```{r}
+sim_dat <- sim_dat |>
+  left_join(group_ids) |>
+  na.omit()
+```
+
+Here are the means by group:
+
+```{r rows.print = 20}
+sim_dat |>
+  group_by(group, time) |>
+  summarise(mean_y = mean(y) |> round(1),
+            n = n()) |>
+  mutate(treat = time >= group & group != 0, .after = time)
+```
+
+
+A couple of plots:
+
+```{r warning=FALSE}
+curvy_plot <- sim_dat |>
+  mutate(group = factor(group)) |>
+  ggplot() +
+  aes(x = time, y = y, colour = group) +
+  geom_smooth(method = "loess", formula = y ~ x)
+curvy_plot + 
+  geom_jitter(alpha = .5, width = .1, size = .1)
+```
+
+Zoom in and remove the points:
+
+```{r warning=FALSE}
+curvy_plot
+```
+
+The never treated group (0) cruise along a little above the population mean (0 by design) with no apparent change. The means of group 3 and 4 are much lower (as expected, since we select them to be 1 SD below the mean or less), apparently increasing as the intervention is introduced.
+
+
+Let's see what {did} makes of this:
+
+```{r}
+did_mod <- att_gt(
+  yname = "y",
+  gname = "group",
+  control_group = "notyettreated",
+  idname = "id",
+  tname = "time",
+  data = sim_dat,
+  est_method = "reg",
+  base_period = "varying"
+)
+did_mod
+```
+
+
+```{r}
+did_mod |>
+  ggdid()
+```
+
+
+```{r}
+aggte(did_mod, type = "group") |>
+  ggdid()
+```
+
+
+
+```{r}
+aggte(did_mod, type = "dynamic") |>
+  ggdid()
+```
+
+Would we conclude that the intervention was effective if we didn't know how the data were generated...?
+
+What happens if we remove the never-treated group?
+
+
+```{r}
+sim_dat_sometimes_treated <- sim_dat |>
+  filter(group != 0)
+```
+
+
+```{r}
+did_mod_2 <- att_gt(
+  yname = "y",
+  gname = "group",
+  control_group = "notyettreated",
+  idname = "id",
+  tname = "time",
+  data = sim_dat_sometimes_treated,
+  est_method = "reg",
+  base_period = "varying"
+)
+
+did_mod_2
+```
+
+
+```{r}
+did_mod_2 |>
+  ggdid()
+```
+
+
