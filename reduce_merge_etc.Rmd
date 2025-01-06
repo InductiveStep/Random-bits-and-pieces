@@ -32,14 +32,14 @@ list(A, B, C) |>
   reduce(full_join, by = "id")
 ```
 
-Using only {base}:
+Using only {base} (mild edit of David Souza's [reply](https://www.linkedin.com/feed/update/urn:li:activity:7281670805879459840?commentUrn=urn%3Ali%3Acomment%3A%28activity%3A7281670805879459840%2C7281814659072970753%29&dashCommentUrn=urn%3Ali%3Afsd_comment%3A%287281814659072970753%2Curn%3Ali%3Aactivity%3A7281670805879459840%29)):
 
 ```{r}
 list(A, B, C) |>
-  Reduce(\(x, y) merge(x, y, by = "id", all = T), x = _)
+  Reduce(\(x, y) merge(x, y, by = "id", all = TRUE), x = _)
 ```
 
-Getting silly -- this all reminded me of Haskell's _foldr1_, implemented (without the Currying) as:
+Getting silly -- this all reminded me of Haskell's [foldr1](https://hackage.haskell.org/package/base-4.21.0.0/docs/Prelude.html#v:foldr1), implemented (without the Currying) as:
 
 ```{r}
 foldr1 <- \(f, xs) {
@@ -49,7 +49,7 @@ foldr1 <- \(f, xs) {
     f(xs[[1]], foldr1(f, tail(xs, length(xs) - 1)))
 }
 
-foldr1(\(x, y) merge(x, y, by = "id", all = T), list(A, B, C))
+foldr1(\(x, y) merge(x, y, by = "id", all = TRUE), list(A, B, C))
 ```
 
 Here is an easier example:
