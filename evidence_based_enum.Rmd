@@ -1,0 +1,67 @@
+---
+title: "Enumerating variations on evidence-based policymaking"
+author: Andi Fugard
+date: 9 Jan 2025
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+That feeling when you want to see the 648 permutations of the words "evidence", "based", "policy", and "making", conjoined by space, hyphen, or just stuck together without either to make a closed compound word.
+
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+
+```{r}
+word_orders <- function(words) {
+  stopifnot(length(words) > 0)
+  
+  if (length(words) == 1) {
+    res <- list(words)
+  }
+  else {
+    res <- list()
+    for (i in seq_along(words)) {
+      next_list <- word_orders(words[-i])
+      
+      for (ws in next_list) {
+        vec <- c(words[i], "-", ws)
+        res <- c(res, list(vec))
+      }
+      
+      for (ws in next_list) {
+        vec <- c(words[i], " ", ws)
+        res <- c(res, list(vec))
+      }
+      
+      for (ws in next_list) {
+        vec <- c(words[i], ws)
+        res <- c(res, list(vec))
+      }
+    }
+  }
+  
+  res
+}
+```
+
+
+```{r}
+res <- word_orders(c("evidence", "based", "policy", "making"))
+length(res)
+```
+
+```{r}
+res |>
+  map_chr(\(x) paste(x, collapse = "")) |>
+  walk(\(x) {
+    cat(x)
+    cat("\n")
+  })
+```
+
+
+
