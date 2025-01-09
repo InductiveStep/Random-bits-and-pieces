@@ -28,18 +28,11 @@ word_orders <- function(words) {
       next_list <- word_orders(words[-i])
       
       for (ws in next_list) {
-        vec <- c(words[i], "-", ws)
-        res <- c(res, list(vec))
-      }
-      
-      for (ws in next_list) {
-        vec <- c(words[i], " ", ws)
-        res <- c(res, list(vec))
-      }
-      
-      for (ws in next_list) {
-        vec <- c(words[i], ws)
-        res <- c(res, list(vec))
+        hyphen   <- c(words[i], "-", ws)
+        space    <- c(words[i], " ", ws)
+        compound <- c(words[i], ws)
+        
+        res <- c(res, list(hyphen, space, compound))
       }
     }
   }
@@ -50,18 +43,36 @@ word_orders <- function(words) {
 
 
 ```{r}
-res <- word_orders(c("evidence", "based", "policy", "making"))
+res <- word_orders(c("evidence", "based", "policy", "making")) |>
+  map_chr(\(x) paste(x, collapse = ""))
 length(res)
 ```
 
 ```{r}
-res |>
-  map_chr(\(x) paste(x, collapse = "")) |>
-  walk(\(x) {
-    cat(x)
-    cat("\n")
-  })
+res
 ```
 
 
+
+Karl Ove Hufthammer [offers](https://sciences.social/@huftis@toot.io/113799998896606542) this neat non-recursive solution, using {gtools}, {tidyr}, and {gdata}:
+
+```{r}
+words <- c("evidence", "based", "policy", "making")
+seps <- c("-", " ", "")
+n_words <- length(words)
+n_seps <- length(seps)
+perm_words <- gtools::permutations(n_words, n_words, words)
+perm_seps <- gtools::permutations(n_seps, n_words - 1, seps, repeats.allowed = TRUE)
+d <- tidyr::expand_grid(perm_words, perm_seps)
+d2 <- gdata::interleave(t(d[1]), rbind(t(d[2]), ""))
+
+res2 <- apply(d2, 2, paste0, collapse = "")
+```
+
+
+Same result:
+
+```{r}
+all(sort(res) == sort(res2))
+```
 
