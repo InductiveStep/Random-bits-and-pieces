@@ -1,0 +1,73 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+
+
+```{r}
+library(tidyverse)
+library(ggrepel)
+library(ggsci)
+```
+
+
+Data from Pickering, S. D., & Tanaka, S. (2025). A taste for deprivation? Fish, chips and leaving the European Union. Geoforum, 104236, available [here](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/2EFUTU).
+
+
+```{r}
+dat <- read.csv("fish_chips_brexit.csv")
+head(dat)
+```
+
+
+
+```{r}
+dat_to_label <- dat |>
+  filter((FishandChipShopsandRestaurantsPercent > 15 & brexitPercent < 30) |
+           FishandChipShopsandRestaurantsPercent == max(FishandChipShopsandRestaurantsPercent)
+  )
+
+dat |>
+  ggplot() +
+  aes(
+    x = FishandChipShopsandRestaurantsPercent,
+    y = brexitPercent,
+    colour = country,
+    group = country
+  ) +
+  geom_point(size = .7) +
+  labs(
+    x = "Percentage of fish and chip shops",
+    y = "Percentage of people voting Leave",
+    colour = "Country",
+    title = "Fish and chips and Brexit",
+    caption = "Reanalysis of constituency-level data compiled by Pickering and Tanaka (2025)"
+  ) +
+  geom_text_repel(
+    data = dat_to_label,
+    aes(label = cName),
+    size = 3.5,
+    box.padding = unit(1, "lines"),
+    point.padding = unit(.4, "lines"),
+    show.legend = F,
+    min.segment.length = 0,
+    arrow = arrow(length = unit(0.015, "npc"))
+  ) +
+  geom_smooth(
+    se = FALSE,
+    span = 1,
+    method = "loess",
+    formula = y ~ x
+  ) +
+  theme_grey() +
+  scale_color_npg()
+```
+
+
+
+
+
