@@ -49,3 +49,6 @@ These are incomplete code fragments:
 [Explore the impact of prior distributions in a simple single predictor Bayesian regression model](https://inductivestep.github.io/Random-bits-and-pieces/bayesian_regression_playing.nb.html)
 
 [Fish and chips and Brexit](https://inductivestep.github.io/Random-bits-and-pieces/fish_chips_brexit.html)
+
+[Green tea]([https://inductivestep.github.io/Random-bits-and-pieces/green_tea.html](https://inductivestep.github.io/Random-bits-and-pieces/green_tea.html)) -- redrawing a graph from Robert Grant's LondonR talk in July 2025
+
