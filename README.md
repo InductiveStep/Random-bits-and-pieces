@@ -50,5 +50,5 @@ These are incomplete code fragments:
 
 [Fish and chips and Brexit](https://inductivestep.github.io/Random-bits-and-pieces/fish_chips_brexit.html)
 
-[Green tea]([https://inductivestep.github.io/Random-bits-and-pieces/green_tea.html](https://inductivestep.github.io/Random-bits-and-pieces/green_tea.html)) -- redrawing a graph from Robert Grant's LondonR talk in July 2025
+[Green tea](https://inductivestep.github.io/Random-bits-and-pieces/green_tea.html](https://inductivestep.github.io/Random-bits-and-pieces/green_tea.html) - redrawing a graph from Robert Grant's LondonR talk in July 2025
 
