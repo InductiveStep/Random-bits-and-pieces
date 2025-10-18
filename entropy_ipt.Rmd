@@ -1,0 +1,111 @@
+---
+title: "Entropy balancing versus inverse probability weighting"
+author: Andi Fugard
+date: 18 Oct 2025
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+```{r}
+library(WeightIt)
+library(tidyverse)
+```
+
+
+```{r}
+data("lalonde", package = "cobalt")
+```
+
+
+```{r}
+W_ipt <- weightit(treat ~ age + educ + married +
+                  nodegree + re74, data = lalonde,
+                method = "ipt", estimand = "ATT")
+W_ebal <- weightit(treat ~ age + educ + married +
+                  nodegree + re74, data = lalonde,
+                method = "ebal", estimand = "ATT")
+```
+
+
+```{r}
+summary(W_ipt)
+```
+
+
+```{r}
+summary(W_ebal)
+```
+
+
+
+```{r}
+cobalt::bal.tab(W_ipt)
+```
+
+
+```{r}
+cobalt::bal.tab(W_ebal)
+```
+
+
+```{r}
+weight_comp <- tibble(
+  ipt     = W_ipt$weights,
+  entropy = W_ebal$weights,
+  treat   = lalonde$treat
+)
+```
+
+
+```{r}
+weight_comp |>
+  filter(treat == 0) |>
+  ggplot() +
+  aes(x = entropy, y = ipt) |>
+  geom_point() +
+  labs(x = "Entropy balancing",
+       y = "Inverse probability tilting (logit link)",
+       title = "Comparison group ATT weights")
+```
+
+
+
+The weights are perfectly correlated:
+
+
+```{r}
+weight_comp |>
+  filter(treat == 0) |>
+  cor.test(~ ipt + entropy, data = _)
+```
+
+Sample sizes:
+
+```{r}
+lalonde |>
+  group_by(treat) |>
+  tally()
+```
+
+
+```{r}
+weight_comp |>
+  filter(treat == 0) |>
+  pivot_longer(
+    cols = c(entropy, ipt),
+    values_to = "weight",
+    names_to = "method"
+  ) |>
+  group_by(method) |>
+  summarise(
+    mean = mean(weight),
+    sum = sum(weight),
+    sd = sd(weight),
+    ESS = ESS(weight)
+  )
+```
+
+
+So the entropy balancing weights sum to the comparison group sample size and the IPT weights sum to the intervention group sample size.
+
