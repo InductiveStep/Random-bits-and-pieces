@@ -1,5 +1,5 @@
 ---
-title: "Entropy balancing versus inverse probability weighting"
+title: "Entropy balancing versus inverse probability tilting"
 author: Andi Fugard
 date: 18 Oct 2025
 output: 
