@@ -1,0 +1,61 @@
+---
+title: "The (Grace) Bates distribution"
+author: "Andi Fugard"
+date: "20 Nov 2025"
+output:
+  html_document:
+    df_print: paged
+  html_notebook:
+    code_folding: none
+---
+
+Here's a demo of the [Bates distro](https://en.wikipedia.org/wiki/Bates_distribution).
+
+```{r}
+library(tidyverse)
+library(tictoc)
+```
+
+Generate cumulative means of uniform draws.
+
+```{r}
+generate_cumulative_means <- function(n_draws = 10000,
+                                      n_iterations = 10) {
+  tibble(id = 1:n_draws) |>
+    mutate(draws = map(id, ~ runif(n_iterations))) |>
+    unnest(draws) |>
+    group_by(id) |>
+    mutate(iteration = row_number()) |>
+    mutate(cummean = accumulate(draws, ~ .x + .y) / iteration) |>
+    ungroup() |>
+    mutate(iteration = factor(
+      iteration,
+      levels = 1:n_iterations,
+      labels = paste0("Step ", 1:n_iterations)
+    ))
+}
+```
+
+Generate the data.
+
+```{r}
+tic()
+df_means <- generate_cumulative_means(1e6, 6)
+toc()
+```
+
+Make a picture.
+
+```{r fig.height = 5, fig.width = 1.61803398875 * 5}
+ggplot(df_means, aes(x = cummean, fill = iteration)) +
+  geom_histogram(bins = 500) +
+  facet_wrap(~ iteration, scales = "free_y", ncol = 3) +
+  labs(
+    title = "Cumulative means of successive draws from Uniform(0,1)",
+    subtitle = "An illustation of the the (Grace) Bates distribution",
+    x = "",
+    y = "Frequency"
+  ) +
+  theme(legend.position = "none")
+```
+
