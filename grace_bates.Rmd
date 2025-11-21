@@ -11,28 +11,23 @@ output:
 
 Here's a demo of the [Bates distro](https://en.wikipedia.org/wiki/Bates_distribution).
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(tictoc)
 ```
 
-Generate cumulative means of uniform draws.
+Iteratively take samples from the Uniform(0,1) distribution, drawing *n_draws* values each time and repeating this process for *n_iterations*. At each step, compute the mean across the draws obtained so far: begin with the uniform sample, then the mean of two uniform samples, then the mean of three, and so on -- each time averaging across corresponding draws (1 to *n_draws*). 
 
 ```{r}
-generate_cumulative_means <- function(n_draws = 10000,
-                                      n_iterations = 10) {
-  tibble(id = 1:n_draws) |>
-    mutate(draws = map(id, ~ runif(n_iterations))) |>
-    unnest(draws) |>
-    group_by(id) |>
-    mutate(iteration = row_number()) |>
-    mutate(cummean = accumulate(draws, ~ .x + .y) / iteration) |>
+sim_bates_distro <- function(n_draws, n_iterations) {
+  tibble(pos = 1:n_draws) |>
+    mutate(draw = map(pos, ~ runif(n = n_iterations, min = 0, max = 1))) |>
+    unnest(draw) |>
+    group_by(pos) |>
+    mutate(iteration = row_number(),
+           cummean = accumulate(draw, ~ .x + .y) / iteration) |>
     ungroup() |>
-    mutate(iteration = factor(
-      iteration,
-      levels = 1:n_iterations,
-      labels = paste0("Step ", 1:n_iterations)
-    ))
+    mutate(iteration_f = factor(iteration, labels = paste0("Step ", 1:n_iterations)))
 }
 ```
 
@@ -40,19 +35,26 @@ Generate the data.
 
 ```{r}
 tic()
-df_means <- generate_cumulative_means(1e6, 6)
+df_means <- sim_bates_distro(1e6, 6)
 toc()
 ```
 
+This shows the first draw and cumulative averaging:
+
+```{r}
+head(df_means, 6) |>
+  select(pos, iteration, draw, cummean)
+```
+
+
 Make a picture.
 
-```{r fig.height = 5, fig.width = 1.61803398875 * 5}
+```{r fig.height = 5, fig.width = 8}
 ggplot(df_means, aes(x = cummean, fill = iteration)) +
   geom_histogram(bins = 500) +
-  facet_wrap(~ iteration, scales = "free_y", ncol = 3) +
+  facet_wrap(~ iteration_f, scales = "free_y", ncol = 3) +
   labs(
-    title = "Cumulative means of successive draws from Uniform(0,1)",
-    subtitle = "An illustation of the the (Grace) Bates distribution",
+    title = "An illustation of the the (Grace) Bates distribution",
     x = "",
     y = "Frequency"
   ) +
