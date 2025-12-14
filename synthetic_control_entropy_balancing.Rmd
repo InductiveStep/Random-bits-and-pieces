@@ -1,0 +1,197 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidysynth)
+library(tidyverse)
+library(WeightIt)
+library(marginaleffects)
+```
+
+```{r}
+smoking |> glimpse()
+```
+
+
+
+```{r}
+smoking_out <-
+  
+  smoking |>
+  
+  # initial the synthetic control object
+  synthetic_control(outcome = cigsale, # outcome
+                    unit = state, # unit index in the panel data
+                    time = year, # time index in the panel data
+                    i_unit = "California", # unit where the intervention occurred
+                    i_time = 1988, # time period when the intervention occurred
+                    generate_placebos = T # generate placebo synthetic controls (for inference)
+                    ) |>
+  
+  # Generate the aggregate predictors used to fit the weights
+  
+  # average log income, retail price of cigarettes, and proportion of the
+  # population between 15 and 24 years of age from 1980 - 1988
+  generate_predictor(time_window = 1980:1988,
+                     ln_income = mean(lnincome, na.rm = T),
+                     ret_price = mean(retprice, na.rm = T),
+                     youth = mean(age15to24, na.rm = T)) |>
+  
+  # average beer consumption in the donor pool from 1984 - 1988
+  generate_predictor(time_window = 1984:1988,
+                     beer_sales = mean(beer, na.rm = T)) |>
+  
+  # Lagged cigarette sales 
+  generate_predictor(time_window = 1975,
+                     cigsale_1975 = cigsale) |>
+  generate_predictor(time_window = 1980,
+                     cigsale_1980 = cigsale) |>
+  generate_predictor(time_window = 1988,
+                     cigsale_1988 = cigsale) |>
+  
+  
+  # Generate the fitted weights for the synthetic control
+  generate_weights(optimization_window = 1970:1988, # time to use in the optimization task
+                   margin_ipop = .02, sigf_ipop = 7, bound_ipop = 6 # optimizer options
+  ) |>
+  
+  # Generate the synthetic control
+  generate_control()
+```
+
+
+
+
+```{r}
+smoking_out |> plot_trends()
+```
+
+
+
+```{r}
+synth_effects <- smoking_out |>
+  grab_synthetic_control() |>
+  mutate(att = real_y - synth_y)
+synth_effects
+```
+
+
+
+
+
+```{r}
+smoking_wide <- smoking |> select(state, year, cigsale) |>
+  pivot_wider(names_from = year, values_from = cigsale, names_prefix = "cigsale_") |>
+  mutate(treat = as.numeric(state == "California"))
+smoking_wide
+```
+
+
+```{r}
+ave_1980_1988 <- smoking |>
+  filter(year %in% 1980:1988) |>
+  group_by(state) |>
+  summarise(
+    ln_income = mean(lnincome, na.rm = T),
+    ret_price = mean(retprice, na.rm = T),
+    youth     = mean(age15to24, na.rm = T)
+  ) |>
+  ungroup()
+ave_1980_1988
+```
+
+```{r}
+ave_1984_1988 <- smoking |>
+  filter(year %in% 1984:1988) |>
+  group_by(state) |>
+  summarise(beer_sales = mean(beer, na.rm = T)) |>
+  ungroup()
+ave_1984_1988
+```
+
+
+```{r}
+smoking_wide_all <- smoking_wide |>
+  left_join(ave_1980_1988) |>
+  left_join(ave_1984_1988)
+smoking_wide_all
+```
+
+
+```{r}
+names(smoking_wide_all)
+```
+
+
+# ln_income + ret_price + youth + beer_sales
+
+```{r}
+balance_w <- weightit(
+  treat ~ cigsale_1975 + cigsale_1980 + cigsale_1988 + ret_price + youth,
+  data = smoking_wide_all,
+  method = "ebal",
+  estimand = "ATT"
+)
+```
+
+
+
+
+```{r}
+fit_mod <- function(year) {
+  var_name <- paste0("cigsale_", year)
+  the_formula <- paste0(var_name, " ~ treat") |> as.formula()
+  lm_weightit(the_formula, data = smoking_wide, weightit = balance_w) |>
+    avg_comparisons(variables = "treat", newdata = subset(treat == 1)) |>
+    as_tibble() |>
+    mutate(year = year, .before = estimate) |>
+    select(year, estimate, std.error, statistic, p.value)
+}
+```
+
+```{r}
+balance_effects <- 1970:2000 |>
+  map(fit_mod) |>
+  bind_rows()
+```
+
+
+```{r}
+balance_effects
+```
+
+
+
+
+
+```{r}
+for_merge_synth <- synth_effects |>
+  rename(year = time_unit) |>
+  select(year, att) |>
+  mutate(mod = "Synthetic control", .before = "year")
+
+for_merge_balance <- balance_effects |>
+  rename(att = estimate) |>
+  select(year, att) |>
+  mutate(mod = "Entropy balancing", .before = "year")
+
+effect_ests <- bind_rows(for_merge_synth, for_merge_balance)
+
+effect_ests |>
+  ggplot() +
+  aes(x = year, y = att, colour = mod) +
+  geom_point() +
+  geom_line() +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_vline(xintercept = 1988) +
+  theme_minimal() +
+  labs(x = "Year", y = "ATT", colour = NULL)
+```
+
+
+
+
+
+

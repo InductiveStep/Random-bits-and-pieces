@@ -13,6 +13,10 @@ Include packages:
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(did)
+library(WeightIt)
+library(MatchIt)
+library(cobalt)
+library(marginaleffects)
 ```
 
 
@@ -34,7 +38,7 @@ true_outcomes |>
 ```
 
 
-Now the measured outcomes, which are noisy version of the true score:
+Now the measured outcomes, which are noisy versions of the true score:
 
 ```{r}
 gen_obs <- function(id, true, sd, n) {
@@ -75,9 +79,9 @@ sim_dat |>
   round(1)
 ```
 
-Each measurement is correlated about .7 with the (unmeasurable) true score and the measurements are correlated around .5 with each other.
+Each measurement is correlated about .7 with the (unmeasurable) true score and the measurements are correlated around .5 with each other. From here on, we will ignore the true scores and only use measurements.
 
-Now, select people for the intervention if their scores 1 SD below the population mean or less for periods prior to the intervention period.
+Next, select people for the intervention if their scores are 1 SD more more below the population mean for all periods prior to the intervention period.
 
 ```{r}
 ids <- list()
@@ -110,7 +114,7 @@ group_ids <- list(
 stopifnot((group_ids |> duplicated() |> sum()) == 0)
 ```
 
-Join into the main dataset and drop missings:
+Join onto the main dataset and drop missings:
 
 ```{r}
 sim_dat <- sim_dat |>
@@ -118,7 +122,7 @@ sim_dat <- sim_dat |>
   na.omit()
 ```
 
-Here are the means by group:
+Here are the means by group and when each group receives the intervention.
 
 ```{r rows.print = 20}
 sim_dat |>
@@ -174,25 +178,37 @@ did_mod |>
 
 
 ```{r}
-aggte(did_mod, type = "group") |>
+did_mod |>
+aggte(type = "group") |>
   ggdid()
 ```
 
 
 
 ```{r}
-aggte(did_mod, type = "dynamic") |>
+did_mod |>
+  aggte(type = "dynamic") |>
   ggdid()
 ```
 
 Would we conclude that the intervention was effective if we didn't know how the data were generated...?
 
-What happens if we remove the never-treated group?
+
+What happens if we remove the never-treated group? We will only be able to test the effect for group 3 (using group 4 in its pre-intervention phase as control).
 
 
 ```{r}
 sim_dat_sometimes_treated <- sim_dat |>
   filter(group != 0)
+```
+
+
+```{r message=FALSE, warning=FALSE}
+sim_dat_sometimes_treated |>
+  mutate(group = factor(group)) |>
+  ggplot() +
+  aes(x = time, y = y, colour = group) +
+  geom_smooth(method = "loess", formula = y ~ x)
 ```
 
 
@@ -217,4 +233,208 @@ did_mod_2 |>
   ggdid()
 ```
 
+Same issue.
+
+### Alternatives to DID
+
+First setup wide datasets, separately for groups 3 and 4. These have data for one time point (immediate outcomes) and the previous time point measure of the outcome as baseline. 
+
+```{r}
+get_wide <- function(.data, selected_group) {
+  res <-  .data |>
+    filter(time %in% c(selected_group - 1, selected_group)) |>
+    filter(group == 0 | group == selected_group | group > selected_group) |>
+    mutate(treat = as.numeric(group == selected_group),
+           pre_post = ifelse(time == selected_group, "outcome", "baseline")) |>
+    select(-c(time, true)) |>
+    pivot_wider(names_from = pre_post, values_from = y)
+  
+  res
+}
+```
+
+```{r}
+wide_3 <- sim_dat |>
+  get_wide(3)
+wide_4 <- sim_dat |>
+  get_wide(4)
+```
+
+```{r}
+descript <- function(.data) {
+  .data |>
+    group_by(group, treat) |>
+    summarise(baseline = mean(baseline),
+              outcome = mean(outcome)) |>
+    arrange(treat)
+}  
+```
+
+
+```{r}
+wide_3 |>
+  descript()
+```
+
+
+```{r}
+wide_4 |>
+  descript()
+```
+
+A simple regression model works fine for group 3 (finding the null result):
+
+```{r}
+lm_mod_3 <- lm(outcome ~ baseline + treat, data = wide_3)
+summary(lm_mod_3)
+```
+
+It doesn't for group 4, presumably because we are selecting people based on the previous three observations, so the single baseline isn't good enough:
+
+```{r}
+lm_mod_4 <- lm(outcome ~ baseline + treat, data = wide_4)
+summary(lm_mod_4)
+```
+
+
+Try entropy balancing...
+
+```{r}
+ebal_3 <- weightit(treat ~ baseline,
+                  data = wide_3, estimand = "ATT", method = "ebal")
+bal.tab(ebal_3, stats = c("m", "v"), thresholds = c(m = .1)) 
+```
+
+```{r}
+bal.plot(ebal_3, var.name = "baseline", which = "both")
+```
+
+```{r}
+ebal_4 <- weightit(treat ~ baseline,
+                  data = wide_4, estimand = "ATT", method = "ebal")
+```
+
+
+```{r}
+summary(ebal_4)
+```
+
+
+```{r}
+bal.tab(ebal_4, stats = c("m", "v"), thresholds = c(m = .1)) 
+```
+
+
+```{r}
+bal.plot(ebal_4, var.name = "baseline", which = "both")
+```
+
+
+
+```{r}
+ebal_fit_3 <- lm_weightit(outcome ~ treat * baseline,
+                          data = wide_3,
+                          weightit = ebal_3)
+avg_comparisons(ebal_fit_3,
+                variables = "treat",
+                newdata = subset(wide_3, treat == 1) |> select(-group))
+```
+
+Fine, though could be closer to zero...
+
+
+```{r}
+bal.plot(ebal_4, "baseline")
+```
+
+
+```{r}
+ebal_fit_4 <- lm_weightit(outcome ~ treat * baseline,
+                          data = wide_4,
+                          weightit = ebal_4)
+avg_comparisons(ebal_fit_4,
+                variables = "treat",
+                newdata = subset(wide_4, treat == 1) |> select(-group))
+```
+
+And, nope. Still shows an effect for group 4.
+
+What if we weight on the previous three time points...?
+
+
+```{r}
+more_baseline_4 <- sim_dat |>
+  filter(time %in% 1:4) |>
+  filter(group == 0 | group == 4) |>
+  mutate(treat = as.numeric(group == 4)) |>
+  select(-c(true)) |>
+  pivot_wider(names_from = time, values_from = y) |>
+  rename(outcome = `4`,
+         x1 = `1`,
+         x2 = `2`,
+         x3 = `3`)
+
+stopifnot(mean(more_baseline_4$outcome) == mean(wide_4$outcome))
+
+more_baseline_4 |> head()
+```
+
+
+
+```{r}
+loads_dat_ebal_4 <- weightit(treat ~ x1 + x2 + x3,
+                  data = more_baseline_4, estimand = "ATT", method = "ebal")
+bal.tab(loads_dat_ebal_4, stats = c("m", "v"), thresholds = c(m = .1)) 
+```
+
+```{r}
+loads_dat_ebal_4_fit <- lm_weightit(outcome ~ treat * (x1 + x2 + x3),
+                          data = more_baseline_4,
+                          weightit = loads_dat_ebal_4)
+avg_comparisons(loads_dat_ebal_4_fit,
+                variables = "treat",
+                newdata = subset(more_baseline_4, treat == 1) |> select(-group))
+```
+
+It's heading the right direction...
+
+Wonder what a simple regression will do:
+
+```{r}
+simple_ols <- lm(outcome ~ treat + x1 + x2 + x3,
+                 data = more_baseline_4)
+summary(simple_ols)
+```
+
+Slightly better.
+
+Finally, try matching:
+
+```{r}
+match_the_thing <- matchit(
+  treat ~ x1 + x2 + x3,
+  method = "nearest",
+  distance =  "glm",
+  caliper = .01,
+  data = more_baseline_4,
+  replace = TRUE
+)
+bal.tab(match_the_thing, stats = c("m", "v"), thresholds = c(m = .1)) 
+```
+
+```{r}
+match_dat <- get_matches(match_the_thing, id = "id_match") |>
+  select(-group)
+match_dat |> head()
+```
+
+
+```{r}
+matched_lm <- lm(outcome ~ treat * (x1 + x2 + x3),
+                 data = match_dat,
+                 weights = weights)
+avg_comparisons(matched_lm, variables = "treat",
+                vcov = ~ subclass + id,
+                newdata = subset(treat == 1))
+```
 

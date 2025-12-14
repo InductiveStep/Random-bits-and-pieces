@@ -1,0 +1,534 @@
+---
+title: "Playing around with exercises in Rubinstein-Salzedo (2018)"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(ngram)
+```
+
+
+
+## Caesar
+
+Relative frequency of each letter in English (nicked from Wikipedia)
+
+```{r}
+let_freq <- read.csv(text = "
+en_let	en_freq
+A	8.20
+B	1.50
+C	2.80
+D	4.30
+E	12.70
+F	2.20
+G	2.00
+H	6.10
+I	7.00
+J	0.15
+K	0.77
+L	4.00
+M	2.40
+N	6.70
+O	7.50
+P	1.90
+Q	0.10
+R	6.00
+S	6.30
+T	9.10
+U	2.80
+V	0.98
+W	2.40
+X	0.15
+Y	2.00
+Z	0.07", sep = "\t") |>
+  arrange(desc(en_freq))
+  
+let_freq
+```
+
+
+
+```{r}
+en_ngram <- read.csv(text = "ngram	en_freq	n
+th	3.882543	2
+he	3.681391	2
+in	2.283899	2
+er	2.178042	2
+an	2.14046	2
+re	1.749394	2
+nd	1.571977	2
+on	1.418244	2
+en	1.383239	2
+at	1.335523	2
+ou	1.285484	2
+ed	1.275779	2
+ha	1.274742	2
+to	1.169655	2
+or	1.151094	2
+it	1.134891	2
+is	1.109877	2
+hi	1.092302	2
+es	1.092301	2
+ng	1.053385	2
+the	3.508232	3
+and	1.593878	3
+ing	1.147042	3
+her	0.822444	3
+hat	0.650715	3
+his	0.596748	3
+tha	0.593593	3
+ere	0.560594	3
+for	0.555372	3
+ent	0.530771	3
+ion	0.506454	3
+ter	0.461099	3
+was	0.460487	3
+you	0.437213	3
+ith	0.43125	3
+ver	0.430732	3
+all	0.422758	3
+wit	0.39729	3
+thi	0.394796	3
+tio	0.378058	3
+that	0.761242	4
+ther	0.604501	4
+with	0.573866	4
+tion	0.551919	4
+here	0.374549	4
+ould	0.36992	4
+ight	0.30944	4
+have	0.290544	4
+hich	0.284292	4
+whic	0.283826	4
+this	0.276333	4
+thin	0.270413	4
+they	0.262421	4
+atio	0.262386	4
+ever	0.260695	4
+from	0.25858	4
+ough	0.253447	4
+were	0.231089	4
+hing	0.229944	4
+ment	0.223347	4
+", sep = "\t")
+let_ngram
+```
+
+
+
+
+
+```{r}
+exercise_2.4_2 <- "ESTYRD LCP DPWOZX LD ESPJ DPPX"
+```
+
+
+```{r}
+string2chars <- function(str)
+  unlist(strsplit(str, ""))
+```
+
+
+```{r}
+nice_tab <- function(chars, charset) {
+  res <- tibble(char = chars) |>
+    filter(char %in% charset) |>
+    group_by(char) |>
+    tally() |>
+    mutate(freq = 100 * n / sum(n)) |>
+    arrange(desc(n)) |>
+    select(-n)
+  
+  missing <- tibble(
+    char = setdiff(charset, res$char)
+  ) |>
+    mutate(freq = 0)
+  
+  bind_rows(res, missing)
+}
+
+nice_tab_str <- function(str, charset) {
+  str |> string2chars() |> nice_tab(charset)
+}
+```
+
+
+```{r}
+chars2num <- function(chars, charset) {
+  res <- rep(NA, length(chars))
+  
+  for (i in 1:length(res)) {
+    the_match <- which(chars[i] == charset)
+    if (length(the_match) == 1) {
+      res[i] <- the_match - 1
+    }
+  }
+  
+  res
+}
+```
+
+
+```{r}
+nums2char <- function(nums, charset) {
+  res <- rep(NA, length(nums))
+  
+  for (i in 1:length(res)) {
+    res[i] <- charset[nums[i] + 1]
+  }
+  
+  res
+}
+```
+
+
+
+```{r}
+caesar_shift <- function(str, shift, charset) {
+  chars <- string2chars(str)
+  nums <- chars |> chars2num(charset)
+  nums_shifted <- (nums + shift) %% length(charset)
+  
+  res <- tibble(
+    inp   = chars,
+    temp  = nums_shifted |> nums2char(charset),
+    final = ifelse(is.na(temp), inp, temp)
+  )
+  
+  res$final |> paste(collapse = "")
+}
+```
+
+
+
+Find the most frequent letter, assume it's E, use that for the shift.
+
+```{r}
+break_caesar <- function(str, charset = LETTERS, the_e = "E", maxes = 1) {
+  chars <- string2chars(str)
+  nums <- chars |> chars2num(charset)
+  freq_tab <- nice_tab(chars, charset)
+  
+  max_freqs <- unique(freq_tab$freq) |> sort() |> rev() |> head(maxes)
+  candidate_es <- freq_tab |>
+    filter(freq %in% max_freqs) |>
+    pull(char) |>
+    chars2num(charset)
+
+  actual_e_num <- chars2num(the_e, charset)
+  
+  res <- tibble (
+    shift = (actual_e_num - candidate_es) %% length(charset)
+  ) |>
+    mutate(text = map_vec(shift, \(s) caesar_shift(str, s, charset)))
+
+  res
+}
+```
+
+
+```{r}
+exercise_2.4_2
+```
+
+
+```{r}
+break_caesar(exercise_2.4_2, LETTERS)
+```
+
+```{r}
+break_caesar("ETARVQITCRJA KU HWP", LETTERS, maxes = 3)
+```
+
+```{r}
+break_caesar("FUBSWRJUDSKB LV IXQ", LETTERS, maxes = 3)
+```
+
+
+
+## Substitution
+
+
+These bits borrowed from other code I wrote for wordles.
+
+```{r}
+words <-
+  read.csv(
+    "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/en/en_full.txt",
+    sep = " ",
+    header = FALSE
+  )
+names(words) <- c("word", "freq")
+```
+
+
+```{r}
+words_length <- function(n = 5) {
+  words |>
+  filter(str_length(word) == n) |>
+  mutate(word = str_to_lower(word)) |>
+  filter(str_detect(word, "^[a-z]*$")) |>
+  arrange(desc(freq))
+}
+
+all_lets_somewhere <- Vectorize(function(str, lets) {
+  all(str_detect(str, strsplit(lets, "")[[1]]))
+}, vectorize.args = "str")
+
+no_lets_anywhere <- Vectorize(function(str, lets) {
+  !any(str_detect(str, strsplit(lets, "")[[1]]))
+}, vectorize.args = "str")
+
+ditch_pattern <- function(data, match) {
+  data |>
+    filter(!str_detect(word, match))
+}
+
+keep_pattern <- function(data, match) {
+  data |>
+    filter(str_detect(word, match))
+}
+
+ditch_letters <- function(data, match) {
+  data |>
+    filter(no_lets_anywhere(word, match))
+}
+
+keep_letters <- function(data, match) {
+  data |>
+    filter(all_lets_somewhere(word, match))
+}
+```
+
+
+
+```{r}
+two_lets_same <- Vectorize(function(str, pos1, pos2) {
+  substr(str, pos1, pos1) == substr(str, pos2, pos2)
+}, vectorize.args = "str")
+
+keep_two_letters_same <- function(data, pos1, pos2) {
+  data |>
+    filter(two_lets_same(word, pos1, pos2))
+}
+```
+
+
+```{r}
+two_lets_same(c("never", "abcde"), 2, 4)
+```
+
+```{r}
+words_length(5) |>
+  keep_two_letters_same(2, 4)
+```
+
+
+
+```{r}
+all_lets_different <- Vectorize(function(str, posvec) {
+  chars <- strsplit(str, "")[[1]]
+  looking_for <- chars[posvec]
+  length(unique(looking_for)) == length(looking_for)
+}, vectorize.args = "str")
+
+keep_all_lets_different <- function(data, posvec) {
+  data |>
+    filter(all_lets_different(word, posvec))
+}
+```
+
+
+```{r}
+words_length(5) |>
+  keep_all_lets_different(c(1,3,5))
+```
+
+
+
+
+```{r}
+subst_text <- "IAOQ UQ G FQOQB FWKI QKWVIM GKJ G LVFPBVU WK CMAPM EW RFGPQ AE GKJ A NMGFF UWOQ EMQ CWBFJ"
+```
+
+
+```{r}
+break_caesar(subst_text, LETTERS, maxes = Inf)$text
+```
+
+Well it's not that.
+
+
+
+
+```{r}
+nice_tab_str(subst_text, LETTERS) |>
+  mutate(across(where(is.numeric), \(x) round(x, 1))) |>
+  bind_cols(let_freq)
+```
+
+
+```{r}
+subst_decrypt <- function(str,
+                          key,
+                          in_charset = LETTERS,
+                          out_charset = letters) {
+  res <- tibble(inp = string2chars(str)) |>
+    left_join(key, by = "inp") |>
+    mutate(out = ifelse(is.na(out), inp, out))
+  
+  res$out |> paste(collapse = "")
+}
+```
+
+
+```{r}
+subst_text
+```
+
+
+
+3.4(4)
+
+```{r}
+key <- read.csv(text = "inp,out
+G,a
+K,n
+J,d
+A,i
+W,o
+Q,e
+V,u
+I,g
+M,h
+F,l
+O,v
+B,r
+E,t
+C,w
+U,m
+L,f
+P,c
+R,p
+N,s
+")
+
+subst_decrypt(subst_text, key)
+```
+
+
+
+```{r}
+words_length(5) |>
+  keep_pattern("le.e.")
+```
+
+
+```{r}
+words_length(6) |>
+  keep_pattern(".n....") |>
+  ditch_letters("adi") |>
+  keep_all_lets_different(c(1,3,4,5,6))
+```
+
+
+```{r}
+words_length(2) |>
+  keep_pattern(".e")
+```
+
+
+
+2-grams:
+
+```{r}
+subst_text |>
+  splitter(split.char = TRUE, split.space = FALSE) |>
+  ngram(sep = " ", n = 2) |>
+  get.phrasetable()
+```
+
+3-grams:
+
+```{r}
+subst_text |>
+  splitter(split.char = TRUE, split.space = FALSE) |>
+  ngram(sep = " ", n = 3) |>
+  get.phrasetable()
+```
+
+
+
+
+
+```{r}
+ex_3.4_5 <- "NBPFR KISOQ NFRDB FKJFD XNOIN OJXIX NZXSI DJXIJ NYENO ISDSA SOFBY REJRK IKSKI PFRAR DJZIJ RUSEE JXIZI KADFB JXIJK SODYI OGIOJ SEJIK ADSOG UESOJ JXIAI VKPWX IKIPF RARDJ ENIRU FOJXI GSNDN IDSOG GNDYF RKDIN OOFVI EUXKS DIDFB PFRKY FAUEN YSJIG DJSJI FBANO GJXIA ISONO ZGFID OJASJ JIKNB NJDFO EPNGE IYXSJ JIKFB SJKSO DYIOG IOJSE LNOGS OGIVK PFOIW NEEDS PSDPF RWSEL PFRKA PDJNY WSPNB JXNDP FROZA SOIQU KIDDI DXNAD IEBNO JIKAD JFFGI IUBFK AIWXP WXSJS VIKPD NOZRE SKEPG IIUPF ROZAS OJXND GIIUP FROZA SOARD JCICI IEFMR IOJNO UKSND IFBJX IVIKP GREEF EGGSP DWXNY XXSVI EFOZD NOYIU SDDIG SWSPS OGYFO VNOYI IANBP FRYSO JXSJJ XIKIN ZOFBZ FFGMR IIOSO OIWSD YREJR KIDUS EANID JGSPF BYFRK DIPFR WNEEU FFXUF FXWXS JIVIK DBKID XSOGO IWSOG GIYES KINJD YKRGI SOGAI SOBFK SKJDJ FUUIG DXFKJ NOJXI YREJN VSJIG YFRKJ FBJXI IAUKI DDHFD IUXNO ISOGI VKPFO IWNEE DSPSD PFRWS ELPFR KAPDJ NYWSP NBJXS JDOFJ ZFFGI OFRZX BFKXN AWXNY XNDZF FGIOF RZXBF KAIWX PWXSJ SVIKP YREJN VSJIG LNOGF BPFRJ XJXND LNOGF BPFRJ XARDJ CIJXI OSDIO JNAIO JSEUS DDNFO FBSVI ZIJSC EIBSD XNFOA RDJIQ YNJIP FRKES OZRNG DUEII OSOSJ JSYXA IOJSE SUESJ FBFKS CSDXB REPFR OZUFJ SJFFK SOFJJ FFBKI OYXBK IOYXC ISOJX FRZXJ XIUXN ENDJN OIDAS PHFDJ EIPFR WNEEK SOLSD SOSUF DJEIN OJXIX NZXSI DJXIJ NYCSO GNBPF RWSEL GFWOU NYYSG NEEPW NJXSU FUUPF KSENE PNOPF RKAIG NIVSE XSOGS OGIVK PFOIW NEEDS PSDPF RWSEL PFRKB EFWKP WSPNB XIDYF OJIOJ WNJXS VIZIJ SCEIE FVIWX NYXWF REGYI KJSNO EPOFJ DRNJA IWXPW XSJSA FDJUS KJNYR ESKEP URKIP FROZA SOJXN DURKI PFROZ ASOAR DJCI"
+```
+
+
+```{r}
+ex_3.4_5 |> cat()
+```
+
+
+Sort with 2-grams and 3-grams:
+
+```{r}
+get_ngrams <- function(str, n) {
+  str |>
+    splitter(split.char = TRUE, split.space = FALSE) |>
+    ngram(sep = " ", n = n) |>
+    get.phrasetable()
+}
+```
+
+
+
+```{r}
+ex_3.4_5 |> get_ngrams(2)
+```
+
+
+```{r}
+ex_3.4_5 |> get_ngrams(3)
+```
+
+
+```{r}
+ex_3.4_5 |> get_ngrams(4)
+```
+
+Check the top English n-grams.
+
+```{r}
+en_ngram |> filter(n == 4)
+```
+
+
+```{r}
+key <- read.csv(text = "inp,out
+P,a
+F,n
+R,d
+E,e
+S,t
+")
+subst_decrypt(ex_3.4_5, key) |> cat()
+```
+
+
+This really sucks as I don't know where the words are.
+
+
+```{r}
+ex_3.4_5 |> get_ngrams(1)
+```
+
+
+```{r}
+let_freq
+```
+

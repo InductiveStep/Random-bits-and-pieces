@@ -1,0 +1,100 @@
+---
+title: "ITT demo"
+author: Andi Fugard
+date: 20 Nov 2024
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+
+```{r}
+library(tidyverse)
+library(ivreg)
+```
+
+## The truth
+
+This is the finite population with the true answer...
+
+```{r}
+set.seed(42)
+the_n <- 2000
+sim_pop <- data.frame(id = 1:the_n) |>
+  mutate(
+    conscientious = sample(x       = 0:4,
+                           size    = the_n,
+                           replace = TRUE,
+                           prob    = c(2, 3, 4, 2, 1) |> prop.table()
+    ),
+    y0 = (10 * (conscientious/4) +
+      rnorm(the_n, mean = 10, sd = 20)) |> round(0), 
+    y1 = y0,
+    TE = y1 - y0
+  )
+
+sim_pop
+```
+
+The true ATE is 0 by design; however, potential outcomes are positively correlated with conscientiousness.
+
+```{r}
+sim_pop |>
+  group_by(conscientious) |>
+  summarise(mean_y0 = mean(y0) |> round(1),
+            mean_y1 = mean(y0) |> round(1),
+            mean_TE = mean(TE) |> round(1)) 
+```
+
+
+
+## A simulated trial
+
+Now, let's simulate a trial where you have a 50-50 chance of being assigned to the intervention; however, highly conscientious people are more likely to engage with the intervention (simulated using a binary variable representing, say, attending the required number of sessions).
+
+```{r}
+dat <- sim_pop |>
+  mutate(assign_tx = rbinom(the_n, 1, .5),
+         engage_tx = rbinom(the_n, 1, assign_tx * .8 * (conscientious/4)),
+         y = ifelse(assign_tx == 1, y1, y0))
+
+dat |> arrange(conscientious)
+```
+
+
+The proportion assigned to intervention (assigned_prop) is around 50%; however the proportion engaged (engage_prop) rises with conscientiousness.
+
+```{r}
+dat |>
+  group_by(conscientious) |>
+  summarise(assigned_prop = mean(assign_tx) |> round(2),
+            engage_prop   = mean(engage_tx) |> round(2),
+            n = n())
+
+```
+
+
+If we use an intention to treat analysis (analyse according to the group assigned to), there is a null effect:
+
+```{r}
+lm(y ~ assign_tx, data = dat) |> summary()
+```
+
+If we analyse according to who engaged, it looks like the intervention leds to a better outcome.
+
+```{r}
+lm(y ~ engage_tx, data = dat) |> summary()
+```
+
+But we know (by design) that the true effect is 0.
+
+
+# Instrumental variable analysis to the rescue
+
+We can use 2SLS to estimate the local average treatment effect of engaging with the intervention, with random assignment as the instrument. Null effect as hoped:
+
+```{r}
+ivreg(y ~ engage_tx | assign_tx, data = dat) |>
+  summary()
+```
+

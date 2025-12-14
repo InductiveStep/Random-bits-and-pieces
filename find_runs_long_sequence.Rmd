@@ -1,0 +1,81 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tictoc)
+library(tidyverse)
+```
+
+
+
+
+```{r}
+stream_long_runs_iterative <- function(seed, n, min_run = 30) {
+  set.seed(seed)
+  if (n == 0)
+    return(tibble::tibble(start = integer(), length = integer(), value = integer()))
+
+  starts <- integer()
+  lengths <- integer()
+  values <- integer()
+
+  i <- 1
+  current_value <- rbinom(1, 1, .5)
+  run_start <- i
+  run_length <- 1
+
+  repeat {
+    next_value <- rbinom(1, 1, .5)
+    i <- i + 1
+
+    if (next_value == current_value) {
+      run_length <- run_length + 1
+    } else {
+      if (run_length >= min_run) {
+        starts <- c(starts, run_start)
+        lengths <- c(lengths, run_length)
+        values <- c(values, current_value)
+      }
+      if (i >= n) break
+      current_value <- next_value
+      run_start <- i
+      run_length <- 1
+    }
+  }
+
+  tibble::tibble(start = starts, length = lengths, value = values)
+}
+```
+
+
+```{r}
+stream_long_runs_iterative(1002755089, 1e6, min_run = 17)
+```
+
+```{r}
+set.seed(1002755089)
+temp <- rbinom(1e6, 1, 0.5)
+temp_rle <- rle(temp)
+temp_df <- data.frame(
+  start = cumsum(c(1, head(temp_rle$lengths, -1))),
+  length = temp_rle$lengths,
+  value = temp_rle$values
+) |>
+  filter(length >= 17)
+temp_df
+```
+
+
+
+
+```{r}
+tic()
+res_2_35 <- stream_long_runs_iterative(1002755089, 2^35, min_run = 30)
+toc()
+```
+
+
+

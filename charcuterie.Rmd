@@ -1,0 +1,31 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+str2vec <- \(x) strsplit(x, split = "")[[1]]
+```
+
+```{r}
+str2vec("strawberry")
+```
+
+
+
+```{r}
+"strawberry" |> strsplit(split = "") |> dplyr::first()
+```
+
+```{r}
+library(charcuterie)
+```
+
+```{r}
+"strawberry" |> charcuterie::chars() |> rev()
+```
+
+
+
+

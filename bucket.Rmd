@@ -1,0 +1,90 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+Qualitative comparison.
+
+```{r}
+library(english)
+
+qual_comp <- function(x,
+                      y,
+                      min_round = 2,
+                      max_round = 8,
+                      little_thresh = .1,
+                      x_name = "x",
+                      y_name = "y") {
+  stopifnot(min_round <= max_round)
+  r <- max_round
+  
+  equal <- FALSE
+  while (r >= min_round && !equal) {
+    x_round <- round(x, r)
+    y_round <- round(y, r)
+    
+    if (x_round == y_round)
+      equal <- TRUE
+    else
+      r <- r - 1
+  }
+  
+  if (equal) {
+    if (r == max_round) {
+      paste0(x_name,
+             " and ",
+             y_name,
+             " are equal")     
+    }
+    else {
+      plural_place <- ifelse(r == 1, "", "s")
+      paste0(x_name,
+             " and ",
+             y_name,
+             " are equal to ",
+             english::as.english(r),
+             " decimal place",
+             plural_place)
+    }
+  } else {
+    little_diff <- ifelse(abs(x - y) <= little_thresh, "a little ", "")
+    direction <- ifelse(x > y, "larger", "smaller")
+    paste0(x_name, " is ", little_diff, direction, " than ", y_name)
+  }
+}
+```
+
+
+
+
+```{r}
+qual_comp(2, 2)
+```
+
+```{r}
+qual_comp(2, 2.000000001)
+```
+
+```{r}
+qual_comp(2, 2.0001)
+```
+
+```{r}
+qual_comp(2, 2.01)
+```
+
+```{r}
+qual_comp(2, 2.1)
+```
+
+```{r}
+qual_comp(2.1, 2)
+```
+
+```{r}
+qual_comp(2, 2.1, min_round = 2)
+```
+
+

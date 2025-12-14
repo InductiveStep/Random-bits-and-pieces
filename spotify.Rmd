@@ -1,0 +1,29 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(spotifyr)
+library(tidyverse)
+#library(lubridate)
+```
+
+```{r}
+access_token <- get_spotify_access_token()
+```
+
+
+```{r}
+get_my_recently_played(limit = 5) |>
+    mutate(artist.name = map_chr(track.artists, function(x) x$name[1]),
+           played_at = as_datetime(played_at)) |>
+    select(track.name, artist.name, track.album.name, played_at)
+```
+
+
+
+```{r}
+beatles <- get_artist_audio_features('the beatles')
+```
+

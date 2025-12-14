@@ -1,0 +1,191 @@
+---
+title: "Playing with stepped wedge CRTs"
+output: html_notebook
+---
+
+```{r}
+#library(clubSandwich)
+library(swCRTdesign)
+library(lme4)
+library(tidyverse)
+library(GLMMadaptive)
+```
+
+
+
+## Stepped wedge stuff
+
+```{r}
+sw_design <- swDsn(clusters = c(1, 1, 1, 1))
+sw_design
+```
+
+
+```{r}
+sim_dat <- swSim(
+  sw_design,
+  family = "binomial",
+  n = 1700,
+  mu0 = qlogis(.06),
+  mu1 = qlogis(0.06 - 0.0105),
+  time.effect = 0,
+  tau = 0.1
+) |>
+  mutate(time.var = relevel(factor(time.var), max(time.var)),
+         cluster.var = factor(cluster.var))
+nrow(sim_dat)
+```
+
+
+```{r}
+summary(sim_dat)
+```
+
+
+
+```{r}
+sim_dat |>
+  group_by(time.var, cluster.var) |>
+  summarise(prop = mean(response.var) |> round(2), n = n())
+```
+
+
+```{r}
+swPlot(response.var, tx.var, time.var, cluster.var, data = sim_dat)
+```
+
+
+```{r}
+glmm0 <- glmer(
+  response.var ~ time.var + tx.var + (1 | cluster.var),
+  data = sim_dat,
+  family = binomial
+)
+```
+
+```{r}
+summary(glmm0)
+```
+
+
+```{r}
+glmm_mm <- mixed_model(fixed = response.var ~ time.var + tx.var,
+                       random = ~ 1 | cluster.var, data = sim_dat,
+                       family = binomial())
+```
+
+```{r}
+summary(glmm_mm, sandwich = TRUE)
+```
+
+
+
+```{r}
+fe_mod <- glm(
+  response.var ~ 0 + cluster.var + time.var + tx.var,
+  family = binomial,
+  data = sim_dat
+)
+```
+
+```{r}
+summary(fe_mod)
+```
+
+```{r}
+confint(fe_mod)
+```
+
+```{r}
+confint(glmm0, method = "Wald")
+```
+
+```{r}
+library(marginaleffects)
+```
+
+
+
+```{r}
+avg_comparisons(
+  fe_mod,
+  variables = "tx.var",
+  type = "response",
+  # newdata = subset(sim_dat, tx.var == 1), For ATT
+  vcov = "HC5"
+) |>
+  print(style = "data.frame")
+```
+
+
+```{r}
+avg_comparisons(
+  glmm0,
+  variables = "tx.var",
+  type = "response",
+  # newdata = subset(sim_dat, tx.var == 1), For ATT
+  re.form=NA
+) |>
+  print(style = "data.frame")
+```
+
+
+```{r}
+model.matrix(fe_mod) |> colnames()
+```
+
+
+
+```{r}
+model.matrix(glmm0) |> rankMatrix() |> as.numeric()
+```
+
+
+```{r}
+library(bife)
+```
+
+
+
+```{r}
+bife_mod <- bife(
+  response.var ~ time.var + tx.var | cluster.var,
+  data  = sim_dat,
+  model = "logit"
+)
+summary(bife_mod)
+```
+```{r}
+bias_corr(bife_mod) |> summary()
+```
+
+```{r}
+library(did)
+```
+
+
+
+```{r}
+coef(bife_mod)["tx.var"]
+```
+
+
+```{r}
+coef(bife_mod_2)["tx.var"]
+```
+
+
+
+
+```{r}
+library(did)
+```
+
+
+
+
+```{r}
+
+```
+
+

@@ -1,0 +1,81 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+fact_rec <- \(n) if (n == 0) 1 else n * fact_rec(n - 1)
+fact_rec(5)
+```
+
+
+```{r}
+mult_rec <- \(x) \(y)
+  if (x == 0) 0 else y + mult_rec(x - 1)(y)
+```
+
+```{r}
+mult_rec(6)(7)
+```
+
+
+```{r}
+Y <- \(f) {
+  g <- \(x) f(x(x))
+  g(g)
+}
+```
+
+
+```{r}
+Y <- \(f) {
+  g <- \(x) f(x(x))
+  g(g)
+}
+fact <- \(f) \(n)
+  if (n == 0) 1 else n * f(n - 1)
+Y(fact)(5)
+```
+
+```{r}
+Y <- \(f) (\(x) f(x(x)))(\(x) f(x(x)))
+fact <- \(f) \(n) if (n == 0) 1 else n * f(n - 1)
+Y(fact)(5)
+```
+
+```{r}
+(\(f) (\(x) f(x(x)))(\(x) f(x(x)))) (\(f) \(n) if (n == 0) 1 else n * f(n - 1)) (5)
+```
+
+
+
+
+```{r}
+mult <- \(f) \(x) \(y)
+  if (x == 0) 0 else y + f(x - 1)(y)
+```
+
+
+```{r}
+Y(mult)(7)(6)
+```
+
+
+
+```{r}
+mult <- \(f) \(x, y)
+  if (x == 0) 0 else y + f(x - 1, y)
+
+Y(mult)(6, 7)
+```
+
+
+
+```{r}
+(\(f) (\(x) f(x(x)))(\(x) f(x(x)))) (\(f) \(x) \(y) if (x == 0) 0 else y + f(x - 1)(y)) (6) (7)
+```
+
+
+
+

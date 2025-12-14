@@ -118,11 +118,12 @@ c(
 ... but there's quite a bit of variation around the mean answer.
 
 
-```{r}
+```{r fig.height=4, fig.width=5}
 sim_reses |>
   ggplot(aes(x = ATE)) +
-  geom_histogram(bins = 40) +
-  xlab("estimated ATE")
+  geom_histogram(bins = 26, fill = "#B70050") +
+  xlab("estimated SATE") +
+  ylab("Frequency")
 ```
 
 

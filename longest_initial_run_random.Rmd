@@ -1,0 +1,186 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tictoc)
+library(beepr)
+library(tidyverse)
+```
+
+
+
+```{r}
+binom_init_run_len <- function(seed,
+                               prob = 0.5,
+                               max_len = 1e3) {
+  set.seed(seed)
+  
+  first_val <- rbinom(1, size = 1, prob = prob)
+  next_val <- first_val
+  run_length <- 1
+  
+  while (next_val == first_val && run_length < max_len) {
+    next_val <- rbinom(1, 1, prob)
+    if (next_val == first_val)
+      run_length <- run_length + 1
+  }
+  
+  
+  list(
+    seed = seed,
+    value = first_val,
+    run_length = run_length
+  )
+}
+```
+
+
+
+```{r}
+binom_init_run_len(236903047)
+```
+
+
+```{r}
+binom_init_run_len(627034302)
+```
+
+
+```{r}
+set.seed(0)
+rbinom(10, 1, 0.5)
+```
+
+```{r}
+binom_init_run_len(0)
+```
+
+
+
+```{r}
+longest_initial_run <- function(start_seed, end_seed, prob = 0.5, max_len = 1e3) {
+  best_seed <- start_seed
+  best_run  <- 1
+  best_val  <- NA
+  
+  seed <- start_seed
+  while (seed <= end_seed) {
+    one_res <- binom_init_run_len(seed, prob = prob, max_len = max_len)
+    
+    if (one_res$run_length > best_run) {
+      best_seed <- one_res$seed
+      best_run  <- one_res$run_length
+      best_val  <- one_res$value
+    }
+    
+    seed <- seed + 1
+  }
+  
+  list(
+    seed = best_seed,
+    value = best_val,
+    run_length = best_run
+  )
+}
+```
+
+
+
+
+
+
+
+```{r}
+mins_run <- 90
+runs_per_min <- (14/60) / 1e6
+start_at <- as.integer(-604626506)
+n_seeds <- mins_run / runs_per_min
+end_at <- as.integer(start_at + n_seeds)
+stopifnot(end_at <= .Machine$integer.max && end_at >= -.Machine$integer.max)
+c(start_at, end_at)
+```
+
+Got from 0 to 2147483647 (max int) by 4 Nov.
+
+Now trying negative numbers: -257142857 to 0
+
+Now -514285714 -257142856
+
+Now -771428571 -514285713
+
+Now -2147483647 -1761769361
+
+Now -1761769362 -1376055076
+
+Now -1376055077  -990340791
+
+Now -990340792 -604626506
+
+Now -990340792 -604626506
+
+
+Now -604626506 -218912220
+
+
+Aiming for     -257142857 - should be done now
+
+
+```{r}
+tic()
+longest <- longest_initial_run(start_at, end_at)
+toc()
+beep(3)
+longest
+```
+
+```{r paged.print=FALSE}
+set.seed(longest$seed)
+data.frame(val = rbinom(longest$run_length + 1, 1, 0.5))
+```
+
+
+796110494: 31 zeros
+
+1002755089: 32 ones
+
+1238361979: 28 zeros
+
+1544540768: 28 ones 
+
+1870225129: 29 ones
+
+-237690391: 28 ones
+
+-277258519: 29 zeros
+
+-602942880: 28 zeros
+
+-1910580601: 30 zeros
+
+-1653915608: 30 zeros
+
+-1144728559: 32 zeros
+
+-909121669: 28 ones
+
+
+Think we're done.
+
+```{r}
+set.seed(1002755089)
+ones  <- rbinom(n = 80, size = 1, prob = 0.5)
+set.seed(-1144728559)
+zeros <- rbinom(n = 40, size = 1, prob = 0.5)
+
+data.frame(ones, zeros)
+```
+
+```{r}
+set.seed(-1144728559)
+rbinom(n = 40, size = 1, prob = 0.5)
+```
+
+

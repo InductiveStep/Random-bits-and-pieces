@@ -440,12 +440,45 @@ add_result("Bayesian HDCI (mode)",   combined_draws_Bayes_mode[,1:3] |> as.numer
 ```
 
 
+
+## Try {eefAnalytics}' Bayes model
+
+
+```{r}
+eefBayes <- crtBayes(
+  Posttest ~ Intervention + Prettest,
+  random = "School",
+  intervention = "Intervention",
+  nsim = 4000,
+  data = crtData
+)
+```
+
+
+
+```{r}
+eefBayes
+```
+
+
+```{r}
+add_result("eefAnalytics Bayes total conditional",
+           eefBayes$ES$Intervention1[2, ] |> as.numeric())
+add_result(
+  "eefAnalytics Bayes total unconditional",
+  eefBayes$Unconditional$ES$Intervention1[2, ] |> as.numeric()
+)
+```
+
+
+
 ## Summary of all approaches
 
 ```{r rows.print = 20}
 tibble_results() |>
-  mutate(across(where(is.numeric), ~ round(.x, 4))) |>
-  arrange(lower95, est)
+  mutate(CIwidth = upper95 - lower95) |>
+  mutate(across(where(is.numeric), ~ round(.x, 2))) |>
+  arrange(CIwidth, est)
 ```
 
 

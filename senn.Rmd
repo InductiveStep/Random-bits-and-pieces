@@ -13,6 +13,7 @@ output:
 library(conflicted)
 library(tidyverse)
 library(tidymodels)
+library(marginaleffects)
 ```
 
 ## Datasets to explore
@@ -57,7 +58,7 @@ strong_interaction
 ## Select one of the datasets
 
 ```{r}
-dat <- senn_dat
+dat <- strong_interaction
 ```
 
 
@@ -208,9 +209,6 @@ bind_rows(modG1 |> tidy() |> mutate(mod = "G1"),
   select(mod, term, estimate, std.error) |>
   arrange(term)
 ```
-
-
-
 
 
 

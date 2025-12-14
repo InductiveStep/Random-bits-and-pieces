@@ -1,0 +1,89 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tictoc)
+library(beepr)
+```
+
+
+```{r}
+find_extreme_seeds <- function(n) {
+  found0 <- FALSE
+  found1 <- FALSE
+  seed0 <- NA
+  seed1 <- NA
+  
+  s <- 0
+  repeat {
+    set.seed(s)
+    x <- rbinom(n, 1, 0.5)
+    
+    if (!found0 && sum(x) == 0) {
+      seed0 <- s
+      found0 <- TRUE
+      cat("Found all 0s at seed:", s, "\n")
+      beep(2)
+    }
+    
+    if (!found1 && sum(x) == n) {
+      seed1 <- s
+      found1 <- TRUE
+      cat("Found all 1s at seed:", s, "\n")
+      beep(2)
+    }
+    
+    if (found0 && found1) {
+      cat("Both found - stopping.\n")
+      beep(3)
+      return(list(n = n, seed_all_0 = seed0, seed_all_1 = seed1))
+    }
+    
+    s <- s + 1
+  }
+}
+```
+
+
+```{r}
+tic()
+res <- find_extreme_seeds(30)
+toc()
+```
+
+```{r}
+res
+```
+
+
+```{r}
+set.seed(res$seed_all_0)
+rbinom(res$n, 1, .5)
+```
+
+```{r}
+set.seed(res$seed_all_1)
+rbinom(res$n, 1, .5)
+```
+
+```{r}
+set.seed(236903047)
+rbinom(30, size = 1, prob = 0.5)
+```
+
+
+```{r}
+set.seed(627034302)
+rbinom(30, size = 1, prob = 0.5)
+```
+
+
+
+
+```{r}
+find_extreme_seeds(25)
+```
+
+

@@ -1,0 +1,50 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r}
+# Load ggplot2
+library(ggplot2)
+
+# Create data points for the step function
+data <- data.frame(x = c(-0.5, 0, 0, 1, 1, 1.5), y = c(0, 0, 1, 1, 0, 0))
+
+# Plot the uniform distribution density function
+ggplot(data, aes(x = x, y = y)) +
+  geom_line(linewidth = 1) +
+  geom_area(fill = "purple", alpha = 0.1) +
+  labs(title = "The distribution of p-values under the null hypothesis") +
+  theme_minimal() +
+  ylim(0, 1.5) +
+  labs(x = "p-value",
+       y = "Density")
+```
+
+
+
+
+
+
+```{r}
+null_distro <- function() {
+  x <- rnorm(100)
+  y <- rnorm(100)
+  t.test(x, y)$p.value
+}
+replicate(100000, null_distro()) |>
+  hist(main = "", xlab = "p")
+```
+
+```{r}
+alt_distro <- function(diff) {
+  x <- rnorm(100)
+  y <- rnorm(100, diff)
+  t.test(x, y)$p.value
+}
+replicate(100000, alt_distro(0)) |>
+  hist(main = "", xlab = "p")
+```

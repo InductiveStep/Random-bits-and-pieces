@@ -1,0 +1,16 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+dat <- read_tsv("SN04793.txt", skip = 1)
+
+dat
+```
+

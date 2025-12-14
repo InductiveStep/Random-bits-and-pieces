@@ -1,0 +1,37 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(gm)
+```
+
+
+
+```{r}
+the_scale <- c("A3", "C4", "E4", "G4", "B4", "D5", "F5", "A5", "C5", "E5")
+stopifnot(length(the_scale) == 10)
+```
+
+
+```{r}
+nums_to_notes <- function(nums) {
+  pitches <- the_scale[nums + 1]
+  Music() +
+    Meter(4, 4) +
+    Line(pitches = pitches,
+         durations = rep("16th", length(pitches))) +
+    Instrument(91, 1)
+}
+```
+
+
+
+```{r}
+nums_to_notes(sample(0:9, 1000, replace = TRUE)) |>
+  export("test.mid")
+```
+
+
+

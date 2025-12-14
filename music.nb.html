@@ -9,10 +9,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Andi Fugard (@andi@sciences.social)" />
 
 
-<title>Hedges’ g for MLMs – exploring different methods</title>
+<title>R Notebook</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1738,16 +1737,16 @@ display: none;
 <div class="btn-group pull-right float-right">
 <button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
 <ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+<li role="separator" class="divider"></li>
 <li><a id="rmd-download-source" href="#">Download Rmd</a></li>
 </ul>
 </div>
 
 
 
-<h1 class="title toc-ignore">Hedges’ g for MLMs – exploring different
-methods</h1>
-<h4 class="author">Andi Fugard (<a href="https://sciences.social/@andi"><span class="citation">@andi</span><span class="citation">@sciences.social</span></a>)</h4>
-<h4 class="date">Last knitted 27 August 2024</h4>
+<h1 class="title toc-ignore">R Notebook</h1>
 
 </div>
 
@@ -1755,583 +1754,57 @@ methods</h1>
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShsbWVJbmZvKVxubGlicmFyeShubG1lKVxubGlicmFyeShsbWU0KVxubGlicmFyeShlZWZBbmFseXRpY3MpXG5saWJyYXJ5KHRpY3RvYylcbmxpYnJhcnkoYmVlcHIpXG5saWJyYXJ5KGJybXMpXG5saWJyYXJ5KHRpZHliYXllcylcbmxpYnJhcnkodGlkeXZlcnNlKVxuYGBgIn0= -->
-<pre class="r"><code>library(lmeInfo)
-library(nlme)
-library(lme4)
-library(eefAnalytics)
-library(tictoc)
-library(beepr)
-library(brms)
-library(tidybayes)
-library(tidyverse)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShnbSlcbmBgYCJ9 -->
+<pre class="r"><code>library(gm)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYWxsX3Jlc3VsdHMgPC0gbGlzdCgpXG5cbiMgdmVjX3JlcyBvcmRlciBpcyBlc3RpbWF0ZSwgbG93ZXIsIGFuZCB1cHBlciA5NSUgaW50ZXJ2YWxcbmFkZF9yZXN1bHQgPC0gZnVuY3Rpb24obmFtZSwgdmVjX3Jlcykge1xuICBzdG9waWZub3QoaXMudmVjdG9yKHZlY19yZXMpKVxuICBzdG9waWZub3QobGVuZ3RoKHZlY19yZXMpID09IDMpXG4gIHN0b3BpZm5vdCh2ZWNfcmVzWzFdID49IHZlY19yZXNbMl0pXG4gIHN0b3BpZm5vdCh2ZWNfcmVzWzFdIDw9IHZlY19yZXNbM10pXG4gIHN0b3BpZm5vdCh2ZWNfcmVzWzJdIDw9IHZlY19yZXNbM10pXG4gIHJlcyA8LSB0aWJibGUoXG4gICAgc291cmNlICA9IG5hbWUsXG4gICAgZXN0ICAgICA9IHZlY19yZXNbMV0sXG4gICAgbG93ZXI5NSA9IHZlY19yZXNbMl0sXG4gICAgdXBwZXI5NSA9IHZlY19yZXNbM11cbiAgKVxuICBcbiAgYWxsX3Jlc3VsdHMgPDwtIGFwcGVuZChhbGxfcmVzdWx0cywgbGlzdChyZXMpKVxufVxuXG5jbGVhcl9yZXN1bHRzIDwtIGZ1bmN0aW9uKCkge1xuICBhbGxfcmVzdWx0cyA8PC0gbGlzdCgpXG59XG5cbnRpYmJsZV9yZXN1bHRzIDwtIGZ1bmN0aW9uKCkge1xuICBiaW5kX3Jvd3MoYWxsX3Jlc3VsdHMpXG59XG5gYGAifQ== -->
-<pre class="r"><code>all_results &lt;- list()
+<!-- rnb-output-begin eyJkYXRhIjoiUmVnaXN0ZXJlZCBTMyBtZXRob2RzIG92ZXJ3cml0dGVuIGJ5ICdodG1sdG9vbHMnOlxuICBtZXRob2QgICAgICAgICAgICAgICBmcm9tICAgICAgICAgXG4gIHByaW50Lmh0bWwgICAgICAgICAgIHRvb2xzOnJzdHVkaW9cbiAgcHJpbnQuc2hpbnkudGFnICAgICAgdG9vbHM6cnN0dWRpb1xuICBwcmludC5zaGlueS50YWcubGlzdCB0b29sczpyc3R1ZGlvXG5cbkF0dGFjaGluZyBwYWNrYWdlOiDigJhnbeKAmVxuXG5UaGUgZm9sbG93aW5nIG9iamVjdCBpcyBtYXNrZWQgZnJvbSDigJhwYWNrYWdlOm1ldGhvZHPigJk6XG5cbiAgICBzaG93XG4ifQ== -->
+<pre><code>Registered S3 methods overwritten by &#39;htmltools&#39;:
+  method               from         
+  print.html           tools:rstudio
+  print.shiny.tag      tools:rstudio
+  print.shiny.tag.list tools:rstudio
 
-# vec_res order is estimate, lower, and upper 95% interval
-add_result &lt;- function(name, vec_res) {
-  stopifnot(is.vector(vec_res))
-  stopifnot(length(vec_res) == 3)
-  stopifnot(vec_res[1] &gt;= vec_res[2])
-  stopifnot(vec_res[1] &lt;= vec_res[3])
-  stopifnot(vec_res[2] &lt;= vec_res[3])
-  res &lt;- tibble(
-    source  = name,
-    est     = vec_res[1],
-    lower95 = vec_res[2],
-    upper95 = vec_res[3]
-  )
-  
-  all_results &lt;&lt;- append(all_results, list(res))
-}
+Attaching package: ‘gm’
 
-clear_results &lt;- function() {
-  all_results &lt;&lt;- list()
-}
+The following object is masked from ‘package:methods’:
 
-tibble_results &lt;- function() {
-  bind_rows(all_results)
-}</code></pre>
-<!-- rnb-source-end -->
+    show</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<div id="eefanalytics" class="section level2">
-<h2>eefAnalytics</h2>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxub3V0cHV0MSA8LSBjcnRGUkVRKFxuICBQb3N0dGVzdCB+IEludGVydmVudGlvbiArIFByZXR0ZXN0LFxuICByYW5kb20gPSBcIlNjaG9vbFwiLFxuICBpbnRlcnZlbnRpb24gPSBcIkludGVydmVudGlvblwiLFxuICBkYXRhID0gY3J0RGF0YVxuKVxuXG5zdW1tYXJ5KG91dHB1dDEpXG5gYGAifQ== -->
-<pre class="r"><code>output1 &lt;- crtFREQ(
-  Posttest ~ Intervention + Prettest,
-  random = &quot;School&quot;,
-  intervention = &quot;Intervention&quot;,
-  data = crtData
-)
-
-summary(output1)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGhlX3NjYWxlIDwtIGMoXCJBM1wiLCBcIkM0XCIsIFwiRTRcIiwgXCJHNFwiLCBcIkI0XCIsIFwiRDVcIiwgXCJGNVwiLCBcIkE1XCIsIFwiQzVcIiwgXCJFNVwiKVxuc3RvcGlmbm90KGxlbmd0aCh0aGVfc2NhbGUpID09IDEwKVxuYGBgIn0= -->
+<pre class="r"><code>the_scale &lt;- c(&quot;A3&quot;, &quot;C4&quot;, &quot;E4&quot;, &quot;G4&quot;, &quot;B4&quot;, &quot;D5&quot;, &quot;F5&quot;, &quot;A5&quot;, &quot;C5&quot;, &quot;E5&quot;)
+stopifnot(length(the_scale) == 10)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxub3V0cHV0MSRFUyRJbnRlcnZlbnRpb24xWzIsXVxuYGBgIn0= -->
-<pre class="r"><code>output1$ES$Intervention1[2,]</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxub3V0cHV0MSRVbmNvbmRpdGlvbmFsJEVTJEludGVydmVudGlvbjFbMixdXG5gYGAifQ== -->
-<pre class="r"><code>output1$Unconditional$ES$Intervention1[2,]</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYWRkX3Jlc3VsdChcImVlZkFuYWx5dGljcyB0b3RhbCBjb25kaXRpb25hbFwiLFxuICAgICAgICAgICBvdXRwdXQxJEVTJEludGVydmVudGlvbjFbMiwgXSB8PiBhcy5udW1lcmljKCkpXG5hZGRfcmVzdWx0KFxuICBcImVlZkFuYWx5dGljcyB0b3RhbCB1bmNvbmRpdGlvbmFsXCIsXG4gIG91dHB1dDEkVW5jb25kaXRpb25hbCRFUyRJbnRlcnZlbnRpb24xWzIsIF0gfD4gYXMubnVtZXJpYygpXG4pXG5gYGAifQ== -->
-<pre class="r"><code>add_result(&quot;eefAnalytics total conditional&quot;,
-           output1$ES$Intervention1[2, ] |&gt; as.numeric())
-add_result(
-  &quot;eefAnalytics total unconditional&quot;,
-  output1$Unconditional$ES$Intervention1[2, ] |&gt; as.numeric()
-)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGliYmxlX3Jlc3VsdHMoKVxuYGBgIn0= -->
-<pre class="r"><code>tibble_results()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-<div id="naive-approach-using-lme4" class="section level2">
-<h2>Naive approach using lme4</h2>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGVzdF9tb2QgPC0gbG1lcihQb3N0dGVzdCB+IEludGVydmVudGlvbiArIFByZXR0ZXN0ICtcbiAgICAgICAgICAgICAgICAgICAoMXxTY2hvb2wpLCBkYXRhID0gY3J0RGF0YSlcbnRlc3RfbW9kIHw+IHN1bW1hcnkoKVxuYGBgIn0= -->
-<pre class="r"><code>test_mod &lt;- lmer(Posttest ~ Intervention + Prettest +
-                   (1|School), data = crtData)
-test_mod |&gt; summary()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGVzdF9tb2RfMCA8LSBsbWVyKFBvc3R0ZXN0IH4gSW50ZXJ2ZW50aW9uICsgKDF8U2Nob29sKSwgZGF0YSA9IGNydERhdGEpXG50ZXN0X21vZF8wXG5gYGAifQ== -->
-<pre class="r"><code>test_mod_0 &lt;- lmer(Posttest ~ Intervention + (1|School), data = crtData)
-test_mod_0</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudmFycyA8LSBWYXJDb3JyKHRlc3RfbW9kXzApIHw+IGFzLmRhdGEuZnJhbWUoKVxudGhlX3NkIDwtIHZhcnMkdmNvdiB8PiBzdW0oKSB8PiBzcXJ0KClcbnRoZV9zZFxuYGBgIn0= -->
-<pre class="r"><code>vars &lt;- VarCorr(test_mod_0) |&gt; as.data.frame()
-the_sd &lt;- vars$vcov |&gt; sum() |&gt; sqrt()
-the_sd</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudmFycyBcbmBgYCJ9 -->
-<pre class="r"><code>vars </code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYWRkX3Jlc3VsdChcIk5haXZlbHkgZGl2aWRlIENJIGJ5IFNEXCIsIFxuYyhmaXhlZih0ZXN0X21vZClbXCJJbnRlcnZlbnRpb25cIl0sIGNvbmZpbnQodGVzdF9tb2QpW1wiSW50ZXJ2ZW50aW9uXCIsXSkgfD4gYXMubnVtZXJpYygpIC8gdGhlX3NkKVxuYGBgIn0= -->
-<pre class="r"><code>add_result(&quot;Naively divide CI by SD&quot;, 
-c(fixef(test_mod)[&quot;Intervention&quot;], confint(test_mod)[&quot;Intervention&quot;,]) |&gt; as.numeric() / the_sd)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGliYmxlX3Jlc3VsdHMoKVxuYGBgIn0= -->
-<pre class="r"><code>tibble_results()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-<div id="g_mlm-in-lmeinfo" class="section level2">
-<h2>g_mlm in {lmeInfo}</h2>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubG1lX251bSA8LSBsbWUoXG4gIGZpeGVkID0gUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24gKyBQcmV0dGVzdCxcbiAgcmFuZG9tID0gfiAxIHwgU2Nob29sLFxuICBkYXRhID0gY3J0RGF0YSxcbiAgbWV0aG9kID0gXCJSRU1MXCJcbilcblxubG1lX2RlbiA8LSBsbWUoXG4gIGZpeGVkID0gUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24sXG4gIHJhbmRvbSA9IH4gMSB8IFNjaG9vbCxcbiAgZGF0YSA9IGNydERhdGEsXG4gIG1ldGhvZCA9IFwiUkVNTFwiXG4pXG5gYGAifQ== -->
-<pre class="r"><code>lme_num &lt;- lme(
-  fixed = Posttest ~ Intervention + Prettest,
-  random = ~ 1 | School,
-  data = crtData,
-  method = &quot;REML&quot;
-)
-
-lme_den &lt;- lme(
-  fixed = Posttest ~ Intervention,
-  random = ~ 1 | School,
-  data = crtData,
-  method = &quot;REML&quot;
-)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VtbWFyeShsbWVfbnVtKVxuYGBgIn0= -->
-<pre class="r"><code>summary(lme_num)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGhlX2cgPC0gZ19tbG0oXG4gIGxtZV9udW0sXG4gIHBfY29uc3QgPSBjKDAsMSwwKSxcbiAgbW9kX2Rlbm9tID0gbG1lX2RlbixcbiAgcl9jb25zdCA9IGMoMSwxKSxcbiAgaW5mb3R5cGUgPSBcImV4cGVjdGVkXCIsXG4gIHNlcGFyYXRlX3ZhcmlhbmNlcyA9IEZBTFNFXG4pXG5cbnRoZV9nXG5gYGAifQ== -->
-<pre class="r"><code>the_g &lt;- g_mlm(
-  lme_num,
-  p_const = c(0,1,0),
-  mod_denom = lme_den,
-  r_const = c(1,1),
-  infotype = &quot;expected&quot;,
-  separate_variances = FALSE
-)
-
-the_g</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Without the df adjustment:</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudW5hZGpfU0UgPC0gc3FydCh0aGVfZyRTRV9nX0FCXjIgLyB0aGVfZyRKX251XjIpXG50aGVfZyRkZWx0YV9BQlxuYyh0aGVfZyRkZWx0YV9BQiAtIDEuOTYgKiB1bmFkal9TRSxcbiAgdGhlX2ckZGVsdGFfQUIgKyAxLjk2ICogdW5hZGpfU0UpXG5gYGAifQ== -->
-<pre class="r"><code>unadj_SE &lt;- sqrt(the_g$SE_g_AB^2 / the_g$J_nu^2)
-the_g$delta_AB
-c(the_g$delta_AB - 1.96 * unadj_SE,
-  the_g$delta_AB + 1.96 * unadj_SE)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>“Manual” df adjustment:</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGhlX2ckSl9udSAqIHRoZV9nJGRlbHRhX0FCXG5gYGAifQ== -->
-<pre class="r"><code>the_g$J_nu * the_g$delta_AB</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>From the model:</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGhlX2ckZ19BQlxuYyh0aGVfZyRnX0FCIC0gMS45NiAqIHRoZV9nJFNFX2dfQUIsXG4gIHRoZV9nJGdfQUIgKyAxLjk2ICogdGhlX2ckU0VfZ19BQilcbmBgYCJ9 -->
-<pre class="r"><code>the_g$g_AB
-c(the_g$g_AB - 1.96 * the_g$SE_g_AB,
-  the_g$g_AB + 1.96 * the_g$SE_g_AB)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYWRkX3Jlc3VsdChcImxtZUluZm8gSGVkZ2VzIGRmIGFkanVzdGVkXCIsIGModGhlX2ckZ19BQixcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB0aGVfZyRnX0FCIC0gMS45NiAqIHRoZV9nJFNFX2dfQUIsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdGhlX2ckZ19BQiArIDEuOTYgKiB0aGVfZyRTRV9nX0FCKSlcbmFkZF9yZXN1bHQoXCJsbWVJbmZvIHVuYWRqdXN0ZWRcIiwgYyh0aGVfZyRkZWx0YV9BQixcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdGhlX2ckZGVsdGFfQUIgLSAxLjk2ICogdW5hZGpfU0UsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHRoZV9nJGRlbHRhX0FCICsgMS45NiAqIHVuYWRqX1NFKSlcbmBgYCJ9 -->
-<pre class="r"><code>add_result(&quot;lmeInfo Hedges df adjusted&quot;, c(the_g$g_AB,
-                                           the_g$g_AB - 1.96 * the_g$SE_g_AB,
-                                           the_g$g_AB + 1.96 * the_g$SE_g_AB))
-add_result(&quot;lmeInfo unadjusted&quot;, c(the_g$delta_AB,
-                                   the_g$delta_AB - 1.96 * unadj_SE,
-                                   the_g$delta_AB + 1.96 * unadj_SE))</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGliYmxlX3Jlc3VsdHMoKVxuYGBgIn0= -->
-<pre class="r"><code>tibble_results()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-<div id="manually-with-the-help-of-merderiv" class="section level2">
-<h2>Manually, with the help of {merDeriv}</h2>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubXlfZyA8LSBmaXhlZih0ZXN0X21vZClbXCJJbnRlcnZlbnRpb25cIl0gLyB0aGVfc2Rcbm15X2dcbmBgYCJ9 -->
-<pre class="r"><code>my_g &lt;- fixef(test_mod)[&quot;Intervention&quot;] / the_sd
-my_g</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYl92YXIgPC0gdmNvdih0ZXN0X21vZClbXCJJbnRlcnZlbnRpb25cIiwgXCJJbnRlcnZlbnRpb25cIl1cbmJfdmFyXG5gYGAifQ== -->
-<pre class="r"><code>b_var &lt;- vcov(test_mod)[&quot;Intervention&quot;, &quot;Intervention&quot;]
-b_var</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShtZXJEZXJpdilcbnJhbmVmX3ZhciA8LSB2Y292KHRlc3RfbW9kXzAsXG4gICAgICAgICAgICAgICAgICBmdWxsID0gVFJVRSxcbiAgICAgICAgICAgICAgICAgIHJhbnBhciA9IFwidmFyXCIsXG4gICAgICAgICAgICAgICAgICBpbmZvcm1hdGlvbiA9IFwiZXhwZWN0ZWRcIilbMywgM11cblxuc3VtX3ZhcnMgPC0gdmFycyR2Y292IHw+IHN1bSgpXG50aGVfc2UgPC0gc3FydCgoYl92YXIgLyBzdW1fdmFycykgK1xuICAgICAgICgoZml4ZWYodGVzdF9tb2QpW1wiSW50ZXJ2ZW50aW9uXCJdXjIgKiByYW5lZl92YXIpIC8gKDQgKiAoc3VtX3ZhcnMpXjMpKSlcbmBgYCJ9 -->
-<pre class="r"><code>library(merDeriv)
-ranef_var &lt;- vcov(test_mod_0,
-                  full = TRUE,
-                  ranpar = &quot;var&quot;,
-                  information = &quot;expected&quot;)[3, 3]
-
-sum_vars &lt;- vars$vcov |&gt; sum()
-the_se &lt;- sqrt((b_var / sum_vars) +
-       ((fixef(test_mod)[&quot;Intervention&quot;]^2 * ranef_var) / (4 * (sum_vars)^3)))</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGhlX3NlXG5gYGAifQ== -->
-<pre class="r"><code>the_se</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYWRkX3Jlc3VsdChcIk1hbnVhbCB1c2luZyBtZXJEZXJpdiAobm8gZGYgYWRqdXN0KVwiLCBjKG15X2csXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG15X2cgLSAxLjk2ICogdGhlX3NlLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBteV9nICsgMS45NiAqIHRoZV9zZSkpXG5gYGAifQ== -->
-<pre class="r"><code>add_result(&quot;Manual using merDeriv (no df adjust)&quot;, c(my_g,
-                                      my_g - 1.96 * the_se,
-                                      my_g + 1.96 * the_se))</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGliYmxlX3Jlc3VsdHMoKVxuYGBgIn0= -->
-<pre class="r"><code>tibble_results()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-<div id="try-some-bootstrapping-with-lmersampler" class="section level2">
-<h2>Try some bootstrapping with {lmersampler}</h2>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShsbWVyZXNhbXBsZXIpXG5gYGAifQ== -->
-<pre class="r"><code>library(lmeresampler)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudG9fYm9vdCA8LSBsbWVyKFBvc3R0ZXN0IH4gSW50ZXJ2ZW50aW9uICsgUHJldHRlc3QgK1xuICAgICAgICAgICAgICAgICAgKDEgfCBTY2hvb2wpLCBkYXRhID0gY3J0RGF0YSlcbmBgYCJ9 -->
-<pre class="r"><code>to_boot &lt;- lmer(Posttest ~ Intervention + Prettest +
-                  (1 | School), data = crtData)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZWFjaF9ib290IDwtIGZ1bmN0aW9uKG1vZCkge1xuICBkZW5vbV9tb2QgPC0gbG1lcihQb3N0dGVzdCB+IEludGVydmVudGlvbiArICgxIHwgU2Nob29sKSxcbiAgICAgICAgICAgICAgICAgICAgZGF0YSA9IG1vZGVsLmZyYW1lKG1vZCkpXG4gIFxuICB2YXJzICAgPC0gVmFyQ29ycihkZW5vbV9tb2QpIHw+IGFzLmRhdGEuZnJhbWUoKVxuICB0aGVfc2QgPC0gdmFycyR2Y292IHw+IHN1bSgpIHw+IHNxcnQoKVxuICBcbiAgdGhlX2IgIDwtIGZpeGVmKG1vZClbXCJJbnRlcnZlbnRpb25cIl1cbiAgdGhlX2VzIDwtIHRoZV9iIC8gdGhlX3NkXG4gIFxuICBjKGIgPSB0aGVfYiwgc2QgPSB0aGVfc2QsIGcgPSB0aGVfZXMpXG59XG5gYGAifQ== -->
-<pre class="r"><code>each_boot &lt;- function(mod) {
-  denom_mod &lt;- lmer(Posttest ~ Intervention + (1 | School),
-                    data = model.frame(mod))
-  
-  vars   &lt;- VarCorr(denom_mod) |&gt; as.data.frame()
-  the_sd &lt;- vars$vcov |&gt; sum() |&gt; sqrt()
-  
-  the_b  &lt;- fixef(mod)[&quot;Intervention&quot;]
-  the_es &lt;- the_b / the_sd
-  
-  c(b = the_b, sd = the_sd, g = the_es)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubnVtc190b19ub3RlcyA8LSBmdW5jdGlvbihudW1zKSB7XG4gIHBpdGNoZXMgPC0gdGhlX3NjYWxlW251bXMgKyAxXVxuICBNdXNpYygpICtcbiAgICBNZXRlcig0LCA0KSArXG4gICAgTGluZShwaXRjaGVzID0gcGl0Y2hlcyxcbiAgICAgICAgIGR1cmF0aW9ucyA9IHJlcChcIjE2dGhcIiwgbGVuZ3RoKHBpdGNoZXMpKSkgK1xuICAgIEluc3RydW1lbnQoOTEsIDEpXG59XG5gYGAifQ== -->
+<pre class="r"><code>nums_to_notes &lt;- function(nums) {
+  pitches &lt;- the_scale[nums + 1]
+  Music() +
+    Meter(4, 4) +
+    Line(pitches = pitches,
+         durations = rep(&quot;16th&quot;, length(pitches))) +
+    Instrument(91, 1)
 }</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZWFjaF9ib290KHRvX2Jvb3QpXG5gYGAifQ== -->
-<pre class="r"><code>each_boot(to_boot)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubnVtc190b19ub3RlcyhzYW1wbGUoMDo5LCAxMDAwLCByZXBsYWNlID0gVFJVRSkpIHw+XG4gIGV4cG9ydChcInRlc3QubWlkXCIpXG5gYGAifQ== -->
+<pre class="r"><code>nums_to_notes(sample(0:9, 1000, replace = TRUE)) |&gt;
+  export(&quot;test.mid&quot;)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaG93X21hbnlfYm9vdHMgPC0gNTAwMFxuYGBgIn0= -->
-<pre class="r"><code>how_many_boots &lt;- 5000</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGljKClcbmJvb19wYXJhIDwtIGJvb3RzdHJhcChcbiAgbW9kZWwgPSB0b19ib290LFxuICAuZiAgICA9IGVhY2hfYm9vdCxcbiAgdHlwZSAgPSBcInBhcmFtZXRyaWNcIixcbiAgQiA9IGhvd19tYW55X2Jvb3RzIFxuKVxudG9jKClcbmJlZXAoMylcbmBgYCJ9 -->
-<pre class="r"><code>tic()
-boo_para &lt;- bootstrap(
-  model = to_boot,
-  .f    = each_boot,
-  type  = &quot;parametric&quot;,
-  B = how_many_boots 
-)
-toc()
-beep(3)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGljKClcbmJvb19yZXNpZCA8LSBib290c3RyYXAoXG4gIG1vZGVsID0gdG9fYm9vdCxcbiAgLmYgICAgPSBlYWNoX2Jvb3QsXG4gIHR5cGUgID0gXCJyZXNpZHVhbFwiLFxuICBCID0gaG93X21hbnlfYm9vdHMgXG4pXG50b2MoKVxuYmVlcCgyKVxuYGBgIn0= -->
-<pre class="r"><code>tic()
-boo_resid &lt;- bootstrap(
-  model = to_boot,
-  .f    = each_boot,
-  type  = &quot;residual&quot;,
-  B = how_many_boots 
-)
-toc()
-beep(2)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGljKClcbmJvb19jYXNlIDwtIGJvb3RzdHJhcChcbiAgbW9kZWwgPSB0b19ib290LFxuICAuZiAgICA9IGVhY2hfYm9vdCxcbiAgdHlwZSAgPSBcImNhc2VcIixcbiAgQiA9IGhvd19tYW55X2Jvb3RzICxcbiAgcmVzYW1wbGUgPSBjKFRSVUUsIFRSVUUpXG4pXG50b2MoKVxuYmVlcCgxKVxuYGBgIn0= -->
-<pre class="r"><code>tic()
-boo_case &lt;- bootstrap(
-  model = to_boot,
-  .f    = each_boot,
-  type  = &quot;case&quot;,
-  B = how_many_boots ,
-  resample = c(TRUE, TRUE)
-)
-toc()
-beep(1)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29uZmludChib29fcGFyYSwgdHlwZSA9IFwicGVyY1wiKVxuYGBgIn0= -->
-<pre class="r"><code>confint(boo_para, type = &quot;perc&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29uZmludChib29fcmVzaWQsIHR5cGUgPSBcInBlcmNcIilcbmBgYCJ9 -->
-<pre class="r"><code>confint(boo_resid, type = &quot;perc&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29uZmludChib29fY2FzZSwgdHlwZSA9IFwicGVyY1wiKVxuYGBgIn0= -->
-<pre class="r"><code>confint(boo_case, type = &quot;perc&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ2V0X2Jvb3RzdHJhcF9lc3RzIDwtIGZ1bmN0aW9uKG9iaikge1xuICBtZWFuX2VzdCA8LSBvYmokcmVwbGljYXRlcyRnLkludGVydmVudGlvbiAgfD4gbWVhbigpXG4gIGludGVydmFscyA8LSBjb25maW50KG9iaiwgdHlwZSA9IFwicGVyY1wiKSB8PlxuICBmaWx0ZXIodGVybSA9PSBcImcuSW50ZXJ2ZW50aW9uXCIpXG4gIFxuICBjKG1lYW5fZXN0LCBpbnRlcnZhbHMkbG93ZXIsIGludGVydmFscyR1cHBlcikgfD4gYXMubnVtZXJpYygpXG59XG5gYGAifQ== -->
-<pre class="r"><code>get_bootstrap_ests &lt;- function(obj) {
-  mean_est &lt;- obj$replicates$g.Intervention  |&gt; mean()
-  intervals &lt;- confint(obj, type = &quot;perc&quot;) |&gt;
-  filter(term == &quot;g.Intervention&quot;)
-  
-  c(mean_est, intervals$lower, intervals$upper) |&gt; as.numeric()
-}</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYWRkX3Jlc3VsdChcImJvb3RzdHJhcCAocGFyYW1ldHJpYylcIiwgZ2V0X2Jvb3RzdHJhcF9lc3RzKGJvb19wYXJhKSlcbmFkZF9yZXN1bHQoXCJib290c3RyYXAgKHJlc2lkKVwiLCAgICAgIGdldF9ib290c3RyYXBfZXN0cyhib29fcmVzaWQpKVxuYWRkX3Jlc3VsdChcImJvb3RzdHJhcCAoY2FzZSlcIiwgICAgICAgZ2V0X2Jvb3RzdHJhcF9lc3RzKGJvb19jYXNlKSlcbmBgYCJ9 -->
-<pre class="r"><code>add_result(&quot;bootstrap (parametric)&quot;, get_bootstrap_ests(boo_para))
-add_result(&quot;bootstrap (resid)&quot;,      get_bootstrap_ests(boo_resid))
-add_result(&quot;bootstrap (case)&quot;,       get_bootstrap_ests(boo_case))</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGliYmxlX3Jlc3VsdHMoKVxuYGBgIn0= -->
-<pre class="r"><code>tibble_results()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-<div id="go-bayesian" class="section level2">
-<h2>Go Bayesian</h2>
-<p>Model for the numerator:</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYmF5ZXNfbW9kXzEgPC0gYnJtKFBvc3R0ZXN0IH4gSW50ZXJ2ZW50aW9uICsgUHJldHRlc3QgK1xuICAgICAgICAgICAgICAgICAgICAgKDEgfCBTY2hvb2wpLCBkYXRhID0gY3J0RGF0YSlcbmBgYCJ9 -->
-<pre class="r"><code>bayes_mod_1 &lt;- brm(Posttest ~ Intervention + Prettest +
-                     (1 | School), data = crtData)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Model for the denominator:</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYmF5ZXNfbW9kXzAgPC0gYnJtKFBvc3R0ZXN0IH4gSW50ZXJ2ZW50aW9uICtcbiAgICAgICAgICAgICAgICAgICAgICgxIHwgU2Nob29sKSwgZGF0YSA9IGNydERhdGEpXG5gYGAifQ== -->
-<pre class="r"><code>bayes_mod_0 &lt;- brm(Posttest ~ Intervention +
-                     (1 | School), data = crtData)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYmF5ZXNfbW9kXzAgfD4gZ2V0X3ZhcmlhYmxlcygpXG5gYGAifQ== -->
-<pre class="r"><code>bayes_mod_0 |&gt; get_variables()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYl9kcmF3cyA8LSBiYXllc19tb2RfMSB8PlxuICBzcHJlYWRfZHJhd3MoYl9JbnRlcnZlbnRpb24pXG5zZF9kcmF3cyA8LSBiYXllc19tb2RfMCB8PlxuICBzcHJlYWRfZHJhd3Moc2RfU2Nob29sX19JbnRlcmNlcHQsIHNpZ21hKSB8PlxuICBtdXRhdGUodG90YWxfc2QgPSBzcXJ0KHNkX1NjaG9vbF9fSW50ZXJjZXB0XjIgKyBzaWdtYV4yKSlcbmBgYCJ9 -->
-<pre class="r"><code>b_draws &lt;- bayes_mod_1 |&gt;
-  spread_draws(b_Intervention)
-sd_draws &lt;- bayes_mod_0 |&gt;
-  spread_draws(sd_School__Intercept, sigma) |&gt;
-  mutate(total_sd = sqrt(sd_School__Intercept^2 + sigma^2))</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGVhZChiX2RyYXdzKVxuYGBgIn0= -->
-<pre class="r"><code>head(b_draws)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGVhZChzZF9kcmF3cylcbmBgYCJ9 -->
-<pre class="r"><code>head(sd_draws)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29tYmluZWRfZHJhd3MgPC0gYmluZF9jb2xzKGJfZHJhd3MgfD4gc2VsZWN0KGJfSW50ZXJ2ZW50aW9uKSxcbiAgICAgICAgICAgICAgICAgICAgICBzZF9kcmF3cyB8PiBzZWxlY3QodG90YWxfc2QpKSB8PlxuICBtdXRhdGUoZyA9IGJfSW50ZXJ2ZW50aW9uIC8gdG90YWxfc2QpXG5oZWFkKGNvbWJpbmVkX2RyYXdzKVxuYGBgIn0= -->
-<pre class="r"><code>combined_draws &lt;- bind_cols(b_draws |&gt; select(b_Intervention),
-                      sd_draws |&gt; select(total_sd)) |&gt;
-  mutate(g = b_Intervention / total_sd)
-head(combined_draws)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29tYmluZWRfZHJhd3NfQmF5ZXNfbWVhbiA8LSBjb21iaW5lZF9kcmF3cyB8PlxuICBtZWFuX2hkY2koZylcbmNvbWJpbmVkX2RyYXdzX0JheWVzX21lZGlhbiA8LSBjb21iaW5lZF9kcmF3cyB8PlxuICBtZWRpYW5faGRjaShnKVxuY29tYmluZWRfZHJhd3NfQmF5ZXNfbW9kZSA8LSBjb21iaW5lZF9kcmF3cyB8PlxuICBtb2RlX2hkY2koZylcbmBgYCJ9 -->
-<pre class="r"><code>combined_draws_Bayes_mean &lt;- combined_draws |&gt;
-  mean_hdci(g)
-combined_draws_Bayes_median &lt;- combined_draws |&gt;
-  median_hdci(g)
-combined_draws_Bayes_mode &lt;- combined_draws |&gt;
-  mode_hdci(g)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYWRkX3Jlc3VsdChcIkJheWVzaWFuIEhEQ0kgKG1lYW4pXCIsICAgY29tYmluZWRfZHJhd3NfQmF5ZXNfbWVhblssMTozXSB8PiBhcy5udW1lcmljKCkpXG5hZGRfcmVzdWx0KFwiQmF5ZXNpYW4gSERDSSAobWVkaWFuKVwiLCBjb21iaW5lZF9kcmF3c19CYXllc19tZWRpYW5bLDE6M10gfD4gYXMubnVtZXJpYygpKVxuYWRkX3Jlc3VsdChcIkJheWVzaWFuIEhEQ0kgKG1vZGUpXCIsICAgY29tYmluZWRfZHJhd3NfQmF5ZXNfbW9kZVssMTozXSB8PiBhcy5udW1lcmljKCkpXG5gYGAifQ== -->
-<pre class="r"><code>add_result(&quot;Bayesian HDCI (mean)&quot;,   combined_draws_Bayes_mean[,1:3] |&gt; as.numeric())
-add_result(&quot;Bayesian HDCI (median)&quot;, combined_draws_Bayes_median[,1:3] |&gt; as.numeric())
-add_result(&quot;Bayesian HDCI (mode)&quot;,   combined_draws_Bayes_mode[,1:3] |&gt; as.numeric())</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-<div id="try-eefanalytics-bayes-model" class="section level2">
-<h2>Try {eefAnalytics}’ Bayes model</h2>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZWVmQmF5ZXMgPC0gY3J0QmF5ZXMoXG4gIFBvc3R0ZXN0IH4gSW50ZXJ2ZW50aW9uICsgUHJldHRlc3QsXG4gIHJhbmRvbSA9IFwiU2Nob29sXCIsXG4gIGludGVydmVudGlvbiA9IFwiSW50ZXJ2ZW50aW9uXCIsXG4gIG5zaW0gPSA0MDAwLFxuICBkYXRhID0gY3J0RGF0YVxuKVxuYGBgIn0= -->
-<pre class="r"><code>eefBayes &lt;- crtBayes(
-  Posttest ~ Intervention + Prettest,
-  random = &quot;School&quot;,
-  intervention = &quot;Intervention&quot;,
-  nsim = 4000,
-  data = crtData
-)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZWVmQmF5ZXNcbmBgYCJ9 -->
-<pre class="r"><code>eefBayes</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYWRkX3Jlc3VsdChcImVlZkFuYWx5dGljcyBCYXllcyB0b3RhbCBjb25kaXRpb25hbFwiLFxuICAgICAgICAgICBlZWZCYXllcyRFUyRJbnRlcnZlbnRpb24xWzIsIF0gfD4gYXMubnVtZXJpYygpKVxuYWRkX3Jlc3VsdChcbiAgXCJlZWZBbmFseXRpY3MgQmF5ZXMgdG90YWwgdW5jb25kaXRpb25hbFwiLFxuICBlZWZCYXllcyRVbmNvbmRpdGlvbmFsJEVTJEludGVydmVudGlvbjFbMiwgXSB8PiBhcy5udW1lcmljKClcbilcbmBgYCJ9 -->
-<pre class="r"><code>add_result(&quot;eefAnalytics Bayes total conditional&quot;,
-           eefBayes$ES$Intervention1[2, ] |&gt; as.numeric())
-add_result(
-  &quot;eefAnalytics Bayes total unconditional&quot;,
-  eefBayes$Unconditional$ES$Intervention1[2, ] |&gt; as.numeric()
-)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-<div id="summary-of-all-approaches" class="section level2">
-<h2>Summary of all approaches</h2>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGliYmxlX3Jlc3VsdHMoKSB8PlxuICBtdXRhdGUoQ0l3aWR0aCA9IHVwcGVyOTUgLSBsb3dlcjk1KSB8PlxuICBtdXRhdGUoYWNyb3NzKHdoZXJlKGlzLm51bWVyaWMpLCB+IHJvdW5kKC54LCAyKSkpIHw+XG4gIGFycmFuZ2UoQ0l3aWR0aCwgZXN0KVxuYGBgIn0= -->
-<pre class="r"><code>tibble_results() |&gt;
-  mutate(CIwidth = upper95 - lower95) |&gt;
-  mutate(across(where(is.numeric), ~ round(.x, 2))) |&gt;
-  arrange(CIwidth, est)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-</div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkhlZGdlcycgZyBmb3IgTUxNcyAtLSBleHBsb3JpbmcgZGlmZmVyZW50IG1ldGhvZHMiDQphdXRob3I6ICJBbmRpIEZ1Z2FyZCAoW0BhbmRpQHNjaWVuY2VzLnNvY2lhbF0oaHR0cHM6Ly9zY2llbmNlcy5zb2NpYWwvQGFuZGkpKSINCmRhdGU6ICJMYXN0IGtuaXR0ZWQgYHIgZm9ybWF0KFN5cy5EYXRlKCksICclZCAlQiAlWScpYCINCm91dHB1dDoNCiAgaHRtbF9ub3RlYm9vazoNCiAgICBjb2RlX2ZvbGRpbmc6IG5vbmUNCiAgaHRtbF9kb2N1bWVudDoNCiAgICBkZl9wcmludDogcGFnZWQNCi0tLQ0KDQpgYGB7cn0NCmxpYnJhcnkobG1lSW5mbykNCmxpYnJhcnkobmxtZSkNCmxpYnJhcnkobG1lNCkNCmxpYnJhcnkoZWVmQW5hbHl0aWNzKQ0KbGlicmFyeSh0aWN0b2MpDQpsaWJyYXJ5KGJlZXByKQ0KbGlicmFyeShicm1zKQ0KbGlicmFyeSh0aWR5YmF5ZXMpDQpsaWJyYXJ5KHRpZHl2ZXJzZSkNCmBgYA0KDQoNCg0KDQpgYGB7cn0NCmFsbF9yZXN1bHRzIDwtIGxpc3QoKQ0KDQojIHZlY19yZXMgb3JkZXIgaXMgZXN0aW1hdGUsIGxvd2VyLCBhbmQgdXBwZXIgOTUlIGludGVydmFsDQphZGRfcmVzdWx0IDwtIGZ1bmN0aW9uKG5hbWUsIHZlY19yZXMpIHsNCiAgc3RvcGlmbm90KGlzLnZlY3Rvcih2ZWNfcmVzKSkNCiAgc3RvcGlmbm90KGxlbmd0aCh2ZWNfcmVzKSA9PSAzKQ0KICBzdG9waWZub3QodmVjX3Jlc1sxXSA+PSB2ZWNfcmVzWzJdKQ0KICBzdG9waWZub3QodmVjX3Jlc1sxXSA8PSB2ZWNfcmVzWzNdKQ0KICBzdG9waWZub3QodmVjX3Jlc1syXSA8PSB2ZWNfcmVzWzNdKQ0KICByZXMgPC0gdGliYmxlKA0KICAgIHNvdXJjZSAgPSBuYW1lLA0KICAgIGVzdCAgICAgPSB2ZWNfcmVzWzFdLA0KICAgIGxvd2VyOTUgPSB2ZWNfcmVzWzJdLA0KICAgIHVwcGVyOTUgPSB2ZWNfcmVzWzNdDQogICkNCiAgDQogIGFsbF9yZXN1bHRzIDw8LSBhcHBlbmQoYWxsX3Jlc3VsdHMsIGxpc3QocmVzKSkNCn0NCg0KY2xlYXJfcmVzdWx0cyA8LSBmdW5jdGlvbigpIHsNCiAgYWxsX3Jlc3VsdHMgPDwtIGxpc3QoKQ0KfQ0KDQp0aWJibGVfcmVzdWx0cyA8LSBmdW5jdGlvbigpIHsNCiAgYmluZF9yb3dzKGFsbF9yZXN1bHRzKQ0KfQ0KYGBgDQoNCg0KIyMgZWVmQW5hbHl0aWNzDQoNCg0KYGBge3IgcGFnZWQucHJpbnQ9RkFMU0V9DQpvdXRwdXQxIDwtIGNydEZSRVEoDQogIFBvc3R0ZXN0IH4gSW50ZXJ2ZW50aW9uICsgUHJldHRlc3QsDQogIHJhbmRvbSA9ICJTY2hvb2wiLA0KICBpbnRlcnZlbnRpb24gPSAiSW50ZXJ2ZW50aW9uIiwNCiAgZGF0YSA9IGNydERhdGENCikNCg0Kc3VtbWFyeShvdXRwdXQxKQ0KYGBgDQoNCg0KYGBge3J9DQpvdXRwdXQxJEVTJEludGVydmVudGlvbjFbMixdDQpgYGANCg0KYGBge3J9DQpvdXRwdXQxJFVuY29uZGl0aW9uYWwkRVMkSW50ZXJ2ZW50aW9uMVsyLF0NCmBgYA0KDQoNCmBgYHtyfQ0KYWRkX3Jlc3VsdCgiZWVmQW5hbHl0aWNzIHRvdGFsIGNvbmRpdGlvbmFsIiwNCiAgICAgICAgICAgb3V0cHV0MSRFUyRJbnRlcnZlbnRpb24xWzIsIF0gfD4gYXMubnVtZXJpYygpKQ0KYWRkX3Jlc3VsdCgNCiAgImVlZkFuYWx5dGljcyB0b3RhbCB1bmNvbmRpdGlvbmFsIiwNCiAgb3V0cHV0MSRVbmNvbmRpdGlvbmFsJEVTJEludGVydmVudGlvbjFbMiwgXSB8PiBhcy5udW1lcmljKCkNCikNCmBgYA0KDQoNCmBgYHtyfQ0KdGliYmxlX3Jlc3VsdHMoKQ0KYGBgDQoNCg0KDQojIyBOYWl2ZSBhcHByb2FjaCB1c2luZyBsbWU0DQoNCg0KYGBge3J9DQp0ZXN0X21vZCA8LSBsbWVyKFBvc3R0ZXN0IH4gSW50ZXJ2ZW50aW9uICsgUHJldHRlc3QgKw0KICAgICAgICAgICAgICAgICAgICgxfFNjaG9vbCksIGRhdGEgPSBjcnREYXRhKQ0KdGVzdF9tb2QgfD4gc3VtbWFyeSgpDQpgYGANCg0KYGBge3J9DQp0ZXN0X21vZF8wIDwtIGxtZXIoUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24gKyAoMXxTY2hvb2wpLCBkYXRhID0gY3J0RGF0YSkNCnRlc3RfbW9kXzANCmBgYA0KDQpgYGB7cn0NCnZhcnMgPC0gVmFyQ29ycih0ZXN0X21vZF8wKSB8PiBhcy5kYXRhLmZyYW1lKCkNCnRoZV9zZCA8LSB2YXJzJHZjb3YgfD4gc3VtKCkgfD4gc3FydCgpDQp0aGVfc2QNCmBgYA0KDQpgYGB7cn0NCnZhcnMgDQpgYGANCg0KDQpgYGB7cn0NCmFkZF9yZXN1bHQoIk5haXZlbHkgZGl2aWRlIENJIGJ5IFNEIiwgDQpjKGZpeGVmKHRlc3RfbW9kKVsiSW50ZXJ2ZW50aW9uIl0sIGNvbmZpbnQodGVzdF9tb2QpWyJJbnRlcnZlbnRpb24iLF0pIHw+IGFzLm51bWVyaWMoKSAvIHRoZV9zZCkNCmBgYA0KDQpgYGB7cn0NCnRpYmJsZV9yZXN1bHRzKCkNCmBgYA0KDQoNCg0KIyMgZ19tbG0gaW4ge2xtZUluZm99DQoNCmBgYHtyfQ0KbG1lX251bSA8LSBsbWUoDQogIGZpeGVkID0gUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24gKyBQcmV0dGVzdCwNCiAgcmFuZG9tID0gfiAxIHwgU2Nob29sLA0KICBkYXRhID0gY3J0RGF0YSwNCiAgbWV0aG9kID0gIlJFTUwiDQopDQoNCmxtZV9kZW4gPC0gbG1lKA0KICBmaXhlZCA9IFBvc3R0ZXN0IH4gSW50ZXJ2ZW50aW9uLA0KICByYW5kb20gPSB+IDEgfCBTY2hvb2wsDQogIGRhdGEgPSBjcnREYXRhLA0KICBtZXRob2QgPSAiUkVNTCINCikNCmBgYA0KDQoNCmBgYHtyIHBhZ2VkLnByaW50PUZBTFNFfQ0Kc3VtbWFyeShsbWVfbnVtKQ0KYGBgDQoNCg0KDQpgYGB7cn0NCnRoZV9nIDwtIGdfbWxtKA0KICBsbWVfbnVtLA0KICBwX2NvbnN0ID0gYygwLDEsMCksDQogIG1vZF9kZW5vbSA9IGxtZV9kZW4sDQogIHJfY29uc3QgPSBjKDEsMSksDQogIGluZm90eXBlID0gImV4cGVjdGVkIiwNCiAgc2VwYXJhdGVfdmFyaWFuY2VzID0gRkFMU0UNCikNCg0KdGhlX2cNCmBgYA0KDQoNCldpdGhvdXQgdGhlIGRmIGFkanVzdG1lbnQ6DQoNCmBgYHtyfQ0KdW5hZGpfU0UgPC0gc3FydCh0aGVfZyRTRV9nX0FCXjIgLyB0aGVfZyRKX251XjIpDQp0aGVfZyRkZWx0YV9BQg0KYyh0aGVfZyRkZWx0YV9BQiAtIDEuOTYgKiB1bmFkal9TRSwNCiAgdGhlX2ckZGVsdGFfQUIgKyAxLjk2ICogdW5hZGpfU0UpDQpgYGANCg0KIk1hbnVhbCIgZGYgYWRqdXN0bWVudDoNCg0KYGBge3J9DQp0aGVfZyRKX251ICogdGhlX2ckZGVsdGFfQUINCmBgYA0KDQpGcm9tIHRoZSBtb2RlbDoNCg0KYGBge3J9DQp0aGVfZyRnX0FCDQpjKHRoZV9nJGdfQUIgLSAxLjk2ICogdGhlX2ckU0VfZ19BQiwNCiAgdGhlX2ckZ19BQiArIDEuOTYgKiB0aGVfZyRTRV9nX0FCKQ0KYGBgDQoNCmBgYHtyfQ0KYWRkX3Jlc3VsdCgibG1lSW5mbyBIZWRnZXMgZGYgYWRqdXN0ZWQiLCBjKHRoZV9nJGdfQUIsDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdGhlX2ckZ19BQiAtIDEuOTYgKiB0aGVfZyRTRV9nX0FCLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHRoZV9nJGdfQUIgKyAxLjk2ICogdGhlX2ckU0VfZ19BQikpDQphZGRfcmVzdWx0KCJsbWVJbmZvIHVuYWRqdXN0ZWQiLCBjKHRoZV9nJGRlbHRhX0FCLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB0aGVfZyRkZWx0YV9BQiAtIDEuOTYgKiB1bmFkal9TRSwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdGhlX2ckZGVsdGFfQUIgKyAxLjk2ICogdW5hZGpfU0UpKQ0KYGBgDQoNCg0KYGBge3J9DQp0aWJibGVfcmVzdWx0cygpDQpgYGANCg0KDQojIyBNYW51YWxseSwgd2l0aCB0aGUgaGVscCBvZiB7bWVyRGVyaXZ9DQoNCg0KYGBge3J9DQpteV9nIDwtIGZpeGVmKHRlc3RfbW9kKVsiSW50ZXJ2ZW50aW9uIl0gLyB0aGVfc2QNCm15X2cNCmBgYA0KDQoNCmBgYHtyfQ0KYl92YXIgPC0gdmNvdih0ZXN0X21vZClbIkludGVydmVudGlvbiIsICJJbnRlcnZlbnRpb24iXQ0KYl92YXINCmBgYA0KDQpgYGB7cn0NCmxpYnJhcnkobWVyRGVyaXYpDQpyYW5lZl92YXIgPC0gdmNvdih0ZXN0X21vZF8wLA0KICAgICAgICAgICAgICAgICAgZnVsbCA9IFRSVUUsDQogICAgICAgICAgICAgICAgICByYW5wYXIgPSAidmFyIiwNCiAgICAgICAgICAgICAgICAgIGluZm9ybWF0aW9uID0gImV4cGVjdGVkIilbMywgM10NCg0Kc3VtX3ZhcnMgPC0gdmFycyR2Y292IHw+IHN1bSgpDQp0aGVfc2UgPC0gc3FydCgoYl92YXIgLyBzdW1fdmFycykgKw0KICAgICAgICgoZml4ZWYodGVzdF9tb2QpWyJJbnRlcnZlbnRpb24iXV4yICogcmFuZWZfdmFyKSAvICg0ICogKHN1bV92YXJzKV4zKSkpDQpgYGANCg0KYGBge3J9DQp0aGVfc2UNCmBgYA0KDQoNCmBgYHtyfQ0KYWRkX3Jlc3VsdCgiTWFudWFsIHVzaW5nIG1lckRlcml2IChubyBkZiBhZGp1c3QpIiwgYyhteV9nLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBteV9nIC0gMS45NiAqIHRoZV9zZSwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbXlfZyArIDEuOTYgKiB0aGVfc2UpKQ0KYGBgDQoNCg0KYGBge3J9DQp0aWJibGVfcmVzdWx0cygpDQpgYGANCg0KDQoNCiMjIFRyeSBzb21lIGJvb3RzdHJhcHBpbmcgd2l0aCB7bG1lcnNhbXBsZXJ9DQoNCg0KYGBge3J9DQpsaWJyYXJ5KGxtZXJlc2FtcGxlcikNCmBgYA0KDQoNCg0KYGBge3J9DQp0b19ib290IDwtIGxtZXIoUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24gKyBQcmV0dGVzdCArDQogICAgICAgICAgICAgICAgICAoMSB8IFNjaG9vbCksIGRhdGEgPSBjcnREYXRhKQ0KYGBgDQoNCg0KDQpgYGB7cn0NCmVhY2hfYm9vdCA8LSBmdW5jdGlvbihtb2QpIHsNCiAgZGVub21fbW9kIDwtIGxtZXIoUG9zdHRlc3QgfiBJbnRlcnZlbnRpb24gKyAoMSB8IFNjaG9vbCksDQogICAgICAgICAgICAgICAgICAgIGRhdGEgPSBtb2RlbC5mcmFtZShtb2QpKQ0KICANCiAgdmFycyAgIDwtIFZhckNvcnIoZGVub21fbW9kKSB8PiBhcy5kYXRhLmZyYW1lKCkNCiAgdGhlX3NkIDwtIHZhcnMkdmNvdiB8PiBzdW0oKSB8PiBzcXJ0KCkNCiAgDQogIHRoZV9iICA8LSBmaXhlZihtb2QpWyJJbnRlcnZlbnRpb24iXQ0KICB0aGVfZXMgPC0gdGhlX2IgLyB0aGVfc2QNCiAgDQogIGMoYiA9IHRoZV9iLCBzZCA9IHRoZV9zZCwgZyA9IHRoZV9lcykNCn0NCmBgYA0KDQoNCmBgYHtyfQ0KZWFjaF9ib290KHRvX2Jvb3QpDQpgYGANCg0KYGBge3J9DQpob3dfbWFueV9ib290cyA8LSA1MDAwDQpgYGANCg0KDQoNCmBgYHtyfQ0KdGljKCkNCmJvb19wYXJhIDwtIGJvb3RzdHJhcCgNCiAgbW9kZWwgPSB0b19ib290LA0KICAuZiAgICA9IGVhY2hfYm9vdCwNCiAgdHlwZSAgPSAicGFyYW1ldHJpYyIsDQogIEIgPSBob3dfbWFueV9ib290cyANCikNCnRvYygpDQpiZWVwKDMpDQpgYGANCg0KDQpgYGB7cn0NCnRpYygpDQpib29fcmVzaWQgPC0gYm9vdHN0cmFwKA0KICBtb2RlbCA9IHRvX2Jvb3QsDQogIC5mICAgID0gZWFjaF9ib290LA0KICB0eXBlICA9ICJyZXNpZHVhbCIsDQogIEIgPSBob3dfbWFueV9ib290cyANCikNCnRvYygpDQpiZWVwKDIpDQpgYGANCg0KDQpgYGB7cn0NCnRpYygpDQpib29fY2FzZSA8LSBib290c3RyYXAoDQogIG1vZGVsID0gdG9fYm9vdCwNCiAgLmYgICAgPSBlYWNoX2Jvb3QsDQogIHR5cGUgID0gImNhc2UiLA0KICBCID0gaG93X21hbnlfYm9vdHMgLA0KICByZXNhbXBsZSA9IGMoVFJVRSwgVFJVRSkNCikNCnRvYygpDQpiZWVwKDEpDQpgYGANCg0KDQpgYGB7cn0NCmNvbmZpbnQoYm9vX3BhcmEsIHR5cGUgPSAicGVyYyIpDQpgYGANCg0KDQpgYGB7cn0NCmNvbmZpbnQoYm9vX3Jlc2lkLCB0eXBlID0gInBlcmMiKQ0KYGBgDQoNCg0KYGBge3J9DQpjb25maW50KGJvb19jYXNlLCB0eXBlID0gInBlcmMiKQ0KYGBgDQoNCg0KDQpgYGB7cn0NCmdldF9ib290c3RyYXBfZXN0cyA8LSBmdW5jdGlvbihvYmopIHsNCiAgbWVhbl9lc3QgPC0gb2JqJHJlcGxpY2F0ZXMkZy5JbnRlcnZlbnRpb24gIHw+IG1lYW4oKQ0KICBpbnRlcnZhbHMgPC0gY29uZmludChvYmosIHR5cGUgPSAicGVyYyIpIHw+DQogIGZpbHRlcih0ZXJtID09ICJnLkludGVydmVudGlvbiIpDQogIA0KICBjKG1lYW5fZXN0LCBpbnRlcnZhbHMkbG93ZXIsIGludGVydmFscyR1cHBlcikgfD4gYXMubnVtZXJpYygpDQp9DQpgYGANCg0KYGBge3J9DQphZGRfcmVzdWx0KCJib290c3RyYXAgKHBhcmFtZXRyaWMpIiwgZ2V0X2Jvb3RzdHJhcF9lc3RzKGJvb19wYXJhKSkNCmFkZF9yZXN1bHQoImJvb3RzdHJhcCAocmVzaWQpIiwgICAgICBnZXRfYm9vdHN0cmFwX2VzdHMoYm9vX3Jlc2lkKSkNCmFkZF9yZXN1bHQoImJvb3RzdHJhcCAoY2FzZSkiLCAgICAgICBnZXRfYm9vdHN0cmFwX2VzdHMoYm9vX2Nhc2UpKQ0KYGBgDQoNCg0KYGBge3J9DQp0aWJibGVfcmVzdWx0cygpDQpgYGANCg0KDQoNCiMjIEdvIEJheWVzaWFuDQoNCg0KTW9kZWwgZm9yIHRoZSBudW1lcmF0b3I6DQoNCmBgYHtyfQ0KYmF5ZXNfbW9kXzEgPC0gYnJtKFBvc3R0ZXN0IH4gSW50ZXJ2ZW50aW9uICsgUHJldHRlc3QgKw0KICAgICAgICAgICAgICAgICAgICAgKDEgfCBTY2hvb2wpLCBkYXRhID0gY3J0RGF0YSkNCmBgYA0KDQpNb2RlbCBmb3IgdGhlIGRlbm9taW5hdG9yOg0KDQpgYGB7cn0NCmJheWVzX21vZF8wIDwtIGJybShQb3N0dGVzdCB+IEludGVydmVudGlvbiArDQogICAgICAgICAgICAgICAgICAgICAoMSB8IFNjaG9vbCksIGRhdGEgPSBjcnREYXRhKQ0KYGBgDQoNCg0KDQpgYGB7cn0NCmJheWVzX21vZF8wIHw+IGdldF92YXJpYWJsZXMoKQ0KYGBgDQoNCg0KYGBge3J9DQpiX2RyYXdzIDwtIGJheWVzX21vZF8xIHw+DQogIHNwcmVhZF9kcmF3cyhiX0ludGVydmVudGlvbikNCnNkX2RyYXdzIDwtIGJheWVzX21vZF8wIHw+DQogIHNwcmVhZF9kcmF3cyhzZF9TY2hvb2xfX0ludGVyY2VwdCwgc2lnbWEpIHw+DQogIG11dGF0ZSh0b3RhbF9zZCA9IHNxcnQoc2RfU2Nob29sX19JbnRlcmNlcHReMiArIHNpZ21hXjIpKQ0KYGBgDQoNCmBgYHtyfQ0KaGVhZChiX2RyYXdzKQ0KYGBgDQoNCg0KYGBge3J9DQpoZWFkKHNkX2RyYXdzKQ0KYGBgDQoNCmBgYHtyfQ0KY29tYmluZWRfZHJhd3MgPC0gYmluZF9jb2xzKGJfZHJhd3MgfD4gc2VsZWN0KGJfSW50ZXJ2ZW50aW9uKSwNCiAgICAgICAgICAgICAgICAgICAgICBzZF9kcmF3cyB8PiBzZWxlY3QodG90YWxfc2QpKSB8Pg0KICBtdXRhdGUoZyA9IGJfSW50ZXJ2ZW50aW9uIC8gdG90YWxfc2QpDQpoZWFkKGNvbWJpbmVkX2RyYXdzKQ0KYGBgDQoNCg0KYGBge3J9DQpjb21iaW5lZF9kcmF3c19CYXllc19tZWFuIDwtIGNvbWJpbmVkX2RyYXdzIHw+DQogIG1lYW5faGRjaShnKQ0KY29tYmluZWRfZHJhd3NfQmF5ZXNfbWVkaWFuIDwtIGNvbWJpbmVkX2RyYXdzIHw+DQogIG1lZGlhbl9oZGNpKGcpDQpjb21iaW5lZF9kcmF3c19CYXllc19tb2RlIDwtIGNvbWJpbmVkX2RyYXdzIHw+DQogIG1vZGVfaGRjaShnKQ0KYGBgDQoNCg0KDQoNCmBgYHtyfQ0KYWRkX3Jlc3VsdCgiQmF5ZXNpYW4gSERDSSAobWVhbikiLCAgIGNvbWJpbmVkX2RyYXdzX0JheWVzX21lYW5bLDE6M10gfD4gYXMubnVtZXJpYygpKQ0KYWRkX3Jlc3VsdCgiQmF5ZXNpYW4gSERDSSAobWVkaWFuKSIsIGNvbWJpbmVkX2RyYXdzX0JheWVzX21lZGlhblssMTozXSB8PiBhcy5udW1lcmljKCkpDQphZGRfcmVzdWx0KCJCYXllc2lhbiBIRENJIChtb2RlKSIsICAgY29tYmluZWRfZHJhd3NfQmF5ZXNfbW9kZVssMTozXSB8PiBhcy5udW1lcmljKCkpDQpgYGANCg0KDQoNCiMjIFRyeSB7ZWVmQW5hbHl0aWNzfScgQmF5ZXMgbW9kZWwNCg0KDQpgYGB7cn0NCmVlZkJheWVzIDwtIGNydEJheWVzKA0KICBQb3N0dGVzdCB+IEludGVydmVudGlvbiArIFByZXR0ZXN0LA0KICByYW5kb20gPSAiU2Nob29sIiwNCiAgaW50ZXJ2ZW50aW9uID0gIkludGVydmVudGlvbiIsDQogIG5zaW0gPSA0MDAwLA0KICBkYXRhID0gY3J0RGF0YQ0KKQ0KYGBgDQoNCg0KDQpgYGB7cn0NCmVlZkJheWVzDQpgYGANCg0KDQpgYGB7cn0NCmFkZF9yZXN1bHQoImVlZkFuYWx5dGljcyBCYXllcyB0b3RhbCBjb25kaXRpb25hbCIsDQogICAgICAgICAgIGVlZkJheWVzJEVTJEludGVydmVudGlvbjFbMiwgXSB8PiBhcy5udW1lcmljKCkpDQphZGRfcmVzdWx0KA0KICAiZWVmQW5hbHl0aWNzIEJheWVzIHRvdGFsIHVuY29uZGl0aW9uYWwiLA0KICBlZWZCYXllcyRVbmNvbmRpdGlvbmFsJEVTJEludGVydmVudGlvbjFbMiwgXSB8PiBhcy5udW1lcmljKCkNCikNCmBgYA0KDQoNCg0KIyMgU3VtbWFyeSBvZiBhbGwgYXBwcm9hY2hlcw0KDQpgYGB7ciByb3dzLnByaW50ID0gMjB9DQp0aWJibGVfcmVzdWx0cygpIHw+DQogIG11dGF0ZShDSXdpZHRoID0gdXBwZXI5NSAtIGxvd2VyOTUpIHw+DQogIG11dGF0ZShhY3Jvc3Mod2hlcmUoaXMubnVtZXJpYyksIH4gcm91bmQoLngsIDIpKSkgfD4NCiAgYXJyYW5nZShDSXdpZHRoLCBlc3QpDQpgYGANCg0KDQo=</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpgYGB7cn0NCmxpYnJhcnkoZ20pDQpgYGANCg0KDQoNCmBgYHtyfQ0KdGhlX3NjYWxlIDwtIGMoIkEzIiwgIkM0IiwgIkU0IiwgIkc0IiwgIkI0IiwgIkQ1IiwgIkY1IiwgIkE1IiwgIkM1IiwgIkU1IikNCnN0b3BpZm5vdChsZW5ndGgodGhlX3NjYWxlKSA9PSAxMCkNCmBgYA0KDQoNCmBgYHtyfQ0KbnVtc190b19ub3RlcyA8LSBmdW5jdGlvbihudW1zKSB7DQogIHBpdGNoZXMgPC0gdGhlX3NjYWxlW251bXMgKyAxXQ0KICBNdXNpYygpICsNCiAgICBNZXRlcig0LCA0KSArDQogICAgTGluZShwaXRjaGVzID0gcGl0Y2hlcywNCiAgICAgICAgIGR1cmF0aW9ucyA9IHJlcCgiMTZ0aCIsIGxlbmd0aChwaXRjaGVzKSkpICsNCiAgICBJbnN0cnVtZW50KDkxLCAxKQ0KfQ0KYGBgDQoNCg0KDQpgYGB7cn0NCm51bXNfdG9fbm90ZXMoc2FtcGxlKDA6OSwgMTAwMCwgcmVwbGFjZSA9IFRSVUUpKSB8Pg0KICBleHBvcnQoInRlc3QubWlkIikNCmBgYA0KDQoNCg0K</div>
 
 
 
@@ -2378,7 +1851,8 @@ $(document).ready(function () {
 <!-- code folding -->
 <script>
 $(document).ready(function () {
-  window.initializeSourceEmbed("hedges.Rmd");
+  window.initializeSourceEmbed("music.Rmd");
+  window.initializeCodeFolding("show" === "show");
 });
 </script>
 

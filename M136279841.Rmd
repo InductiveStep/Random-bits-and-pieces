@@ -163,3 +163,5 @@ two_grams - min(two_grams)
 ```{r}
 chisq.test(two_grams)
 ```
+
+

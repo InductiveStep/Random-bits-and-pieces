@@ -1,0 +1,149 @@
+---
+title: "RDD designs with measurement error on the running variable"
+author: Andi Fugard
+date: 25 July 2025
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+
+```{r}
+library(tidyverse)
+library(tictoc)
+```
+
+
+
+```{r}
+set.seed(25072025)
+```
+
+
+```{r}
+n <- 1000
+mean_true <- 50
+sd_true <- 20
+reliability <- .8
+true_scores <- rnorm(n, mean_true, sd_true)
+```
+
+
+```{r}
+get_error_var <- function(true_var, rel) {
+  ((1 - rel) / rel) * true_var
+}
+```
+
+
+```{r}
+get_error_var(1, .8)
+```
+
+
+
+```{r}
+gen_scores <- function(true_scores, rel, thresh, sims = 100) {
+  n <- length(true_scores)
+  var_true <- var(true_scores)
+  var_error <- get_error_var(var_true, rel)
+  res <- tibble()
+  
+  for (sim in 1:sims) {
+    res <- bind_rows(res, tibble(
+      sim = sim,
+      id = 1:n,
+      true_score = true_scores,
+      error = rnorm(n, mean = 0, sd = sqrt(var_error)),
+      obs_score = true_score + error,
+      treat = as.numeric(obs_score >= thresh)
+    ))
+  }
+  
+  res
+}
+```
+
+
+
+
+
+
+```{r}
+tic()
+score_dat <- gen_scores(true_scores, rel = 0.8, thresh = 50, sims = 2000)
+toc()
+```
+
+```{r}
+score_dat |>
+  ggplot() +
+  aes(x = obs_score) +
+  geom_histogram(bins = 50)
+```
+
+
+
+```{r}
+ps_scores <- score_dat |> 
+  group_by(id) |>
+  summarise(ps = mean(treat))
+ps_scores
+```
+
+
+
+Now let's take the first simulated dataset as being the observed dataset:
+
+```{r}
+obs_dat <- score_dat |>
+  filter(sim == 1) |>
+  left_join(ps_scores)
+```
+
+Here's the reliability in that dataset (since we can see the true scores):
+
+```{r}
+var(obs_dat$true_score) / var(obs_dat$obs_score) 
+```
+
+
+Plot with true scores:
+
+
+```{r}
+obs_dat |>
+  mutate(treat = as_factor(treat)) |>
+  ggplot() +
+  aes(
+    x = true_score,
+    y = ps
+    #color = treat,
+    #group = treat
+  ) +
+  #geom_point(size = 1, alpha = 0.5) +
+  geom_smooth(
+    method = "gam",
+    se = FALSE,
+    method.args = list(family = "quasibinomial"),
+    formula = y ~ s(x, bs = "cs")
+  ) +
+  labs(
+    x = "True score",
+    y = "Probability of treatment",
+    #colour = "Treat",
+    title = "Probability of treatment in an RDD, assuming measurement error",
+    subtitle = paste0("2000 simulations, reliability = ", reliability)
+  ) +
+  geom_vline(xintercept = 50,
+             linetype = "dashed",
+             color = "black") +
+  xlim(0, 100)
+```
+
+
+
+
+
+
+

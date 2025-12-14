@@ -1,0 +1,39 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(Pinference)
+```
+
+
+
+
+
+```{r}
+inferP(
+  target = P(rt),
+  P(rt | w) == 0.8,
+  P(rc | !w) == 0.3
+)
+```
+
+
+
+```{r}
+inferP(
+  target = P(Rt),
+  P(Rt | w)  == 0.8,
+  P(Rc | !w) == 0.3,
+  P(w | Rc & Rt) == P(w)
+)
+```
+
+
+
+
+
+
+

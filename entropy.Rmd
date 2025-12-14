@@ -1,0 +1,72 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r message=FALSE, warning=FALSE}
+library(WeightIt)
+library(cobalt)
+library(tidyverse)
+library(marginaleffects)
+library(survey)
+```
+
+
+```{r}
+ebal1 <- weightit(
+  treat ~ age + educ + married + nodegree + re74,
+  data = lalonde,
+  method = "ebal",
+  estimand = "ATT"
+)
+summary(ebal1)
+```
+
+
+```{r}
+ebal_lm <- lm_weightit(
+  re75 ~ treat * (age + educ + married + nodegree + re74),
+  data = lalonde,
+  weightit = ebal1
+)
+```
+
+
+```{r}
+avg_comparisons(ebal_lm, variables = "treat", newdata = subset(treat == 1))
+```
+
+
+```{r}
+lm(re75 ~ treat + age + educ + married + nodegree + re74, data = lalonde) |>
+  summary()
+```
+
+```{r}
+dat <- data.frame( id = 1:100, weight = 1, outcome = rnorm(100, 2) )
+dat
+```
+
+```{r}
+dat_design <- svydesign(id = ~id, weights = ~weight, data = dat)
+```
+
+
+```{r}
+mean(dat$outcome)
+```
+
+
+
+```{r}
+calibrated_design <- calibrate(dat_design, ~ 0 + outcome,
+                               population = c(outcome = 1))
+```
+
+
+
+```{r}
+svymean(~outcome, design = calibrated_design)
+```
+

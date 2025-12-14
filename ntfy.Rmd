@@ -1,0 +1,27 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(ntfy)
+```
+
+
+
+```{r}
+ntfy_server()
+```
+
+
+
+```{r}
+ntfy_send("Hello") -> res
+```
+
+
+```{r}
+res
+```
+
+

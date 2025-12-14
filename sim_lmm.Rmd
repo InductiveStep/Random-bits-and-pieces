@@ -1,0 +1,163 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+## Include libraries
+
+```{r}
+library(lme4)
+library(tidyverse)
+library(broom.mixed)
+library(tictoc)
+library(beepr)
+```
+
+## Parameters
+
+```{r}
+school_var  <- 0.09
+class_var   <- 0.09
+student_var <- 1 - school_var - class_var
+n_schools <- 160
+```
+
+
+## Try a simulation
+
+```{r}
+schools <- tibble(
+  id = 1:n_schools,
+  classes = c(rep(1, n_schools / 2), rep(2, n_schools / 2)),
+  school_int = rnorm(n_schools, 0, sqrt(school_var))
+)
+schools
+```
+
+
+```{r}
+var(schools$school_int)
+```
+
+
+```{r}
+classes <- schools |>
+  pmap_df(\(id, classes, school_int) data.frame(
+    school = id,
+    class = c(1:classes),
+    school_int = school_int
+  )) |>
+  mutate(class_int = rnorm(n(), 0, sqrt(class_var)))
+classes
+```
+
+
+```{r}
+var(classes$school_int)
+```
+
+
+```{r}
+students <- classes |>
+  pmap_df(\(school, class, school_int, class_int) data.frame(student = 1:5, class, school, school_int, class_int)) |>
+  mutate(id = 1:n(), .before = student) |>
+  mutate(student_int = rnorm(n(), 0, sqrt(student_var)),
+         y = school_int + class_int + student_int)
+```
+
+
+```{r}
+students
+```
+
+
+```{r}
+mod <- lmer(y ~ 1 + (1 | school:class) + (1 | school), data = students)
+summary(mod)
+```
+
+## Wrap in a function
+
+```{r}
+one_sim <- function(n_schools, school_var, class_var) {
+  student_var <- 1 - school_var - class_var
+  schools <- tibble(
+    id = 1:n_schools,
+    classes = c(rep(1, n_schools / 2), rep(2, n_schools / 2)),
+    school_int = rnorm(n_schools, 0, sqrt(school_var))
+  )
+  classes <- schools |>
+    pmap_df(\(id, classes, school_int) data.frame(
+      school = id,
+      class = c(1:classes),
+      school_int = school_int
+    )) |>
+    mutate(class_int = rnorm(n(), 0, sqrt(class_var)))
+  students <- classes |>
+    pmap_df(\(school, class, school_int, class_int)
+            data.frame(student = 1:5, class, school, school_int, class_int)) |>
+    mutate(id = 1:n(), .before = student) |>
+    mutate(student_int = rnorm(n(), 0, sqrt(student_var)),
+           y = school_int + class_int + student_int)
+  students
+}
+```
+
+
+```{r}
+one_sim(160, .09, .09)
+```
+
+
+
+```{r}
+one_mod_fit <- function() {
+  the_dat <- one_sim(160, .09, .09)
+  mod <- lmer(y ~ 1 + (1 | class:school) + (1 | school),
+              dat = the_dat)
+  re_var <- mod |> tidy() |> filter(effect == "ran_pars")
+  
+  re_var <- re_var |>
+    mutate(
+      var = estimate^2,
+      var_sum = sum(var),
+      vpc = var / var_sum,
+      level = factor(group) |> fct_recode("class" = "class:school", "student" = "Residual")
+    ) |>
+    dplyr::select(level, vpc) |>
+    pivot_wider(names_from = level, values_from = vpc)
+  re_var
+}
+```
+
+
+```{r}
+one_mod_fit()
+```
+
+```{r}
+set.seed(14122025)
+tic()
+nsims <- 1000
+sim_vpcs <- map_df(1:nsims, \(x) one_mod_fit())
+toc()
+beep(2)
+```
+
+
+```{r}
+sim_vpcs
+```
+
+
+
+
+```{r}
+sim_vpcs |>
+  summarise(across(everything(), mean))
+```
+
+
+
+

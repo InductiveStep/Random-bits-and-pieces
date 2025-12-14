@@ -1,0 +1,76 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(duckplyr)
+```
+
+
+
+
+```{r}
+lazy <-
+  duckplyr::flights_df() |>
+  duckplyr::as_duckdb_tibble() |>
+  mutate(inflight_delay = arr_delay - dep_delay) |>
+  summarize(
+    .by = c(year, month),
+    mean_inflight_delay = mean(inflight_delay, na.rm = TRUE),
+    median_inflight_delay = median(inflight_delay, na.rm = TRUE),
+  ) |>
+  filter(month <= 6)
+```
+
+
+
+```{r}
+lazy
+```
+
+
+
+```{r}
+lazy$month
+```
+
+
+```{r}
+explain(lazy)
+```
+
+
+
+# Large data
+
+https://cran.r-project.org/web/packages/duckplyr/vignettes/large.html
+
+
+
+```{r}
+year <- 2022:2024
+base_url <- "https://blobs.duckdb.org/flight-data-partitioned/"
+files <- paste0("Year=", year, "/data_0.parquet")
+urls <- paste0(base_url, files)
+tibble(urls)
+```
+
+
+
+```{r}
+db_exec("INSTALL httpfs")
+db_exec("LOAD httpfs")
+
+flights <- read_parquet_duckdb(urls)
+```
+
+
+```{r}
+flights |> head()
+```
+
+
+
+

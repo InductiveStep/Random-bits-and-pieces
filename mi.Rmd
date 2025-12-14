@@ -67,3 +67,16 @@ modelFit1 |> pool() |> summary()
 ```{r}
 modelFit2 |> pool() |> summary()
 ```
+
+## Play around with passive imputation
+
+```{r}
+#devtools::install_github(repo = "iriseekhout/dmo")
+library(dmo)
+```
+
+
+
+
+
+

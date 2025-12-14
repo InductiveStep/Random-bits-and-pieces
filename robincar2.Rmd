@@ -1,0 +1,37 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+if (!require("remotes")) {
+  install.packages("remotes")
+}
+
+remotes::install_github(
+  "openpharma/RobinCar2"
+)
+```
+
+
+```{r}
+library(RobinCar2)
+```
+
+
+
+```{r}
+head(glm_data)
+```
+
+
+
+```{r}
+robin_lm(
+  y ~ treatment * s1,
+  data = glm_data,
+  treatment = treatment ~ s1
+)
+```
+
+

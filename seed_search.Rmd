@@ -1,0 +1,111 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tictoc)
+library(tidyverse)
+```
+
+
+
+
+```{r}
+find_seed <- function(n_heads, start_seed, seed_n) {
+  seed <- start_seed
+  end_seed <- start_seed + seed_n
+  found <- FALSE
+  
+  while (!found & seed <= end_seed) {
+    set.seed(seed)
+    x <- rbinom(n_heads, 1, .5)
+    
+    if (sum(x) == n_heads)
+      found <- TRUE
+    else
+      seed <- seed + 1
+  }
+  
+  if (found)
+    seed
+  else
+    NA
+}
+```
+
+
+```{r}
+#how_many <- 30
+#tic()
+#the_seed <- find_seed(how_many, 0, 2^31)
+#toc()
+#the_seed
+#set.seed(the_seed)
+#rbinom(how_many, 1, .5)
+```
+
+That took about 30 mins.
+
+
+```{r}
+set.seed(236903047)
+rbinom(30, size = 1, prob = .5)
+```
+
+
+
+
+
+```{r}
+gen_seq <- function(seed, len) {
+  set.seed(seed)
+  rbinom(len, 1, .5)  
+}
+```
+
+
+
+```{r}
+prefix_len <- function(x) {
+  rle_res <- rle(x)
+  data.frame(value = rle_res$values[1], length = rle_res$lengths[1])
+}
+```
+
+
+```{r}
+gen_seq(236903047, 50) |> prefix_len()
+```
+
+
+
+
+```{r}
+tic()
+the_seeds <- 0:2^21
+res_list <- map(the_seeds, \(x) gen_seq(x, 50) |> prefix_len())
+toc()
+```
+
+
+```{r}
+tic()
+res <- res_list |>
+  bind_rows() |>
+  mutate(seed = the_seeds, .before = 1)
+toc()
+```
+
+
+
+```{r}
+res |>
+  arrange(desc(length)) |>
+  filter(length >= 20)
+```
+
+
+
+
+

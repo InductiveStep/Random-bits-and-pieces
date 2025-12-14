@@ -1,0 +1,57 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(survey)
+library(carData)
+```
+
+
+```{r}
+is.na(CES11$abortion) |> table()
+```
+
+
+```{r}
+CES.svy <- svydesign(
+  ids =  ~ id,
+  strata =  ~ province,
+  fpc =  ~ population,
+  weights =  ~ weight,
+  data = CES11
+)
+
+CES.svy.wrong <- svydesign(
+  ids =  ~ 1,
+  weights =  ~ weight,
+  data = CES11
+)
+```
+
+
+```{r}
+svymean(~abortion, design = CES.svy, deff = "replace")
+```
+
+```{r}
+svymean(~abortion, design = CES.svy.wrong, deff = "replace")
+```
+
+```{r}
+the_ess <- sum(CES11$weight)^2 / sum(CES11$weight^2)
+the_ess
+```
+```{r}
+hist(CES11$weight)
+```
+
+
+
+```{r}
+nrow(CES11) / the_ess
+```
+
+
+
