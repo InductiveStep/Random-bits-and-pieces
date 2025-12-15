@@ -1,6 +1,8 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output: 
+  html_notebook: 
+    code_folding: none
 ---
 
 
@@ -12,6 +14,7 @@ library(tidyverse)
 library(broom.mixed)
 library(tictoc)
 library(beepr)
+options(scipen = 999)
 ```
 
 ## Parameters
@@ -20,7 +23,7 @@ library(beepr)
 school_var  <- 0.09
 class_var   <- 0.09
 student_var <- 1 - school_var - class_var
-n_schools <- 160
+n_schools   <- 160
 ```
 
 
@@ -147,7 +150,7 @@ beep(2)
 
 
 ```{r}
-sim_vpcs
+sim_vpcs |> round(2)
 ```
 
 
@@ -159,5 +162,36 @@ sim_vpcs |>
 ```
 
 
+```{r}
+long_sims <- sim_vpcs |>
+  mutate(i = 1:n(), .before = 1) |>
+  pivot_longer(cols = 2:4)
+```
 
+
+```{r}
+long_sims |>
+  filter(name != "student") |>
+  group_by(name) |>
+  summarise(mean = mean(value),
+            min = min(value),
+            max = max(value),
+            q10 = quantile(value, .1),
+            q90 = quantile(value, .9)) |>
+  mutate(across(is.numeric, ~ round(.x, 2)))
+```
+
+
+
+
+```{r}
+long_sims |>
+  filter(name != "student") |>
+  ggplot() + 
+  aes(x = value) +
+  geom_histogram(bins = 20) +
+  facet_wrap(~ name, scales = "fixed") +
+  theme_minimal() +
+  labs(x = "ICC", y = "Frequency")
+```
 
