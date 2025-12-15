@@ -53,3 +53,7 @@ These are incomplete code fragments:
 [Green tea](https://inductivestep.github.io/Random-bits-and-pieces/green_tea.html) - redrawing a graph from Robert Grant's LondonR talk in July 2025
 
 [Grace Bates](https://inductivestep.github.io/Random-bits-and-pieces/grace_bates.html)
+
+[Simulate 3 level LMMs](https://inductivestep.github.io/Random-bits-and-pieces/sim_lmm.nb.html)
+
+
