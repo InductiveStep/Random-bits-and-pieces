@@ -1,0 +1,79 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(primes)
+library(tidyverse)
+```
+
+
+
+```{r}
+bs <- c(1, 2, 3, 8, 10, 24, 48, 80, 82, 168, 224, 226, 360, 440, 442, 728, 840, 1088, 1090, 1224, 1368, 1522, 1848, 2026, 2208, 2400, 3024, 3250, 3720, 3968, 4760, 5040, 5624, 5928, 6562, 7920, 8648, 9802, 10608, 11026, 11448, 12322, 13688, 13690, 14160, 14640)
+```
+
+
+```{r}
+classify_order <- function(n) {
+  ifelse(is_prime(n - 1), -1, 1)
+}
+```
+
+```{r}
+classify_order(bs) |> paste(collapse = ", ") |> cat()
+```
+
+
+
+```{r}
+is_beprisque <- function(n) {
+  neighbours <- c(n - 1, n + 1)
+  primes     <- is_prime(neighbours)
+  squares    <- floor(sqrt(neighbours)) == ceiling(sqrt(neighbours))
+  
+  xor(primes[1] && squares[2], primes[2] && squares[1])
+}
+```
+
+
+
+```{r}
+dat <- tibble(n = 1:max(bs),
+              is_beprisque = map_lgl(n, is_beprisque),
+              original_beprisque = n %in% bs)
+```
+
+
+Works for all the original values:
+
+```{r}
+dat |> filter(is_beprisque != original_beprisque)
+```
+
+Now do to a million and classify.
+
+
+```{r}
+million <- tibble(
+    n = 1:1e6,
+    is_beprisque = map_lgl(n, is_beprisque)
+  ) |>
+  filter(is_beprisque == TRUE) |>
+  mutate(prime_pos = classify_order(n))
+```
+
+
+
+```{r}
+million
+```
+
+
+
+```{r}
+rle(million$prime_pos)$lengths
+```
+
+

@@ -1,0 +1,106 @@
+---
+title: "R Notebook"
+output:
+  word_document: default
+  html_notebook: default
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r fig.height=5, fig.width=10, dpi=300}
+set.seed(123)
+
+# ----------------------------
+# 1. Simulate data
+# ----------------------------
+time <- 1:20
+intervention <- 9
+
+y_pre <- 20 + 1.5 * time[1:intervention] + rnorm(intervention, 0, 2)
+
+y_post <- (20 + 1.5 * intervention) +
+          10 +
+          3.5 * (time[(intervention+1):20] - intervention) +
+          rnorm(20 - intervention, 0, 2)
+
+df <- tibble(
+  time = time,
+  outcome = c(y_pre, y_post),
+  period = ifelse(time <= intervention, "Pre", "Post")
+)
+
+# ----------------------------
+# 2. Fit models
+# ----------------------------
+pre_model  <- lm(outcome ~ time, data = df %>% filter(period == "Pre"))
+post_model <- lm(outcome ~ time, data = df %>% filter(period == "Post"))
+
+# ----------------------------
+# 3. Build fitted lines
+# ----------------------------
+
+# Pre line: 1–10
+pre_line <- tibble(
+  time = 1:(intervention+1),
+  fitted = predict(pre_model, newdata = tibble(time = 1:(intervention+1))),
+  type = "Actual"
+)
+
+# Counterfactual: 10–20
+cf_line <- tibble(
+  time = intervention:20,
+  fitted = predict(pre_model, newdata = tibble(time = intervention:20)),
+  type = "Counterfactual"
+)
+
+# Actual post line: **start at 11**, not 10
+post_line <- tibble(
+  time = (intervention+1):20,
+  fitted = predict(post_model, newdata = tibble(time = (intervention+1):20)),
+  type = "Actual"
+)
+
+# ----------------------------
+# 4. Plot
+# ----------------------------
+ggplot() +
+  geom_point(data = df, aes(time, outcome)) +
+
+  # Intervention marker
+  geom_vline(xintercept = intervention + 1, linetype = "dotted") +
+
+  # Pre trend
+  geom_line(data = pre_line,
+            aes(time, fitted, linetype = type),
+            colour = "black") +
+
+  # Counterfactual
+  geom_line(data = cf_line,
+            aes(time, fitted, linetype = type),
+            colour = "black") +
+
+  # Actual post trend (starts at 11 → no vertical jump)
+  geom_line(data = post_line,
+            aes(time, fitted, linetype = type),
+            colour = "black") +
+
+  scale_linetype_manual(
+    values = c("Actual" = "solid", "Counterfactual" = "dashed"),
+    name = ""
+  ) +
+
+  scale_y_continuous(limits = c(0, 100)) +
+
+  labs(
+    x = "Time",
+    y = "Outcome"
+  ) +
+  theme_minimal(base_size = 14)
+```
+
+
+
+
+

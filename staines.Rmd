@@ -1,0 +1,175 @@
+---
+title: "Staines companies"
+author: Andi
+date: 6 Jan 2026
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+
+Load up libraries:
+
+```{r}
+library(conflicted)
+library(tidyverse)
+```
+
+Read in the company list and SICS, codes for what the companies do:
+
+```{r}
+comps <- read.csv("Companies-House-search-results.csv") |>
+  rename(sic = nature_of_business)
+sics  <- read.csv("SIC07_CH_condensed_list_en.csv", colClasses = rep("character", 2)) |>
+  rename(sic = SIC.Code) |>
+  rename(activity = Description)
+```
+
+Take a look at the top of the datasets:
+
+```{r}
+head(comps)
+```
+
+Some companies have multiple codes, so split those so it's one row per code (so each company will appear more than once in the list):
+
+```{r}
+comps_long <- comps |>
+  separate_rows(sic, sep = " ")
+```
+
+
+Now the codes:
+
+```{r}
+head(sics)
+```
+
+
+Glue the two lists together:
+
+```{r}
+dat <- left_join(comps, sics)
+```
+
+
+Count the company types:
+
+```{r}
+dat |>
+  count(activity) |>
+  arrange(desc(n))
+```
+
+
+
+## Go fishing for interesting ones
+
+```{r}
+dat |>
+  dplyr::filter(activity == "Investigation activities")
+```
+
+
+```{r}
+dat |>
+  dplyr::filter(activity == "Manufacture of women's underwear")
+```
+
+
+```{r}
+dat |>
+  dplyr::filter(activity == "Other research and experimental development on natural sciences and engineering")
+```
+
+```{r}
+dat |>
+  dplyr::filter(activity == "Satellite telecommunications activities")
+```
+
+
+```{r}
+dat |>
+  dplyr::filter(activity == "Activities of other holding companies n.e.c.")
+```
+
+
+
+```{r}
+dat |>
+  dplyr::filter(activity == "Artistic creation")
+```
+
+
+
+
+```{r}
+dat |>
+  dplyr::filter(activity == "Performing arts")
+```
+
+
+
+```{r}
+dat |>
+  dplyr::filter(activity == "Television programming and broadcasting activities")
+```
+
+
+
+```{r}
+dat |>
+  dplyr::filter(activity == "Motion picture, video and television programme post-production activities")
+```
+
+```{r}
+dat |>
+  dplyr::filter(activity == "Technical testing and analysis")
+```
+
+
+
+```{r}
+dat |>
+  dplyr::filter(activity == "Activities of political organizations")
+```
+
+
+```{r}
+dat |>
+  dplyr::filter(activity == "Cultural education")
+```
+
+
+
+
+
+```{r}
+dat |>
+  dplyr::filter(activity == "Manufacture of other games and toys, n.e.c.")
+```
+
+
+
+
+```{r}
+dat |>
+  dplyr::filter(str_detect(activity, "(?i)research"))
+```
+
+```{r}
+dat |>
+  dplyr::filter(str_detect(activity, "(?i)consult"))
+```
+
+
+
+```{r}
+dat |>
+  dplyr::filter(str_detect(activity, "(?i)data"))
+```
+
+```{r}
+dat |>
+  dplyr::filter(str_detect(activity, "(?i)software"))
+```
