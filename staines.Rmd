@@ -13,6 +13,7 @@ Load up libraries:
 ```{r}
 library(conflicted)
 library(tidyverse)
+library(flextable)
 ```
 
 Read in the company list and SICS, codes for what the companies do:
@@ -25,13 +26,19 @@ sics  <- read.csv("SIC07_CH_condensed_list_en.csv", colClasses = rep("character"
   rename(activity = Description)
 ```
 
+How many companies?
+
+```{r}
+nrow(comps)
+```
+
 Take a look at the top of the datasets:
 
 ```{r}
 head(comps)
 ```
 
-Some companies have multiple codes, so split those so it's one row per code (so each company will appear more than once in the list):
+Some companies have multiple codes, so split those so it's one row per code (so those companies will appear more than once in the list):
 
 ```{r}
 comps_long <- comps |>
@@ -49,8 +56,18 @@ head(sics)
 Glue the two lists together:
 
 ```{r}
-dat <- left_join(comps, sics)
+dat <- left_join(comps_long, sics)
 ```
+
+A helper function:
+
+```{r}
+prettify <- function(dat)
+  dat |>
+  flextable() |>
+  autofit()
+```
+
 
 
 Count the company types:
@@ -58,118 +75,230 @@ Count the company types:
 ```{r}
 dat |>
   count(activity) |>
-  arrange(desc(n))
+  arrange(desc(n)) |>
+  prettify()
 ```
+
+
+
 
 
 
 ## Go fishing for interesting ones
 
-```{r}
-dat |>
-  dplyr::filter(activity == "Investigation activities")
-```
 
+Select some of the variables:
 
 ```{r}
-dat |>
-  dplyr::filter(activity == "Manufacture of women's underwear")
-```
-
-
-```{r}
-dat |>
-  dplyr::filter(activity == "Other research and experimental development on natural sciences and engineering")
-```
-
-```{r}
-dat |>
-  dplyr::filter(activity == "Satellite telecommunications activities")
-```
-
-
-```{r}
-dat |>
-  dplyr::filter(activity == "Activities of other holding companies n.e.c.")
+thin_dat <- dat |> 
+  dplyr::select(company_name, company_type, registered_office_address, activity)
 ```
 
 
 
+These are some random things I spotted on going down the list of types:
+
+
 ```{r}
-dat |>
-  dplyr::filter(activity == "Artistic creation")
+thin_dat |>
+  dplyr::filter(activity == "Investigation activities") |>
+  prettify()
+```
+
+
+
+Some science:
+
+```{r}
+thin_dat |>
+  dplyr::filter(activity == "Other research and experimental development on natural sciences and engineering") |>
+  prettify()
+```
+
+
+
+Wonder what these are...! Magna House features a lot:
+
+```{r}
+thin_dat |>
+  dplyr::filter(activity == "Satellite telecommunications activities") |>
+  prettify()
+```
+
+
+I'm always curious about holding companies:
+
+```{r}
+thin_dat |>
+  dplyr::filter(activity == "Activities of other holding companies n.e.c.") |>
+  flextable()
+```
+
+
+Art:
+
+```{r}
+thin_dat |>
+  dplyr::filter(activity == "Artistic creation") |>
+  prettify()
+```
+
+
+
+Performing arts:
+
+```{r}
+thin_dat |>
+  dplyr::filter(activity == "Performing arts") |>
+  prettify()
+```
+
+
+Broadcasting of some kind:
+
+```{r}
+thin_dat |>
+  dplyr::filter(activity == "Television programming and broadcasting activities") |>
+  flextable()
+```
+
+
+More:
+
+```{r}
+thin_dat |>
+  dplyr::filter(activity == "Motion picture, video and television programme post-production activities") |>
+  prettify()
+```
+
+
+Techie things:
+
+```{r}
+thin_dat |>
+  dplyr::filter(activity == "Technical testing and analysis") |>
+  prettify()
+```
+
+
+Political things -- this is "an organisation of neurodivergent members and supporters of the Labour party":
+
+```{r}
+thin_dat |>
+  dplyr::filter(activity == "Activities of political organizations") |>
+  prettify()
 ```
 
 
 
 
 ```{r}
-dat |>
-  dplyr::filter(activity == "Performing arts")
+thin_dat |>
+  dplyr::filter(activity == "Cultural education") |>
+  prettify()
 ```
 
+
+
+
+Game/toy makers:
+
+```{r}
+thin_dat |>
+  dplyr::filter(activity == "Manufacture of other games and toys, n.e.c.") |>
+  prettify()
+```
+
+
+
+Various kinds of research (repeats some from above -- I just searched for "research" in the activity type:
+
+```{r}
+thin_dat |>
+  dplyr::filter(str_detect(activity, "(?i)research")) |>
+  prettify()
+```
+
+Consultancy:
+
+```{r}
+thin_dat |>
+  dplyr::filter(str_detect(activity, "(?i)consult")) |>
+  prettify()
+```
+
+
+
+Data (also in activity type):
+
+```{r}
+thin_dat |>
+  dplyr::filter(str_detect(activity, "(?i)data")) |>
+  prettify()
+```
+
+
+Software:
+
+```{r}
+thin_dat |>
+  dplyr::filter(str_detect(activity, "(?i)software")) |>
+  prettify()
+```
+
+
+
+Curious about Magna House:
+
+```{r}
+thin_dat |>
+  dplyr::filter(str_detect(registered_office_address, "(?i)Magna House")) |>
+  prettify()
+```
+
+
+
+Any other addresses with loads of companies?
+
+```{r}
+comps |>
+  count(registered_office_address) |>
+  arrange(desc(n)) |>
+  slice_head(n = 10) |>
+  prettify()
+```
+
+
+Menzies LLP is a business advisory and accountancy firm, so presumably manages a bunch of companies.
+
+
+
+Try Centurion House
+
+```{r}
+thin_dat |>
+  dplyr::filter(str_detect(registered_office_address, "(?i)Centurion House")) |>
+  prettify()
+```
 
 
 ```{r}
-dat |>
-  dplyr::filter(activity == "Television programming and broadcasting activities")
+thin_dat |>
+  dplyr::filter(str_detect(registered_office_address, "(?i)17 The Ryde")) |>
+  prettify()
 ```
 
 
+
+
+Finally... anything on Farnell Road?
 
 ```{r}
-dat |>
-  dplyr::filter(activity == "Motion picture, video and television programme post-production activities")
-```
-
-```{r}
-dat |>
-  dplyr::filter(activity == "Technical testing and analysis")
-```
-
-
-
-```{r}
-dat |>
-  dplyr::filter(activity == "Activities of political organizations")
-```
-
-
-```{r}
-dat |>
-  dplyr::filter(activity == "Cultural education")
+thin_dat |>
+  dplyr::filter(str_detect(registered_office_address, "(?i)farnell")) |>
+  prettify()
 ```
 
 
 
 
-
-```{r}
-dat |>
-  dplyr::filter(activity == "Manufacture of other games and toys, n.e.c.")
-```
-
-
-
-
-```{r}
-dat |>
-  dplyr::filter(str_detect(activity, "(?i)research"))
-```
-
-```{r}
-dat |>
-  dplyr::filter(str_detect(activity, "(?i)consult"))
-```
-
-
-
-```{r}
-dat |>
-  dplyr::filter(str_detect(activity, "(?i)data"))
-```
-
-```{r}
-dat |>
-  dplyr::filter(str_detect(activity, "(?i)software"))
-```
