@@ -1,0 +1,54 @@
+---
+title: "Mutliple comparisons using emmeans"
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+```{r}
+library(statforbiology)
+library(emmeans)
+library(multcomp)
+library(tidyverse)
+library(car)
+```
+
+
+
+```{r}
+dataset <- getAgroData("mixture") |>
+  mutate(Treat = factor(Treat))
+lm1 <- lm(Weight ~ Treat, data = dataset)
+```
+
+```{r}
+Anova(lm1)
+```
+
+```{r}
+summary(lm1)
+```
+
+```{r}
+groupMeans <- emmeans(lm1, ~ Treat)
+```
+
+These two are the same (adjust = "tukey" is the default) -- Tukey’s HSD for balanced data and Tukey–Kramer test for unbalanced data:
+
+```{r}
+contrast(groupMeans, method = "pairwise")
+```
+
+```{r}
+contrast(groupMeans, method = "pairwise", adjust = "tukey")
+```
+
+And the same again with multivariate t-distribution
+
+```{r}
+contrast(groupMeans, method = "pairwise", adjust = "mvt")
+```
+
+Very similar results. The mvt method is "not recommended for pairwise comparisons in balanced experiments, whereas it may prove useful in other situations, for example in the presence of strongly unbalanced data."
+
+
