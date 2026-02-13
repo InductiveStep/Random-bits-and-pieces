@@ -1846,7 +1846,7 @@ display: none;
 
 <h1 class="title toc-ignore">Scrape books</h1>
 <h4 class="author">Andi Fugard (<a href="https://sciences.social/@andi"><span class="citation">@andi</span><span class="citation">@sciences.social</span></a>)</h4>
-<h4 class="date">Last knitted 15 August 2025</h4>
+<h4 class="date">Last knitted 13 February 2026</h4>
 
 </div>
 
@@ -1857,11 +1857,11 @@ library(kableExtra)
 library(stringdist)
 library(tidyverse)</code></pre>
 <pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-## ✔ dplyr     1.1.4     ✔ readr     2.1.5
-## ✔ forcats   1.0.0     ✔ stringr   1.5.1
-## ✔ ggplot2   3.5.2     ✔ tibble    3.3.0
+## ✔ dplyr     1.1.4     ✔ readr     2.1.6
+## ✔ forcats   1.0.1     ✔ stringr   1.6.0
+## ✔ ggplot2   4.0.1     ✔ tibble    3.3.0
 ## ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
-## ✔ purrr     1.0.4</code></pre>
+## ✔ purrr     1.2.0</code></pre>
 <p>Scrape, with a little help from clues I’ve added to the page:</p>
 <pre class="r"><code>web_lines &lt;- read_html(&quot;https://andifugard.info/misc/books/&quot;) |&gt;
   html_text() |&gt;
@@ -1914,6 +1914,17 @@ Category
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Dolly Alderton
+</td>
+<td style="text-align:left;width: 20em; ">
+Everything I know about love
+</td>
+<td style="text-align:left;width: 5em; ">
+(Auto)Biographies
+</td>
+</tr>
 <tr>
 <td style="text-align:left;width: 10em; ">
 Stella Rimington
@@ -2077,6 +2088,39 @@ Alan Turing: The Enigma
 </td>
 <td style="text-align:left;width: 5em; ">
 (Auto)Biographies
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+John le Carré
+</td>
+<td style="text-align:left;width: 20em; ">
+The Secret Pilgrim
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Mick Herron
+</td>
+<td style="text-align:left;width: 20em; ">
+Clown Town
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Aisling Rawle
+</td>
+<td style="text-align:left;width: 20em; ">
+The Compound
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
 </td>
 </tr>
 <tr>
@@ -3617,7 +3661,7 @@ Stella Rimington
 Mick Herron
 </td>
 <td style="text-align:right;">
-11
+12
 </td>
 </tr>
 <tr>
@@ -3625,7 +3669,7 @@ Mick Herron
 John le Carré
 </td>
 <td style="text-align:right;">
-6
+7
 </td>
 </tr>
 <tr>
@@ -3975,6 +4019,17 @@ Fiction (including plays)
 John le Carré
 </td>
 <td style="text-align:left;width: 20em; ">
+The Secret Pilgrim
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+John le Carré
+</td>
+<td style="text-align:left;width: 20em; ">
 A Legacy of Spies
 </td>
 <td style="text-align:left;width: 5em; ">
@@ -4031,6 +4086,17 @@ John le Carré
 </td>
 <td style="text-align:left;width: 20em; ">
 Tinker Tailor Solider Spy
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Mick Herron
+</td>
+<td style="text-align:left;width: 20em; ">
+Clown Town
 </td>
 <td style="text-align:left;width: 5em; ">
 Fiction (including plays)
