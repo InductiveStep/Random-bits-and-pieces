@@ -9,13 +9,13 @@ output:
     code_folding: none
 ---
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 ```
 
 Data from the petals in:
 
-Schröter, D., Becho, L. W., & Bianca Montrosse-Moorhead. (2026). [The garden of evaluation approaches: Supporting explicit, theory-informed evaluation practice.](https://journals.sagepub.com/doi/abs/10.1177/13563890261421931) _Evaluation._
+Schröter, D., Becho, L. W., & Montrosse-Moorhead, B. (2026). [The garden of evaluation approaches: Supporting explicit, theory-informed evaluation practice.](https://journals.sagepub.com/doi/abs/10.1177/13563890261421931) _Evaluation._
 
 
 ```{r}
