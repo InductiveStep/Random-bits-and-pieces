@@ -1,0 +1,101 @@
+---
+title: "R Notebook"
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+```{r}
+library(conflicted)
+library(tidyverse)
+library(lme4)
+```
+
+
+Data from https://open.ottawa.ca/datasets/ottawa::automated-speed-enforcement-camera-removal-monitoring-speed-data/explore
+
+
+
+```{r warning=FALSE}
+dat <- read_csv("Automated_Speed_Enforcement_Camera_Removal_–_Monitoring_Speed_Data.csv") |>
+  mutate(Month = parse_date_time(Date_of_Data_Collection, orders = "BY"),
+         AvgSpeed = if_else(AvgSpeed == "N/A", NA, AvgSpeed) |> as.numeric())
+```
+
+```{r}
+head(dat)
+```
+
+
+Couldn't parse one of those dates -- this is why:
+
+```{r}
+dat |>
+  dplyr::filter(is.na(Month)) |>
+  dplyr::select(Data_Type, Date_of_Data_Collection)
+```
+
+Drop missings on month and AvgSpeed -- the latter also removes a bunch of zeros on the compliance variable:
+
+```{r}
+da <- dat |>
+  drop_na(Month, AvgSpeed) |>
+  mutate(LocationCode = Location |> strsplit(split = " - ") |> map(first) |> unlist())
+```
+
+Make a pic:
+
+```{r fig.height=4, fig.width=8}
+da |>
+  ggplot(aes(x = Month, y = PctCompliance)) +
+  geom_point() +
+  geom_vline(
+    data = tibble(Month = as.Date("2025-11-01"),
+                  event = "Camera deactivation"),
+    aes(xintercept = Month, colour = event),
+    linetype = "dashed",
+    linewidth = 0.7
+  ) +
+  scale_colour_manual(
+    name = NULL,
+    values = c("Camera deactivation" = "red"),
+    guide = guide_legend(override.aes = list(linetype = "dashed"))
+  ) +
+  labs(
+    y = "Speed-limit compliance (%)",
+    title = "Automated speed enforcement camera removal (Ottawa)",
+    caption = "Following the approval of Bill 56, Building a More Competitive Economy Act, 2025,\nall automated speed enforcement cameras were deactivated on November 13, 2025."
+  ) +
+  ylim(0, 100)
+```
+
+
+
+```{r fig.height=4, fig.width=7}
+da |>
+  dplyr::filter(Month > as.Date("2020-01-01")) |>
+  ggplot(aes(x = Month, y = PctCompliance, colour = LocationCode)) +
+  geom_point() +
+  geom_vline(
+    xintercept = as.Date("2025-11-01"), # Monthly data, so 13th doesn't look correct
+    linetype = "dashed",
+    linewidth = 0.7,
+    alpha = 0.5
+  ) +
+  labs(
+    y = "Speed-limit compliance (%)",
+    title = "Automated speed enforcement camera removal (Ottawa)",
+    caption = "Following the approval of Bill 56, Building a More Competitive Economy Act, 2025,\nall automated speed enforcement cameras were deactivated on November 13, 2025.",
+    colour = "Location"
+  ) +
+  ylim(0, 100)
+```
+
+
+```{r}
+da |> dplyr::filter(Date_of_Data_Collection %in% c("October-2025", "November-2025")) |>
+  select(LocationCode, Date_of_Data_Collection, PctCompliance) |>
+  rename(Date = Date_of_Data_Collection) |>
+  pivot_wider(names_from = Date, values_from = PctCompliance)
+```
+
