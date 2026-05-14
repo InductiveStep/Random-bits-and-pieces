@@ -147,13 +147,14 @@ cum_all |>
     nudge_x = 0.5,
     direction = "y",
     hjust = 0,
-    segment.colour = "black"#,
+    segment.colour = "darkgrey"#,
     #colour = "black"
   ) +
   #coord_cartesian(clip = "off") +
   theme(legend.position = "none") +
   xlim(0, 13) +
-  labs(x = "Year", y = "Resignations")
+  labs(x = "Year", y = "Resignations") +
+  scale_x_continuous(breaks = scales::breaks_width(1))
 ```
 
 
@@ -203,9 +204,6 @@ cum_dis |>
   scale_x_continuous(breaks = scales::breaks_width(1))
 ```
 
-```{r}
-last_points
-```
 
 
 
