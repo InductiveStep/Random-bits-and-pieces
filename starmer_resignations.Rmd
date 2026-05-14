@@ -1,6 +1,8 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: "Resignations tracker"
+output: 
+  html_notebook: 
+    code_folding: none
 ---
 
 
@@ -11,15 +13,15 @@ library(tidyverse)
 library(ggrepel)
 ```
 
-https://docs.google.com/spreadsheets/u/0/d/1gVHNx4kzXd947AFfQGiJg5zJrdNXrM81t2OC8UJFnw8/htmlview
+```{r}
+dat <- read_sheet("https://docs.google.com/spreadsheets/d/1gVHNx4kzXd947AFfQGiJg5zJrdNXrM81t2OC8UJFnw8", col_types = "c")
+```
 
 ```{r}
-dat <- read.csv("Ministerial resignations outside reshuffles since 1979 - Sheet1.csv") |>
-  mutate(Date_d = parse_date_time(Date, orders = "dmy"))
-dat
+dat <- dat |>
+  mutate(Date = parse_date_time(Date, orders = "dmy"))
 ```
  
-
 
 ```{r}
 govs <- read.csv(text =
@@ -43,59 +45,14 @@ govs
 
 
 ```{r}
-govs[]
-```
-
-
-
-```{r}
 dat <- left_join(dat, govs) |>
-  mutate(years_since_start = time_length(interval(StartDate, Date_d), unit = "year"))
+  mutate(years_since_start = time_length(interval(StartDate, Date), unit = "year"))
 ```
-
-
-
 
 ```{r}
 dat |>
   count(Type)
 ```
-
-
-
-
-```{r}
-dat |>
-  group_by(PM) |>
-  filter(Rank %in% c("MoS", "PUSS")) |>
-  filter(Type == "Disagreement") |>
-  count(Rank) |>
-  pivot_wider(names_from = Rank, values_from = n, values_fill = 0) |>
-  mutate(MoS_prop = MoS / (MoS + PUSS)) |>
-  arrange(MoS_prop)
-```
-
-
-
-```{r}
-cum_all <- dat |>
-  group_by(PM, StartDate, years_since_start) |>
-  tally() |>
-  arrange(StartDate, years_since_start) |>
-  group_by(PM) |>
-  mutate(cumsum = cumsum(n))
-cum_all 
-```
-
-
-```{r}
-cum_all |>
-  ggplot(aes(x = years_since_start, y = cumsum, colour = PM)) +
-  geom_step()
-```
-
-
-
 
 
 ```{r}
@@ -106,86 +63,29 @@ cum_dis <- dat |>
   arrange(StartDate, years_since_start) |>
   group_by(PM) |>
   mutate(cumsum = cumsum(n))
-cum_dis 
-```
 
-
-
-
-
-```{r}
-last_points <- cum_dis |>
+last_vals <- cum_dis |>
   group_by(PM) |>
-  slice_max(years_since_start, n = 1)
-
-cum_dis |>
-  ggplot(aes(x = years_since_start, y = cumsum, colour = PM)) +
-  geom_step() +
-  geom_text_repel(
-    data = last_points,
-    aes(label = PM),
-    nudge_x = 0.5,
-    direction = "y",
-    hjust = 0,
-    size = 4
-  ) +
-  coord_cartesian(clip = "off") +
-  theme(legend.position = "none")
-```
-
-```{r}
-last_points <- cum_all |>
-  group_by(PM) |>
-  slice_max(years_since_start, n = 1)
-
-cum_all |>
-  ggplot(aes(x = years_since_start, y = cumsum, colour = PM)) +
-  geom_step() +
-  geom_text_repel(
-    data = last_points,
-    aes(label = PM),
-    nudge_x = 0.5,
-    direction = "y",
-    hjust = 0,
-    segment.colour = "darkgrey"#,
-    #colour = "black"
-  ) +
-  #coord_cartesian(clip = "off") +
-  theme(legend.position = "none") +
-  xlim(0, 13) +
-  labs(x = "Year", y = "Resignations") +
-  scale_x_continuous(breaks = scales::breaks_width(1))
-```
-
-
-```{r}
-last_vals <- cum_dis |> group_by(PM) |>
   slice_max(cumsum, n = 1, with_ties = FALSE) |>
   ungroup() |>
   select(-years_since_start) |>
   left_join(govs |> select(PM, years_since_start = term_years))
-last_vals
-```
 
-```{r}
 first_vals <- last_vals |>
   mutate(n = 0, cumsum = 0, years_since_start = 0)
-first_vals
-```
 
-
-```{r}
 cum_dis <- bind_rows(first_vals, cum_dis, last_vals)
 ```
 
 
+
 ```{r}
-keep_PM <- c("Starmer", "May", "Brown", "Johnson", "Blair", "Thatcher")
+keep_PM <- c("Starmer", "May", "Brown", "Johnson") #, "Johnson", "Blair", "Thatcher")
 
 last_points <- cum_dis |>
   filter(PM %in% keep_PM) |>
   group_by(PM) |>
-  slice_max(years_since_start, n = 1)
+  slice_max(years_since_start, n = 1, with_ties = FALSE)
 
 cum_dis |>
   filter(PM %in% keep_PM) |>
@@ -194,13 +94,12 @@ cum_dis |>
   geom_text_repel(
     data = last_points,
     aes(label = PM),
-    nudge_x = ifelse(last_points$PM == "Starmer", -0.4, 0.2),
-    nudge_y = ifelse(last_points$PM == "Starmer", 0.4, 0),
+    nudge_x = ifelse(last_points$PM == "Starmer", -0.1, 0.1),
+    segment.colour = "black"
   ) +
   theme(legend.position = "none") +
   ylim(0, 40) +
-  xlim(0, 14) +
-  labs(x = "Year", y = "Cumulative sum", title = "Resignations coded as \"disagreement\"", caption = "Data from Institute for Government at\nhttps://docs.google.com/spreadsheets/u/0/d/1gVHNx4kzXd947AFfQGiJg5zJrdNXrM81t2OC8UJFnw8/htmlview") +
+  labs(x = "Year", y = "Cumulative sum", title = "Resignations classified by IfG as due to \"disagreement\" for a selection of PMs", caption = "Data from Institute for Government at\nhttps://docs.google.com/spreadsheets/u/0/d/1gVHNx4kzXd947AFfQGiJg5zJrdNXrM81t2OC8UJFnw8/htmlview") +
   scale_x_continuous(breaks = scales::breaks_width(1))
 ```
 
@@ -219,6 +118,14 @@ dat |>
   select(PUSS, sum, `PUSS %`) |>
   arrange(StartDate) |>
   ungroup() |>
-  select(-StartDate)
+  select(-StartDate) |>
+  mutate(PM = reorder(PM, `PUSS %`)) |>
+  ggplot(aes(x = PM, y = `PUSS %`)) +
+  geom_col() +
+  labs(
+    x = "Prime Minister",
+    y = "Percent",
+    title = "Percentage of disagreement-driven resignations coming from PuSS"
+  )
 ```
 
