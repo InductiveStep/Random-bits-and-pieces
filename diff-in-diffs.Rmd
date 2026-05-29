@@ -14,8 +14,7 @@ Get libraries loaded:
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(did)
-library(sandwich)
-library(lmtest)
+library(broom)
 ```
 
 The example dataset supplied with {did}:
@@ -131,7 +130,6 @@ agg_res
 ```
 
 That works.
-
 
 
 ### References
