@@ -8,7 +8,7 @@ output:
 ---
 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(conflicted)
 library(rvest)
 library(kableExtra)

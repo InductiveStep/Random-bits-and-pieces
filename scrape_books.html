@@ -1846,7 +1846,7 @@ display: none;
 
 <h1 class="title toc-ignore">Scrape books</h1>
 <h4 class="author">Andi Fugard (<a href="https://sciences.social/@andi"><span class="citation">@andi</span><span class="citation">@sciences.social</span></a>)</h4>
-<h4 class="date">Last knitted 13 February 2026</h4>
+<h4 class="date">Last knitted 26 June 2026</h4>
 
 </div>
 
@@ -1856,17 +1856,24 @@ library(rvest)
 library(kableExtra)
 library(stringdist)
 library(tidyverse)</code></pre>
-<pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-## ✔ dplyr     1.1.4     ✔ readr     2.1.6
-## ✔ forcats   1.0.1     ✔ stringr   1.6.0
-## ✔ ggplot2   4.0.1     ✔ tibble    3.3.0
-## ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
-## ✔ purrr     1.2.0</code></pre>
 <p>Scrape, with a little help from clues I’ve added to the page:</p>
 <pre class="r"><code>web_lines &lt;- read_html(&quot;https://andifugard.info/misc/books/&quot;) |&gt;
   html_text() |&gt;
-  read_lines()
-dat &lt;- tibble(raw = web_lines)
+  read_lines()</code></pre>
+<pre><code>## Warning: The `file` argument of `vroom()` must use `I()` for literal data as of vroom
+## 1.5.0.
+##   
+##   # Bad:
+##   vroom(&quot;X,Y\n1.5,2.3\n&quot;)
+##   
+##   # Good:
+##   vroom(I(&quot;X,Y\n1.5,2.3\n&quot;))
+## ℹ The deprecated feature was likely used in the readr package.
+##   Please report the issue at &lt;https://github.com/tidyverse/readr/issues&gt;.
+## This warning is displayed once per session.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<pre class="r"><code>dat &lt;- tibble(raw = web_lines)
 
 start_row &lt;- which(dat$raw == &quot;Note to self: start scraping here!&quot;) + 1
 end_row   &lt;- which(dat$raw == &quot;Note to self: stop scraping here!&quot;)  - 1
@@ -2088,6 +2095,28 @@ Alan Turing: The Enigma
 </td>
 <td style="text-align:left;width: 5em; ">
 (Auto)Biographies
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Mick Herron
+</td>
+<td style="text-align:left;width: 20em; ">
+This is what happened
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Michael Frayn
+</td>
+<td style="text-align:left;width: 20em; ">
+The Tin Men
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
 </td>
 </tr>
 <tr>
@@ -3650,7 +3679,7 @@ n
 <tbody>
 <tr>
 <td style="text-align:left;">
-Stella Rimington
+Mick Herron
 </td>
 <td style="text-align:right;">
 13
@@ -3658,10 +3687,10 @@ Stella Rimington
 </tr>
 <tr>
 <td style="text-align:left;">
-Mick Herron
+Stella Rimington
 </td>
 <td style="text-align:right;">
-12
+13
 </td>
 </tr>
 <tr>
@@ -4086,6 +4115,17 @@ John le Carré
 </td>
 <td style="text-align:left;width: 20em; ">
 Tinker Tailor Solider Spy
+</td>
+<td style="text-align:left;width: 5em; ">
+Fiction (including plays)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 10em; ">
+Mick Herron
+</td>
+<td style="text-align:left;width: 20em; ">
+This is what happened
 </td>
 <td style="text-align:left;width: 5em; ">
 Fiction (including plays)
