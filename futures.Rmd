@@ -13,6 +13,7 @@ I recently attended Henrik Bengtsson's excellent UseR! 2026 workshop on the {fut
 
 ```{r}
 library(future)
+library(future.mirai)
 library(tictoc)
 library(tidyverse)
 ```
@@ -34,8 +35,9 @@ set.seed(42)
 res_list <- list()
 
 tic()
-res_list$big1  <- rnorm_mean(2^26)
-res_list$big2  <- rnorm_mean(2^26)
+res_list$big1   <- rnorm_mean(2^27)
+res_list$big2   <- rnorm_mean(2^27)
+res_list$little <- rnorm_mean(20)
 toc()
 ```
 
@@ -49,14 +51,15 @@ Now same again concurrently. I've added in a "huge" variant to demo something...
 
 
 ```{r}
-plan(multisession, workers = 5)
+plan(mirai_multisession, workers = 5)
 set.seed(42)
 future_list <- list()
 
 tic()
-future_list$big1  <- rnorm_mean(2^26) |> future(seed = TRUE)
-future_list$big2  <- rnorm_mean(2^26) |> future(seed = TRUE)
-future_list$huge  <- rnorm_mean(2^27) |> future(seed = TRUE)
+future_list$big1   <- rnorm_mean(2^27) |> future(seed = TRUE)
+future_list$big2   <- rnorm_mean(2^27) |> future(seed = TRUE)
+future_list$huge   <- rnorm_mean(2^28) |> future(seed = TRUE)
+future_list$little <- rnorm_mean(20)   |> future(seed = TRUE)
 toc()
 ```
 
@@ -64,6 +67,14 @@ Those have zoomed off on concurrent processes so R is still able to run further 
 
 ```{r}
 6 * 7
+```
+
+Check the value of the "little" one. This would block until it's done but it should have been swift, despite being run last.
+
+```{r}
+tic()
+future_list$little |> value()
+toc()
 ```
 
 Now take a look at the two "big" ones -- this will block until they're done:
