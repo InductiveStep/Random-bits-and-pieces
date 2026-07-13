@@ -1,0 +1,97 @@
+---
+title: "Playing with futures"
+author: Andi Fugard
+date: 13 July 2026
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+
+I recently attended Henrik Bengtsson's excellent UseR! 2026 workshop on the {futureverse}. Here are a few examples to show what it does.
+
+
+```{r}
+library(future)
+library(tictoc)
+library(tidyverse)
+```
+
+
+I'll use this to create a slow running process.
+
+```{r}
+rnorm_mean <- function(n, mean = 0, sd = 1) {
+  rnorm(n, mean, sd) |> mean()
+}
+```
+
+
+First go sequential:
+
+```{r}
+set.seed(42)
+res_list <- list()
+
+tic()
+res_list$big1  <- rnorm_mean(2^26)
+res_list$big2  <- rnorm_mean(2^26)
+toc()
+```
+
+Here are the means:
+
+```{r}
+res_list
+```
+
+Now same again concurrently. I've added in a "huge" variant to demo something...
+
+
+```{r}
+plan(multisession, workers = 5)
+set.seed(42)
+future_list <- list()
+
+tic()
+future_list$big1  <- rnorm_mean(2^26) |> future(seed = TRUE)
+future_list$big2  <- rnorm_mean(2^26) |> future(seed = TRUE)
+future_list$huge  <- rnorm_mean(2^27) |> future(seed = TRUE)
+toc()
+```
+
+Those have zoomed off on concurrent processes so R is still able to run further commands.
+
+```{r}
+6 * 7
+```
+
+Now take a look at the two "big" ones -- this will block until they're done:
+
+```{r}
+tic()
+future_list[c("big1", "big2")] |> map(value)
+toc()
+```
+
+Take a look to see whether "huge" is done yet (and check the other completed ones, for completeness).
+
+```{r}
+future_list |> map(resolved)
+```
+
+Can't really be arsed waiting, so cancel it:
+
+```{r}
+cancel(future_list$huge)
+```
+
+Check out its status:
+
+```{r}
+future_list$huge
+```
+
+The real power of {future} is how it automagically futurizes calls like maps and bootstraps, hiding the *future* and *value* calls, but I found these examples handy to get to grips with what it's doing.
+
+
