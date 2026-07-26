@@ -95,7 +95,7 @@ lm_mod |>
   bold(part = "header")
 ```
 
-The true slope for $x_1 = 3 \cdot 0.2 = 0.6$.
+The true slope for $x_1 = 3 \cdot 0.2 = 0.6$, when not adjusting for $x_2$ and $x_3$.
 
 Now try elastic nets, varying $\alpha$ from 0 (ridge regression) to 1 (lasso). I used 10‑fold cross‑validation to select $\lambda$, keeping the coefficients for the smallest $\lambda$, and used the same fold assignments across all values of $\alpha$.
 
