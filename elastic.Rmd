@@ -1,0 +1,178 @@
+---
+title: "Trying elastic net regularisation with correlated predictors"
+author: Andi Fugard
+date: 26 July 2026
+output: 
+  html_notebook: 
+    code_folding: hide
+---
+
+```{css}
+.code-folding-btn {
+  display: none !important;
+}
+
+.code-folding-btn-container {
+  display: none !important;
+}
+
+#header .btn-group {
+    display: none;
+}
+```
+
+
+
+
+```{r}
+library(glmnet)
+library(tidyverse)
+library(flextable)
+library(broom)
+```
+
+
+
+```{r}
+nice_tab <- function(x) {
+  x |> flextable() |> bold(part = "header") |> autofit()
+}
+```
+
+
+```{r}
+set.seed(42)
+n <- 2000
+x_noise <- 0.0
+resid_noise <- .5
+
+dat <- tibble(
+  l1 = rnorm(n) |> scale(),
+  x1 = l1 + rnorm(n, sd = x_noise),
+  x2 = l1 + rnorm(n, sd = x_noise),
+  x3 = l1 + rnorm(n, sd = x_noise),
+  x4 = lm(rnorm(n) ~ x1 + x2 + x3)$resid
+) |>
+  mutate(across(starts_with("x"), scale)) |>
+  mutate(
+    y = .2 * (x1 + x2 + x3) + .3 * x4 + rnorm(n, sd = resid_noise)
+  ) |>
+  select(-l1)
+```
+
+
+First simulate data where $x_1$ to $x_3$ are identical and $x_4$ is uncorrelated with them. Each $x$ is a z-score.
+
+Set $y = 0.2 (x_1 + x_2 + x_3) + 0.3 x_4 + \epsilon$.
+
+Here are the means and SDs:
+
+```{r}
+dat |>
+  summarise(across(everything(), list(Mean = mean, SD = sd))) |>
+  pivot_longer(
+    everything(),
+    names_to = c("Variable", ".value"),
+    names_sep = "_"
+  ) |>
+  mutate(across(where(is.numeric), ~ round(.x,2))) |>
+  nice_tab()
+```
+
+And here are the correlations:
+
+```{r}
+cor(dat) |> round(2) |> as.data.frame() |> rownames_to_column(var = "Variable") |> nice_tab()
+```
+
+Since $x_1$ to $x_3$ are identical, we can pick any of them and fit an unpenalised linear regression model (I've chosen $x_1$):
+
+```{r}
+options(show.signif.stars = FALSE)
+lm_mod <- lm(y ~ x1 + x4, data = dat)
+lm_mod |>
+  as_flextable() |>
+  bold(part = "header")
+```
+
+The true slope for $x_1 = 3 \cdot 0.2 = 0.6$.
+
+Now try elastic nets, varying $\alpha$ from 0 (ridge regression) to 1 (lasso). I used 10‑fold cross‑validation to select $\lambda$, keeping the coefficients for the smallest $\lambda$, and used the same fold assignments across all values of $\alpha$.
+
+
+```{r}
+mat <- dat |> select(starts_with("x")) |> as.matrix()
+```
+
+
+```{r}
+alphas <- seq(0, 1, .01)
+alpha_names <- paste0("alpha_", alphas)
+```
+
+```{r}
+fold_n <- 10
+fold_ids <- rep(1:fold_n, n / fold_n) |> sample()
+stopifnot(length(fold_ids) == n)
+```
+
+```{r}
+res   <- alphas |> map(~ cv.glmnet(mat, dat$y, alpha = .x, foldid = fold_ids))
+coefs <- res |> map(~ coef(.x, s = "lambda.min") |> as.matrix() |> as.data.frame())
+coefs <- map2(
+  coefs,
+  alpha_names,
+  ~ .x %>% rename(!!.y := 1)
+)
+```
+
+
+```{r}
+coef_df <- coefs |> bind_cols()
+coef_df <- coef_df |>
+  rownames_to_column(var = "var") |>
+  pivot_longer(
+    cols = starts_with("alpha"),
+    names_prefix = "alpha_",
+    names_to = "alpha",
+    values_to = "coef"
+  ) |>
+  mutate(alpha = as.numeric(alpha))
+```
+
+
+Here's a plot of the coefficients. Note how the coefficients for the correlated predictors gradually separate as $\alpha$ increases, until only one survives for lasso ($\alpha = 1$):
+
+```{r}
+coef_df |>
+  ggplot() +
+  aes(x = alpha, y = coef, colour = var) +
+  geom_line(linewidth = 1) +
+  labs(x = expression(alpha),
+       y = "Coefficient",
+       colour = "Variable")
+```
+
+```{r}
+lm_coefs <- coef(lm_mod) |> stack() |>
+  rename(var = ind,
+         coef = values) |>
+  mutate(alpha = "lm")
+```
+
+
+And here are the coefficients for three values of $\alpha$ and the unpenalised regression model with only $x_1$ and $x_4$ as predictors:
+
+```{r}
+coef_df |>
+  filter(alpha %in% c(0,.9,1)) |>
+  mutate(alpha = paste0("α = ", alpha)) |>
+  bind_rows(lm_coefs) |>
+  pivot_wider(names_from = alpha, values_from = coef, values_fill = 0) |>
+  mutate(across(!starts_with("var"), ~ round(.x, 3))) |>
+  rename(Variable = var, "Unpenalised\nregression" = lm) |>
+  nice_tab() |>
+  colformat_num(
+    zero = ""
+  )
+```
