@@ -1,0 +1,80 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+set.seed(42)
+n = 100
+dat <- tibble(y = sample(letters, n, replace = TRUE),
+              z = sample(letters, n, replace = TRUE),
+              treat = sample(0:1, n, replace = TRUE))
+```
+
+
+
+
+
+```{r}
+remove_small_count <- function(dat, var, le, .by) {
+  stopifnot(le >= 0)
+  stopifnot(length(.by) == 1)
+  stopifnot(length(var) == 1)
+
+  var_sym <- ensym(var)
+  by_sym  <- ensym(.by)
+
+  remove_tab <- dat |>
+    group_by(!!by_sym) |>
+    count(!!var_sym) |>
+    pivot_wider(
+      names_from  = !!by_sym,
+      values_from = n,
+      values_fill = 0
+    ) |>
+    rowwise() |>
+    mutate(min = min(c_across(2:last_col()))) |>
+    ungroup() |>
+    filter(min <= le) |>
+    select(-min)
+
+  remove_levels <- remove_tab |> pull(!!var_sym)
+  
+  dat |>
+    filter_out(!!var_sym %in% remove_levels)
+}
+```
+
+
+
+```{r}
+remove_all_small_count <- function(dat, vars, le, .by) {
+  res <- dat
+  for (var in vars) {
+    res <- res |> remove_small_count(var, le = le, .by = .by)
+  }
+  res
+}
+```
+
+
+
+
+```{r}
+dat |>
+  remove_all_small_count(c("y", "z"), le = 0, .by = "treat")
+```
+
+
+
+
+
+
+
+
