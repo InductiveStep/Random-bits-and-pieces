@@ -14,11 +14,44 @@ set.seed(42)
 n = 100
 dat <- tibble(y = sample(letters, n, replace = TRUE),
               z = sample(letters, n, replace = TRUE),
+              w = rep("ok", n),
               treat = sample(0:1, n, replace = TRUE))
 ```
 
 
 
+```{r}
+find_small_counts <- function(dat, var, le, .by) {
+  stopifnot(le >= 0)
+  stopifnot(length(.by) == 1)
+  stopifnot(length(var) == 1)
+  
+  var_sym <- ensym(var)
+  by_sym  <- ensym(.by)
+  
+  dat |>
+    group_by(!!by_sym) |>
+    count(!!var_sym) |>
+    pivot_wider(
+      names_from  = !!by_sym,
+      values_from = n,
+      values_fill = 0,
+      names_prefix = paste0(.by, "_")
+    ) |>
+    rowwise() |>
+    mutate(min = min(c_across(2:last_col()))) |>
+    ungroup() |>
+    filter(min <= le) |>
+    select(-min)
+}
+```
+
+
+```{r}
+find_all_small_counts <- function(dat, vars, le, .by) {
+  vars |> map(~ find_small_counts(dat, .x, le, .by))
+}
+```
 
 
 ```{r}
@@ -28,21 +61,9 @@ remove_small_count <- function(dat, var, le, .by) {
   stopifnot(length(var) == 1)
 
   var_sym <- ensym(var)
-  by_sym  <- ensym(.by)
 
-  remove_tab <- dat |>
-    group_by(!!by_sym) |>
-    count(!!var_sym) |>
-    pivot_wider(
-      names_from  = !!by_sym,
-      values_from = n,
-      values_fill = 0
-    ) |>
-    rowwise() |>
-    mutate(min = min(c_across(2:last_col()))) |>
-    ungroup() |>
-    filter(min <= le) |>
-    select(-min)
+  remove_tab <- find_small_counts(dat, var, le, .by)
+  print(remove_tab)
 
   remove_levels <- remove_tab |> pull(!!var_sym)
   
@@ -56,8 +77,20 @@ remove_small_count <- function(dat, var, le, .by) {
 ```{r}
 remove_all_small_count <- function(dat, vars, le, .by) {
   res <- dat
-  for (var in vars) {
-    res <- res |> remove_small_count(var, le = le, .by = .by)
+  res_rows <- nrow(res)
+  done <- FALSE
+  loop <- 1
+  while (!done) {
+    glue::glue("Loop {loop}") |> message()
+
+    for (var in vars) {
+      glue::glue("Processing {var}") |> message()
+      res <- res |> remove_small_count(var, le = le, .by = .by)
+    }
+    
+    done <- res_rows == nrow(res)
+    res_rows <- nrow(res)
+    loop <- loop + 1
   }
   res
 }
@@ -65,10 +98,22 @@ remove_all_small_count <- function(dat, vars, le, .by) {
 
 
 
+```{r}
+res <- dat |>
+  remove_all_small_count(c("y", "z", "w"), le = 0, .by = "treat")
+```
+
 
 ```{r}
-dat |>
-  remove_all_small_count(c("y", "z"), le = 0, .by = "treat")
+dat |> find_all_small_counts(c("y", "z", "w"), le = 0, .by = "treat")
+```
+
+```{r}
+res |> find_all_small_counts(c("y", "z", "w"), le = 0, .by = "treat")
+```
+
+```{r}
+nrow(res)
 ```
 
 
