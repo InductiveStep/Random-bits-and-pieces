@@ -4,6 +4,8 @@ output: html_notebook
 ---
 
 
+https://yihui.org/en/2018/09/xfun-pkg-attach/
+
 ```{r}
 library(tidyverse)
 library(flextable)
@@ -58,20 +60,6 @@ cor_tab <- function(.dat, x_name, y_name) {
 ```
 
 
-
-```{r}
-cor_tabs <- function(.dat, x_names, y_names, dp = 2) {
-  combos <- expand.grid(y = y_names, x = x_names) |>
-    filter_out(as.character(x) == as.character(y))
-  
-  res <- map2(combos$x, combos$y, ~ cor_tab(.dat, .x, .y)) |>
-    bind_rows()
-  class(res) <- c("iff_cor_tabs", "data.frame")
-  res
-}
-```
-
-
 ```{r}
 iff_table <- function(obj, ...) {
   UseMethod("iff_table")
@@ -100,6 +88,22 @@ iff_table.iff_cor_tabs <- function(res_df, dp = 2) {
 ```
 
 
+```{r}
+iff_cors_summary <- function(.dat, x_names, y_names, dp = 2, pretty = TRUE) {
+  combos <- expand.grid(y = y_names, x = x_names) |>
+    filter_out(as.character(x) == as.character(y))
+  
+  res <- map2(combos$x, combos$y, ~ cor_tab(.dat, .x, .y)) |>
+    bind_rows()
+  class(res) <- c("iff_cor_tabs", "data.frame")
+  
+  if (pretty) {
+    res <- res |> iff_table(dp)
+  }
+  
+  res
+}
+```
 
 
 
@@ -124,22 +128,19 @@ outcome_vars
 
 
 ```{r}
-cor_tabs(datasets::penguins, outcome_vars, outcome_vars) |>
-  iff_table(dp = 2) |>
+iff_cors_summary(datasets::penguins, outcome_vars, outcome_vars) |>
   autofit()
 ```
 
 
 ```{r}
 datasets::penguins |>
-  cor_tabs("body_mass", outcome_vars)
+  iff_cors_summary("body_mass", outcome_vars)
 ```
 
 ```{r}
 datasets::penguins |>
-  cor_tabs("body_mass", outcome_vars) |>
-  iff_table(dp = 2) |>
-  autofit()
+  iff_cors_summary("body_mass", outcome_vars)
 ```
 
 
@@ -164,6 +165,7 @@ iff_group_summary <- function(data, by, include, ...) {
       by      = !!by_quo,
       include = !!include_quo,
       statistic = list(all_continuous() ~ "{mean} ({sd})"),
+      missing_text = "(Missing)",
       ...
     ) |>
     add_p(
@@ -171,9 +173,15 @@ iff_group_summary <- function(data, by, include, ...) {
       test = list(all_continuous() ~ test_fun)
     ) |>
     as_flex_table() |>
+    set_header_labels(Characteristic = "Outcome") |>
     add_header_row(values = c("", rep(by_name, n_groups), "")) |>
     merge_h(i = 1, part = "header") |>
-    bold(bold = TRUE, part = "header")
+    bold(bold = TRUE, part = "header") |>
+    border_remove() |>
+    hline(i = 1, j = 2:(2 + n_groups - 1), part = "header") |>
+    hline(i = 2, part = "header") |>
+    hline_top(part = "header") |>
+    hline_bottom()
 }
 ```
 
