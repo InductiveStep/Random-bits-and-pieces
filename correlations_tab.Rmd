@@ -170,8 +170,10 @@ iff_group_summary <- function(data, by, include, ...) {
       pvalue_fun = format_p,
       test = list(all_continuous() ~ test_fun)
     ) |>
-    as_flex_table()
-
+    as_flex_table() |>
+    add_header_row(values = c("", rep(by_name, n_groups), "")) |>
+    merge_h(i = 1, part = "header") |>
+    bold(bold = TRUE, part = "header")
 }
 ```
 
