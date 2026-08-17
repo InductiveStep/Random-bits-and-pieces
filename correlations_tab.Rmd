@@ -1,0 +1,200 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(flextable)
+library(gtsummary)
+library(rlang)
+```
+
+
+```{r}
+format_p <- function(p) {
+  out <- ifelse(p < .001,
+                "< .001",
+                sprintf("%.3f", p))
+  
+  sub("^0", "", out)
+}
+
+round_keep <- function(x, dp) {
+  sprintf(paste0("%.", dp, "f"), x)
+}
+
+ci_string <- function(ci_lo, ci_hi, dp = 3) {
+  paste0(
+    "[",
+    round_keep(ci_lo, dp),
+    ", ",
+    round_keep(ci_hi, dp),
+    "]"
+  )
+}
+```
+
+
+```{r}
+cor_tab <- function(.dat, x_name, y_name) {
+  dat <- .dat |> select(all_of(x_name), all_of(y_name))
+  nona_dat <- dat |> na.omit()
+  
+  ct <- cor.test(nona_dat[[1]], nona_dat[[2]])
+  
+  data.frame(
+    predictor = x_name,
+    outcome    = y_name,
+    r      = unname(ct$estimate),
+    p      = ct$p.value,
+    ci_lo  = ct$conf.int[1],
+    ci_hi  = ct$conf.int[2],
+    all_n  = nrow(dat),
+    valid_n = nrow(nona_dat)
+  )
+}
+```
+
+
+
+```{r}
+cor_tabs <- function(.dat, x_names, y_names, dp = 2) {
+  combos <- expand.grid(y = y_names, x = x_names) |>
+    filter_out(as.character(x) == as.character(y))
+  
+  res <- map2(combos$x, combos$y, ~ cor_tab(.dat, .x, .y)) |>
+    bind_rows()
+  class(res) <- c("iff_cor_tabs", "data.frame")
+  res
+}
+```
+
+
+```{r}
+iff_table <- function(obj, ...) {
+  UseMethod("iff_table")
+}
+```
+
+
+```{r}
+iff_table.iff_cor_tabs <- function(res_df, dp = 2) {
+  res_df |>
+    bind_rows() |>
+    mutate(r = round_keep(r, dp),
+           p = format_p(p),
+           `95% CI` = ci_string(ci_lo, ci_hi, dp), .after = p) |>
+    rename(Predictor = predictor, Outcome = outcome, n = valid_n, `p-value` = p) |>
+    select(-c(ci_lo, ci_hi, all_n)) |>
+    flextable() |>
+    align(j = 3:6, align = "right", part = "all") |>
+    merge_v(j = 1) |>
+    set_header_labels(Predictor = "Variables", Outcome = "Variables") |>
+    merge_h(i = 1, part = "header") |>
+    border_inner() |>
+    border_outer() |>
+    bold(bold = TRUE, part = "header")
+}
+```
+
+
+
+
+
+```{r}
+iff_get_names <- function(data, ...) {
+  vars <- enquos(...)
+  
+  data |>
+    select(!!!vars) |>
+    names()
+}
+```
+
+
+
+```{r}
+outcome_vars <- datasets::penguins |>
+  iff_get_names(bill_len:flipper_len, body_mass)
+outcome_vars
+```
+
+
+
+```{r}
+cor_tabs(datasets::penguins, outcome_vars, outcome_vars) |>
+  iff_table(dp = 2) |>
+  autofit()
+```
+
+
+```{r}
+datasets::penguins |>
+  cor_tabs("body_mass", outcome_vars)
+```
+
+```{r}
+datasets::penguins |>
+  cor_tabs("body_mass", outcome_vars) |>
+  iff_table(dp = 2) |>
+  autofit()
+```
+
+
+
+
+
+
+
+```{r}
+iff_group_summary <- function(data, by, include, ...) {
+  by_quo      <- enquo(by)
+  include_quo <- enquo(include)
+  by_name     <- as_name(by_quo)
+  
+  n_groups <- dplyr::n_distinct(data[[by_name]] |> na.omit())
+  stopifnot(n_groups >= 2)
+  
+  test_fun <- if (n_groups == 2) "t.test" else "oneway.test"
+
+  data |>
+    tbl_summary(
+      by      = !!by_quo,
+      include = !!include_quo,
+      statistic = list(all_continuous() ~ "{mean} ({sd})"),
+      ...
+    ) |>
+    add_p(
+      pvalue_fun = format_p,
+      test = list(all_continuous() ~ test_fun)
+    ) |>
+    as_flex_table()
+
+}
+```
+
+
+
+```{r}
+datasets::penguins |>
+  iff_group_summary(by = island, include = c(bill_len:body_mass, sex))
+```
+
+
+```{r}
+outcome_vars
+```
+
+
+```{r}
+datasets::penguins |>
+  iff_group_summary(by = "island", include = outcome_vars)
+```
+
+
+```{r}
+datasets::penguins |>
+  iff_group_summary(by = sex, include = bill_len:body_mass)
+```
