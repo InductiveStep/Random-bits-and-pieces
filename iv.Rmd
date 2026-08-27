@@ -1,0 +1,152 @@
+---
+title: "R Notebook"
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+```{r}
+library(tidyverse)
+library(AER)
+library(sandwich)
+library(lmtest)
+library(broom)
+library(flextable)
+```
+
+
+```{r}
+mod_summ <- function(mod, name) {
+  mod |>
+    tidy() |>
+    mutate(analysis = name, .before = 1)
+}
+```
+
+
+
+```{r}
+format_coef_se <- function(tidy_df, coef_col = "estimate", se_col = "std.error") {
+  tidy_df |>
+    mutate(
+      coef_fmt = sprintf("%.2f", .data[[coef_col]]),
+      se_fmt   = sprintf("%.2f", .data[[se_col]]),
+      formatted = paste0(coef_fmt, "\n(", se_fmt, ")")
+    ) |>
+    pull(formatted)
+}
+```
+
+
+
+
+```{r}
+set.seed(42)
+
+n <- 500
+
+dat <- tibble(
+  # Strong confounder that reduces compliance and outcomes
+  digitally_keen = rnorm(n, mean = 0, sd = 1),
+
+  # Binary treatment (randomised)
+  smart_intervention = rbinom(n, 1, 0.5),
+
+  # Compliance percentage: treatment increases compliance,
+  # confounder reduces it, plus noise
+  no_phone = pmin(pmax(
+    0.2 + 0.4 * smart_intervention - 0.5 * digitally_keen + rnorm(n, 0, 0.2),
+    0), 1),
+
+  # Gaussian outcome: compliance improves outcome,
+  # confounder reduces outcome
+  wellbeing = 5 * no_phone - 5 * digitally_keen + rnorm(n, 0, 1)
+)
+```
+
+
+```{r}
+dat$no_phone |> summary()
+```
+
+```{r}
+dat |>
+  group_by(smart_intervention) |>
+  summarise(`mean no_phone` = mean(no_phone) |> round(2))
+```
+
+
+```{r}
+res <- list()
+```
+
+
+
+```{r}
+res$ITT <- lm(wellbeing ~ smart_intervention, data = dat) |>
+  mod_summ("ITT")
+```
+
+
+```{r}
+res$ITT_covar <- lm(wellbeing ~ smart_intervention + digitally_keen, data = dat) |>
+  mod_summ("ITT with covariate")
+```
+
+
+```{r}
+res$compilier_cov <- lm(wellbeing ~ no_phone + digitally_keen, data = dat) |>
+  mod_summ("Covariate adjusted effect of no smartphone")
+```
+
+
+```{r}
+cor.test(~ no_phone + digitally_keen, data = dat)
+```
+
+
+
+
+```{r}
+res$no_covar <- lm(wellbeing ~ no_phone, data = dat) |>
+  mod_summ("Effect of no smartphone (without the covariate)")
+```
+
+
+```{r}
+iv <- ivreg(wellbeing ~ no_phone | smart_intervention, data = dat)
+res$iv <- iv |>
+  coeftest(vcov = vcovHC(iv, type = "HC3")) |>
+  mod_summ("IV analysis (covariate not needed)")
+```
+
+
+```{r}
+iv_cov <- ivreg(wellbeing ~ no_phone + digitally_keen | smart_intervention + digitally_keen, data = dat)
+res$iv_cov <- iv_cov |>
+  coeftest(vcov = vcovHC(iv_cov, type = "HC3")) |>
+  mod_summ("IV analysis (but covariates can help)")
+```
+
+
+```{r}
+final_tab <- bind_rows(res)
+
+final_tab |>
+  mutate(est = format_coef_se(final_tab)) |>
+  select(analysis, term, est) |>
+  pivot_wider(names_from = analysis, values_from = est) |>
+  filter_out(term == "(Intercept)") |>
+  mutate(across(where(is.numeric), ~ round(.x, 2))) |>
+  mutate(term = replace_values(term,
+                               "smart_intervention" ~ "SMART intervention",
+                               "no_phone" ~ "(Actually) no smartphone",
+                               "digitally_keen" ~ "Digitally keen"),
+         ) |>
+  rename(Predictor = term) |>
+  flextable()
+```
+
+
+
+
