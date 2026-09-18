@@ -1,0 +1,132 @@
+---
+title: "Ordinal regression with empty levels"
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+
+```{r message=FALSE, warning=FALSE}
+library(MASS)
+library(tidyverse)
+library(flextable)
+library(WeightIt)
+```
+
+
+```{r}
+set.seed(42)
+dat <- tibble(
+  x = rnorm(500),
+  y = .5 * x + rnorm(100, 0, .2),
+  y_order = cut(
+    y,
+    breaks = quantile(y, probs = c(0, .2, .21, .4, .6, 1)),
+    include.lowest = TRUE,
+    ordered_result = TRUE
+  )
+) |>
+  mutate(y_order = factor(y_order, labels = 1:length(levels(y_order))))
+```
+
+
+```{r}
+is.na(dat$y_order) |> sum()
+```
+
+```{r}
+dat |>
+  group_by(y_order) |>
+  summarise(y_mean = mean(y), n = n())
+```
+
+
+
+```{r}
+dat_trunc <- dat |>
+  filter_out(y_order == "1") |>
+  mutate(y_order_dropped = droplevels(y_order))
+```
+
+
+```{r}
+dat_trunc |>
+  group_by(y_order) |>
+  summarise(y_mean = mean(y), n = n())
+```
+
+```{r}
+ordinal_weightit(y_order ~ x, br = TRUE, data = dat_trunc) |> summary()
+```
+
+
+```{r}
+polr(y_order ~ x, data = dat_trunc, Hess = TRUE) |> summary()
+```
+
+
+
+```{r}
+res <- list()
+res$keep    <- polr(y_order ~ x,         data = dat_trunc)
+res$dropped <- polr(y_order_dropped ~ x, data = dat_trunc)
+```
+
+
+```{r}
+sum_polr_list <- function(polrs) {
+  polrs |>
+    map(~ c(.x$coefficients, .x$zeta)) |>
+    bind_rows()
+}
+```
+
+
+
+
+```{r}
+res |> sum_polr_list()
+```
+
+
+
+```{r}
+drop_and_fit <- function(drop_level) {
+  dat_dropped <- dat |>
+    filter_out(y_order == drop_level) |>
+    mutate(y_order_dropped = droplevels(y_order))  
+  
+  res <- list()
+  res$polr_keep    <- polr(y_order ~ x,         data = dat_dropped)
+  res$polr_dropped <- polr(y_order_dropped ~ x, data = dat_dropped) 
+  res$BR_keep      <- ordinal_weightit(y_order ~ x,         br = TRUE, data = dat_dropped)
+  res$BR_dropped   <- ordinal_weightit(y_order_dropped ~ x, br = TRUE, data = dat_dropped)  
+  
+  sum_polr_list(res) |>
+    mutate(`level with 0 obs` = drop_level, .before = 1) |>
+    mutate(`keep empty level` = c("yes", "no", "yes", "no"), .after = 1) |>
+    mutate(model = c("polr", "polr", "br", "br"), .after = 1)
+}
+```
+
+
+Using filter_out, so removing "(None)" doesn't remove any observations:
+
+```{r}
+c("(None)", 1:5 |> as.character()) |> map(drop_and_fit) |>
+  bind_rows() |>
+  mutate(across(4:last_col(), ~ round(.x, 3))) |>
+  mutate(`keep empty level` = case_when(`level with 0 obs` == "(None)" ~ NA_character_,
+                                        .default = `keep empty level`)) |>
+  select(1:4, sort(tidyselect::peek_vars())) |>
+  flextable() |>
+  border_inner(part = "all") |>
+  merge_v(j = 1:3) |>
+  autofit()
+```
+
+
+
+
+
+
