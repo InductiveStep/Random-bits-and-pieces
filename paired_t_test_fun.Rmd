@@ -35,8 +35,8 @@ lm(I(extra.1 - extra.2) ~ 1, data = sleep_wide) |>
 ## Unit fixed-effects regression
 
 ```{r}
-lm_mod <- lm(extra ~ I(as.numeric(group == 1)) + ID + 0, data = sleep)
-summary(lm_mod)
+lm(extra ~ I(as.numeric(group == 1)) + ID + 0, data = sleep) |>
+  summary()
 ```
 
 ## Survey design clustered by ID with equal weights
