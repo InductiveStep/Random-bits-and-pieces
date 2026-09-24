@@ -1,0 +1,68 @@
+---
+title: "Five ways to calculate a paired t-test"
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+```{r message=FALSE}
+library(survey)
+library(lme4)
+library(lmerTest)
+```
+
+
+```{r}
+sleep_wide <- reshape(sleep, direction = "wide", idvar = "ID", timevar = "group")
+```
+
+
+## Paired t-test
+
+```{r}
+t.test(sleep_wide$extra.1, sleep_wide$extra.2, paired = TRUE)
+```
+
+## Intercept-only regression model of paired differences
+
+```{r}
+lm(I(extra.1 - extra.2) ~ 1, data = sleep_wide) |>
+  summary()
+```
+
+
+
+## Unit fixed-effects regression
+
+```{r}
+lm_mod <- lm(extra ~ I(as.numeric(group == 1)) + ID + 0, data = sleep)
+summary(lm_mod)
+```
+
+## Survey design clustered by ID with equal weights
+
+```{r}
+sleep_svy <- svydesign(ids = ~ ID, data = sleep, weights = 1)
+sleep_svy
+```
+
+
+```{r}
+svyglm(extra ~ I(as.numeric(group == 1)), design = sleep_svy) |>
+  summary(df.resid = degf(sleep_svy))
+```
+
+
+## Mixed model with random intercept by ID and Satterthwaite's t
+
+```{r}
+lmerTest::lmer(extra ~ I(as.numeric(group == 1)) + (1|ID), data = sleep) |>
+  summary()
+```
+
+
+
+
+
+
+
