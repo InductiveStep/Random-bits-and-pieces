@@ -1,0 +1,173 @@
+---
+title: "TARDIS model"
+author: Andi Fugard
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+## Functions
+
+```{r}
+evaluation_timeline <- function(
+  delivery_start,
+  delivery_end,
+  report_due,
+  weeks_to_LA_start,
+  weeks_referral_to_outcome,
+  weeks_analysis_and_report
+) {
+
+  first_referral <- delivery_start + weeks(weeks_to_LA_start)
+
+  last_outcome <- report_due - weeks(weeks_analysis_and_report)
+
+  last_participant_referral <- last_outcome - weeks(weeks_referral_to_outcome)
+
+  evaluation_weeks <- as.numeric(
+    difftime(
+      last_participant_referral,
+      first_referral,
+      units = "weeks"
+    )
+  )
+
+  list(
+    # Inputs
+    delivery_start = delivery_start,
+    delivery_end = delivery_end,
+    report_due = report_due,
+    weeks_to_LA_start = weeks_to_LA_start,
+    weeks_referral_to_outcome = weeks_referral_to_outcome,
+    weeks_analysis_and_report = weeks_analysis_and_report,
+
+    # Outputs
+    first_referral = first_referral,
+    last_outcome = last_outcome,
+    last_participant_referral = last_participant_referral,
+    evaluation_weeks = evaluation_weeks
+  )
+}
+```
+
+```{r}
+print_evaluation_timeline <- function(x) {
+
+  fmt <- function(d) {
+    format(as.Date(d), "%d %B %Y")
+  }
+
+  cat(
+    paste(
+      "EVALUATION TIMELINE",
+      "",
+      "Inputs",
+      "------",
+      sprintf("Delivery period starts:  %s", fmt(x$delivery_start)),
+      sprintf("Delivery period ends:    %s", fmt(x$delivery_end)),
+      sprintf("Report due:              %s", fmt(x$report_due)),
+      sprintf("Weeks to first referral: %d", x$weeks_to_LA_start),
+      sprintf("Referral to outcome lag: %d weeks", x$weeks_referral_to_outcome),
+      sprintf("Analysis and reporting:  %d weeks", x$weeks_analysis_and_report),
+      "",
+      "Derived dates",
+      "-------------",
+      sprintf("First referral:            %s", fmt(x$first_referral)),
+      sprintf("Last participant referral: %s", fmt(x$last_participant_referral)),
+      sprintf("Last outcome measurement:  %s", fmt(x$last_outcome)),
+      "",
+      sprintf(
+        "Effective evaluation window: %.1f weeks",
+        x$evaluation_weeks
+      ),
+      sep = "\n"
+    )
+  )
+
+  invisible(x)
+}
+```
+
+
+```{r}
+smooth_rise <- function(n, peak_at = 0.7, slope = 8) {
+  k <- ceiling(peak_at * n)
+  x <- seq(-1, 1, length.out = k)
+  y <- plogis(slope * x)
+  y <- (y - y[1]) / (y[k] - y[1])
+  c(y, rep(1, n - k))
+}
+```
+
+
+```{r}
+smooth_rise_sample <- function(time_points, total_n, peak_at = 0.7, slope = 8) {
+  y <- smooth_rise(n = time_points, peak_at = peak_at, slope = slope)
+  y <- round(total_n * y / sum(y), 0)
+}
+```
+
+
+## Calculate
+
+```{r}
+res <- evaluation_timeline(
+  delivery_start = dmy("1/3/2027"),
+  delivery_end   = dmy("1/3/2028"),
+  report_due     = dmy("1/7/2028"),
+  weeks_to_LA_start         = 0,
+  weeks_referral_to_outcome = 6 * 4,
+  weeks_analysis_and_report = 4 * 2
+)
+
+print_evaluation_timeline(res)
+```
+
+
+
+
+```{r}
+eval_weeks <- floor(res$evaluation_weeks)
+eval_weeks
+```
+
+```{r}
+total_delivery_weeks <- difftime(res$delivery_end, res$delivery_start, units = "weeks") |>
+  as.numeric() |>
+  floor()
+total_delivery_weeks
+```
+
+```{r}
+total_delivery_n <- 1000
+```
+
+
+
+
+```{r}
+weekly_delivery_n <- smooth_rise_sample(time_points = total_delivery_weeks,
+                                      total_n = total_delivery_n,
+                                      peak_at = 10 / 52,
+                                      slope = 7)
+data.frame(Week = 1:length(weekly_delivery_n),
+           n = weekly_delivery_n) |>
+  ggplot() +
+  aes(Week, n) +
+  geom_point() +
+  geom_vline(xintercept = eval_weeks, colour = "purple")
+```
+
+```{r}
+sum(weekly_delivery_n)
+```
+
+
+
+```{r}
+eval_sample <- head(weekly_delivery_n, eval_weeks) |> sum()
+eval_sample
+```
+
