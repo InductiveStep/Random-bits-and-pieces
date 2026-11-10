@@ -1,0 +1,45 @@
+---
+title: "R Notebook"
+output: 
+  html_notebook: 
+    code_folding: none
+---
+
+
+```{r}
+library(epiR)
+```
+
+
+```{r}
+epi.ssninfc(treat = 0, control = 0, sigma = 1, delta = 0.2, n = NA, 
+   power = 0.80, r = 1, nfractional = FALSE, alpha = 0.05)
+```
+
+
+```{r}
+epi.ssninfb(treat = .2, control = .2, .05, n = NA, power = .8, r = 1, nfractional = FALSE, 
+   alpha = 0.05)
+```
+
+
+
+
+```{r}
+power.t.test(delta = .2, power = .8)
+```
+
+
+Replicate Davis, J. A., Connolly, M. L., Young, L. M., Turner, M., Mahoney, S., Saunders, D., John, T., Fiddes, R., Bryan, M., Berk, M., Davids, I., Barrand, S., Jacka, F. N., Murray, G., McDonald, E., Chatterton, M. L., Kaylor-Hughes, C., Mihalopoulos, C., Yung, A., … on behalf of the HARMON-E trial team. (2024). Evaluating the effectiveness of a multi-component lifestyle therapy program versus psychological therapy for managing mood disorders (HARMON-E): Protocol of a randomised non-inferiority trial. BMC Psychiatry, 24(1), 653. https://doi.org/10.1186/s12888-024-06098-z
+
+
+```{r}
+1.6/3.6
+```
+
+
+```{r}
+epi.ssninfc(treat = 0, control = 0, sigma = 1, delta = 1.6/3.6, n = NA, 
+   power = 0.80, r = 1, nfractional = FALSE, alpha = 0.05)
+```
+
