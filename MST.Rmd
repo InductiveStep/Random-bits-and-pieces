@@ -1,0 +1,86 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(powertools)
+library(tidyverse)
+```
+
+
+Holmes, L., Neagu, M., Sanders-Ellis, D., & Harrison, N. (2020). Lifelong Links evaluation report. Department for Education. https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/955953/Lifelong_Links_evaluation_report.pdf
+
+Page 39 -- participation by trial site:
+
+```{r}
+completed <- data.frame(
+  completed_plan_without_fgc = c(1, 1, 13, 35, 51, 4, 1, 0, 14, 0, 3),
+  completed_fgc = c(1, 1, 26, 10, 45, 3, 1, 0, 12, 0, 3)
+) |>
+  mutate(completed_sum = completed_plan_without_fgc + completed_fgc) |>
+  filter(completed_sum > 0)
+
+completed_CYP <- completed$completed_sum
+twice_completed <- completed_CYP * 2
+```
+
+
+Total for intervention and control:
+
+```{r}
+mean(twice_completed)
+sd(twice_completed)
+```
+
+```{r}
+completed |>
+  ggplot() +
+  aes(x = completed_sum) +
+  geom_histogram(bins = 20)
+```
+
+
+
+```{r}
+n_per_LA <- mean(completed_CYP)
+LAs <- multisite.cont(
+  delta    = 0.2,
+  sd       = 1,
+  m.sd     = sd(twice_completed),
+  m        = mean(twice_completed),
+  power    = .8,
+  Rsq      = sqrt(0.7),
+  alpha    = 0.05,
+  icc0     = 0.05,
+  icc1     = 0.05,
+  sides    = 2
+) |> ceiling()
+LAs
+n_per_LA * LAs
+```
+
+
+Test with one site:
+
+```{r}
+test_delta = 0.42
+test_m = 1
+test_sites <- multisite.cont(
+  delta = test_delta,
+  sd = 1,
+  m.sd = 0,
+  m = test_m,
+  power = .8,
+  Rsq = 0,
+  alpha = 0.05,
+  icc0 = 0,
+  icc1 = 0,
+  sides = 2
+)
+cat("multisite.cont: ")
+ceiling(test_m * test_sites) |> cat()
+cat("\npower.t.test:   ")
+(power.t.test(delta = test_delta, power = 0.8, sig.level = 0.05)$n * 2) |> ceiling() |> cat()
+```
+
